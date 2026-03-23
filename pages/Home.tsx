@@ -1062,44 +1062,51 @@ const Pricing: React.FC = () => (
   <section id="pricing" className="py-16 md:py-24">
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div className="text-center mb-16">
-        <h2 className="text-3xl font-bold text-slate-900 dark:text-white">Simple, Transparent Pricing</h2>
-        <p className="mt-4 text-slate-600 dark:text-slate-400">Start for free, upgrade for more power.</p>
+        <h2 className="text-3xl font-bold text-slate-900 dark:text-white">Pay As You Go Pricing</h2>
+        <p className="mt-4 text-slate-600 dark:text-slate-400">Everything you need to land your dream job, permanently free. Just pay for AI GPU time.</p>
       </div>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8 max-w-5xl mx-auto">
         {/* Free Plan */}
-        <div className="bg-slate-50 dark:bg-black/80 backdrop-blur-sm p-8 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800">
-          <h3 className="text-xl font-bold text-slate-900 dark:text-white">Starter</h3>
-          <div className="my-4"><span className="text-4xl font-bold text-slate-900 dark:text-white">₹0</span><span className="text-slate-500 dark:text-slate-400">/mo</span></div>
-          <ul className="space-y-3 text-sm text-slate-600 dark:text-slate-400 mb-8">
-            <li className="flex items-center gap-2"><i className="fas fa-check text-green-500"></i> 1 AI Interview / month</li>
-            <li className="flex items-center gap-2"><i className="fas fa-check text-green-500"></i> Basic Resume Analysis</li>
-            <li className="flex items-center gap-2"><i className="fas fa-check text-green-500"></i> Job Board Access</li>
+        <div className="bg-slate-50 dark:bg-black/80 backdrop-blur-sm p-8 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 flex flex-col h-full">
+          <h3 className="text-xl font-bold text-slate-900 dark:text-white">Free Forever</h3>
+          <div className="my-4"><span className="text-4xl font-bold text-slate-900 dark:text-white">₹0</span></div>
+          <ul className="space-y-3 text-sm text-slate-600 dark:text-slate-400 mb-8 flex-grow">
+            <li className="flex items-start gap-2"><i className="fas fa-check text-green-500 mt-1"></i> <div><strong>5 Free AI Interview per month</strong> (Trial)</div></li>
+            <li className="flex items-start gap-2"><i className="fas fa-check text-green-500 mt-1"></i> <div><strong>Unlimited</strong> Actual Job Interviews</div></li>
+            <li className="flex items-start gap-2"><i className="fas fa-check text-green-500 mt-1"></i> <div><strong>Free</strong> Mock Tests & Aptitude</div></li>
+            <li className="flex items-start gap-2"><i className="fas fa-check text-green-500 mt-1"></i> <div><strong>Free</strong> AI Resume Builder & Analysis</div></li>
+            <li className="flex items-start gap-2"><i className="fas fa-check text-green-500 mt-1"></i> <div><strong>Free</strong> Personalized AI Advisor</div></li>
           </ul>
-          <Link to="/auth" className="block w-full py-3 text-center border border-blue-600 text-blue-600 dark:text-blue-400 dark:border-blue-400 rounded-xl font-bold hover:bg-blue-50 dark:hover:bg-blue-900/20 transition">Sign Up Free</Link>
+          <Link to="/auth" className="block w-full py-3 text-center border border-blue-600 text-blue-600 dark:text-blue-400 dark:border-blue-400 rounded-xl font-bold hover:bg-blue-50 dark:hover:bg-blue-900/20 transition mt-auto">Get Started Free</Link>
         </div>
+        
         {/* Pro Plan */}
-        <div className="bg-white dark:bg-black/80 backdrop-blur-sm p-8 rounded-2xl shadow-xl border-2 border-blue-600 relative transform md:-translate-y-4">
+        <div className="bg-white dark:bg-black/80 backdrop-blur-sm p-8 rounded-2xl shadow-xl border-2 border-blue-600 relative transform md:-translate-y-4 flex flex-col h-full">
           <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-blue-600 text-white px-4 py-1 rounded-full text-xs font-bold uppercase">Most Popular</div>
-          <h3 className="text-xl font-bold text-slate-900 dark:text-white">Pro</h3>
-          <div className="my-4"><span className="text-4xl font-bold text-slate-900 dark:text-white">₹1499</span><span className="text-slate-500 dark:text-slate-400">/mo</span></div>
-          <ul className="space-y-3 text-sm text-slate-600 dark:text-slate-300 mb-8">
-            <li className="flex items-center gap-2"><i className="fas fa-check text-green-500"></i> Unlimited Interviews</li>
-            <li className="flex items-center gap-2"><i className="fas fa-check text-green-500"></i> Advanced Resume Builder</li>
-            <li className="flex items-center gap-2"><i className="fas fa-check text-green-500"></i> Detailed AI Feedback</li>
-            <li className="flex items-center gap-2"><i className="fas fa-check text-green-500"></i> Priority Support</li>
+          <h3 className="text-xl font-bold text-slate-900 dark:text-white">Pay As You Go</h3>
+          <div className="my-4"><span className="text-4xl font-bold text-slate-900 dark:text-white">10 Pts</span><span className="text-slate-500 dark:text-slate-400"> / Interview</span></div>
+          <ul className="space-y-3 text-sm text-slate-600 dark:text-slate-300 mb-8 flex-grow">
+            <li className="flex items-start gap-2"><i className="fas fa-check text-green-500 mt-1"></i> <div><strong>In-App Wallet:</strong> Top up anytime</div></li>
+            <li className="flex items-start gap-2"><i className="fas fa-check text-green-500 mt-1"></i> <div><strong>No Subscription:</strong> Buy what you need</div></li>
+            <li className="flex items-start gap-2"><i className="fas fa-check text-green-500 mt-1"></i> <div><strong>Unlimited</strong> Interview Practice</div></li>
+            <li className="flex items-start gap-2"><i className="fas fa-check text-green-500 mt-1"></i> <div>High-fidelity AI Interview Personas</div></li>
+            <li className="flex items-start gap-2"><i className="fas fa-check text-green-500 mt-1"></i> <div>Instant AI Feedback Reports</div></li>
+            <li className="flex items-start gap-2"><i className="fas fa-bolt text-yellow-500 mt-1"></i> <div><strong>Includes all Free features</strong></div></li>
           </ul>
-          <Link to="/auth" className="block w-full py-3 text-center bg-blue-600 text-white rounded-xl font-bold hover:bg-blue-700 transition">Get Started</Link>
+          <Link to="/auth" className="block w-full py-3 text-center bg-blue-600 text-white rounded-xl font-bold hover:bg-blue-700 transition mt-auto">Top Up Wallet</Link>
         </div>
+        
         {/* Enterprise Plan */}
-        <div className="bg-slate-50 dark:bg-black/80 backdrop-blur-sm p-8 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800">
-          <h3 className="text-xl font-bold text-slate-900 dark:text-white">Enterprise</h3>
+        <div className="bg-slate-50 dark:bg-black/80 backdrop-blur-sm p-8 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 flex flex-col h-full">
+          <h3 className="text-xl font-bold text-slate-900 dark:text-white">Campus & Enterprise</h3>
           <div className="my-4"><span className="text-4xl font-bold text-slate-900 dark:text-white">Custom</span></div>
-          <ul className="space-y-3 text-sm text-slate-600 dark:text-slate-400 mb-8">
-            <li className="flex items-center gap-2"><i className="fas fa-check text-green-500"></i> For Recruitment Teams</li>
-            <li className="flex items-center gap-2"><i className="fas fa-check text-green-500"></i> Custom Job Roles</li>
-            <li className="flex items-center gap-2"><i className="fas fa-check text-green-500"></i> API Access</li>
+          <ul className="space-y-3 text-sm text-slate-600 dark:text-slate-400 mb-8 flex-grow">
+            <li className="flex items-start gap-2"><i className="fas fa-check text-green-500 mt-1"></i> <div>Bulk Point Top-ups for Universities</div></li>
+            <li className="flex items-start gap-2"><i className="fas fa-check text-green-500 mt-1"></i> <div>Custom Job Roles & Requirements</div></li>
+            <li className="flex items-start gap-2"><i className="fas fa-check text-green-500 mt-1"></i> <div>Recruiter Assessment Dashboards</div></li>
+            <li className="flex items-start gap-2"><i className="fas fa-check text-green-500 mt-1"></i> <div>API Data Export</div></li>
           </ul>
-          <a href="mailto:sales@interviewxpert.com" className="block w-full py-3 text-center border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 rounded-xl font-bold hover:bg-slate-100 dark:hover:bg-slate-800 transition">Contact Sales</a>
+          <a href="mailto:sales@interviewxpert.com" className="block w-full py-3 text-center border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 rounded-xl font-bold hover:bg-slate-100 dark:hover:bg-slate-800 transition mt-auto">Contact Sales</a>
         </div>
       </div>
     </div>
