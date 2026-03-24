@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { jsPDF } from 'jspdf';
 
@@ -67,6 +67,25 @@ const ResumeBuilder: React.FC = () => {
   const [tempProject, setTempProject] = useState<Project>({ id: 0, title: '', link: '', description: '' });
   const [tempCert, setTempCert] = useState<Certification>({ id: 0, name: '', issuer: '', year: '' });
   const [tempVol, setTempVol] = useState<Volunteering>({ id: 0, role: '', organization: '', duration: '', description: '' });
+
+  useEffect(() => {
+    document.title = "Free Resume Builder | InterviewXpert";
+    const setMetaTag = (attr: 'name' | 'property', value: string, content: string) => {
+        let element = document.querySelector(`meta[${attr}='${value}']`) as HTMLMetaElement;
+        if (!element) {
+            element = document.createElement('meta');
+            element.setAttribute(attr, value);
+            document.head.appendChild(element);
+        }
+        element.setAttribute('content', content);
+    };
+
+    setMetaTag('name', 'description', "Create a professional, modern resume in minutes with InterviewXpert's free resume builder. Choose from multiple templates and download as PDF or JPG.");
+    setMetaTag('property', 'og:title', 'Free Resume Builder | InterviewXpert');
+    setMetaTag('property', 'og:description', "Create a professional, modern resume in minutes.");
+    setMetaTag('name', 'twitter:title', 'Free Resume Builder | InterviewXpert');
+    setMetaTag('name', 'twitter:description', "Create a professional, modern resume in minutes.");
+  }, []);
 
   const addExperience = () => {
     if (tempExp.role && tempExp.company) {

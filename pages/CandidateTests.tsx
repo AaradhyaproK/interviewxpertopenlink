@@ -60,7 +60,7 @@ const CandidateTests: React.FC = () => {
     } catch (e) {
       console.error("Fullscreen failed:", e);
     }
-    navigate(`/candidate/test/${testId}`);
+    navigate(`/test/start/${testId}`);
   };
 
   return (

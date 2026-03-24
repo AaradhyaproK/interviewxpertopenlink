@@ -25,6 +25,29 @@ const BlogsContent: React.FC = () => {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
+        document.title = "Blog | InterviewXpert";
+        const setMetaTag = (attr: 'name' | 'property', value: string, content: string) => {
+            let element = document.querySelector(`meta[${attr}='${value}']`) as HTMLMetaElement;
+            if (!element) {
+                element = document.createElement('meta');
+                element.setAttribute(attr, value);
+                document.head.appendChild(element);
+            }
+            element.setAttribute('content', content);
+        };
+
+        setMetaTag('name', 'description', 'Insights, strategies, and tips for your career journey. Read the latest articles from InterviewXpert on interview preparation, resume building, and career growth.');
+        setMetaTag('name', 'keywords', 'interview tips, career advice, resume help, job search, interviewxpert blog');
+        setMetaTag('property', 'og:title', 'Blog | InterviewXpert');
+        setMetaTag('property', 'og:description', 'Insights, strategies, and tips for your career journey and interview preparation.');
+        setMetaTag('property', 'og:url', 'https://interviewxpert.in/#/blogs');
+        setMetaTag('property', 'og:image', 'https://i.ibb.co/3y9DKsB6/Yellow-and-Black-Illustrative-Education-Logo-1.png');
+        setMetaTag('name', 'twitter:card', 'summary');
+        setMetaTag('property', 'twitter:title', 'Blog | InterviewXpert');
+        setMetaTag('property', 'twitter:description', 'Insights, strategies, and tips for your career journey and interview preparation.');
+    }, []);
+
+    useEffect(() => {
         const fetchBlogs = async () => {
             try {
                 const q = query(collection(db, 'blogs'), orderBy('createdAt', 'desc'));

@@ -14,6 +14,77 @@ const BlogDetail: React.FC = () => {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
+        if (blog) {
+            document.title = `${blog.title} | InterviewXpert Blog`;
+
+            const setMetaTag = (attr: 'name' | 'property', value: string, content: string) => {
+                let element = document.querySelector(`meta[${attr}='${value}']`) as HTMLMetaElement;
+                if (!element) {
+                    element = document.createElement('meta');
+                    element.setAttribute(attr, value);
+                    document.head.appendChild(element);
+                }
+                element.setAttribute('content', content);
+            };
+
+            setMetaTag('name', 'description', blog.excerpt);
+            if (blog.tags && Array.isArray(blog.tags)) {
+                setMetaTag('name', 'keywords', blog.tags.join(', '));
+            }
+
+            // OG & Twitter tags
+            setMetaTag('property', 'og:title', blog.title);
+            setMetaTag('property', 'og:description', blog.excerpt);
+            setMetaTag('property', 'og:type', 'article');
+            setMetaTag('property', 'og:url', `https://interviewxpert.in/#/blog/${blog.id}`);
+            if (blog.imageUrl) {
+                setMetaTag('property', 'og:image', blog.imageUrl);
+                setMetaTag('name', 'twitter:image', blog.imageUrl);
+            }
+            setMetaTag('name', 'twitter:card', 'summary_large_image');
+            setMetaTag('property', 'twitter:title', blog.title);
+            setMetaTag('property', 'twitter:description', blog.excerpt);
+
+            // JSON-LD for Article
+            const jsonLdScriptId = 'blog-json-ld';
+            let script = document.getElementById(jsonLdScriptId) as HTMLScriptElement;
+            if (!script) {
+                script = document.createElement('script');
+                script.id = jsonLdScriptId;
+                script.type = 'application/ld+json';
+                document.head.appendChild(script);
+            }
+            script.innerHTML = JSON.stringify({
+                '@context': 'https://schema.org',
+                '@type': 'BlogPosting',
+                'headline': blog.title,
+                'image': blog.imageUrl || 'https://i.ibb.co/3y9DKsB6/Yellow-and-Black-Illustrative-Education-Logo-1.png',
+                'author': {
+                    '@type': 'Person',
+                    'name': blog.author || 'InterviewXpert Team'
+                },
+                'datePublished': blog.createdAt?.toDate ? blog.createdAt.toDate().toISOString() : new Date().toISOString(),
+                'description': blog.excerpt,
+                'publisher': {
+                    '@type': 'Organization',
+                    'name': 'InterviewXpert',
+                    'logo': {
+                        '@type': 'ImageObject',
+                        'url': 'https://i.ibb.co/3y9DKsB6/Yellow-and-Black-Illustrative-Education-Logo-1.png'
+                    }
+                }
+            });
+
+            return () => {
+                const scriptToRemove = document.getElementById(jsonLdScriptId);
+                if (scriptToRemove) {
+                    document.head.removeChild(scriptToRemove);
+                }
+            };
+        }
+    }, [blog]);
+
+    useEffect(() => {
         const fetchBlog = async () => {
             if (!id) return;
             try {

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { collection, query, where, getDocs, doc, getDoc } from 'firebase/firestore';
+import { collectionGroup, query, where, getDocs, orderBy, collection, doc, getDoc } from 'firebase/firestore';
 import { auth, db } from '../services/firebase';
 import { Link } from 'react-router-dom';
 import { Interview } from '../types';
@@ -45,61 +45,75 @@ const MyInterviews: React.FC = () => {
     // Use onAuthStateChanged to wait for the user session to initialize
     const unsubscribe = auth.onAuthStateChanged(async (user) => {
       if (user) {
+        setLoading(true);
         try {
-          // Query for interviews where the user is the candidate
-          const q = query(
-            collection(db, 'interviews'),
-            where('candidateUID', '==', user.uid)
+          // Use a collection group query to find all attempts by this user across all interviews
+          const attemptsQuery = query(
+            collectionGroup(db, 'attempts'),
+            where('candidateUID', '==', user.uid),
+            orderBy('submittedAt', 'desc')
           );
 
-          const snap = await getDocs(q);
-          const allInterviews = snap.docs.map(doc => ({ id: doc.id, ...doc.data() } as Interview));
-
-          // Fetch mock jobs created by this user to exclude them
-          const mockJobsQuery = query(
-            collection(db, 'jobs'),
-            where('recruiterUID', '==', user.uid),
-            where('isMock', '==', true)
-          );
-          const mockJobsSnap = await getDocs(mockJobsQuery);
-          const mockJobIds = new Set(mockJobsSnap.docs.map(doc => doc.id));
+          const attemptsSnap = await getDocs(attemptsQuery);
+          const allSubmissions = attemptsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() } as Interview));
 
           // Separate interviews
           const real: Interview[] = [];
           const mock: Interview[] = [];
 
-          allInterviews.forEach(interview => {
-            if (mockJobIds.has(interview.jobId)) mock.push(interview);
-            else real.push(interview);
+          allSubmissions.forEach(submission => {
+            if (submission.isMock) {
+              mock.push(submission);
+            } else {
+              real.push(submission);
+            }
           });
 
           setRealInterviews(real);
           setMockInterviews(mock);
 
-          // Fetch Test Submissions (Assessments)
-          const subQ = query(
-            collection(db, 'testSubmissions'),
-            where('candidateUID', '==', user.uid)
-          );
-          const subSnap = await getDocs(subQ);
-          const subs = await Promise.all(subSnap.docs.map(async (d) => {
-            const data = d.data();
-            let jobTitle = data.testTitle || data.title;
-
-            if (!jobTitle && data.testId) {
-              try {
-                const tDoc = await getDoc(doc(db, 'tests', data.testId));
-                if (tDoc.exists()) jobTitle = tDoc.data().title;
-              } catch (e) { /* ignore */ }
-            }
-
-            // Map fields to match Interview type for easier filtering/sorting
-            return { id: d.id, ...data, jobTitle: jobTitle || 'Skill Assessment', submittedAt: data.submittedAt || data.createdAt, isAssessment: true };
-          }));
-          setAssessments(subs);
-
         } catch (err) {
           console.error("Error fetching interviews:", err);
+          // NOTE: If you see a 'missing index' error in the console,
+          // Firebase will provide a link to create the required database index.
+          // Please click that link to enable this query.
+        }
+
+        try {
+          const assessmentsQuery = query(
+            collection(db, 'testSubmissions'),
+            where('candidateUID', '==', user.uid),
+            orderBy('submittedAt', 'desc')
+          );
+          const assessmentsSnap = await getDocs(assessmentsQuery);
+          const assessmentsData = assessmentsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+          if (assessmentsData.length > 0) {
+            const testIds = [...new Set(assessmentsData.map(a => a.testId).filter(Boolean))];
+            const testsData: Record<string, any> = {};
+
+            // Firestore 'in' query is limited to 30 elements. Chunk if necessary.
+            for (let i = 0; i < testIds.length; i += 30) {
+                const chunk = testIds.slice(i, i + 30);
+                if (chunk.length > 0) {
+                    const testsQuery = query(collection(db, 'tests'), where('__name__', 'in', chunk));
+                    const testsSnap = await getDocs(testsQuery);
+                    testsSnap.forEach(doc => {
+                        testsData[doc.id] = doc.data();
+                    });
+                }
+            }
+            
+            const enrichedAssessments = assessmentsData.map(sub => ({
+                ...sub,
+                jobTitle: testsData[sub.testId]?.title || 'Assessment',
+            }));
+            setAssessments(enrichedAssessments);
+          } else {
+            setAssessments([]);
+          }
+        } catch (err) {
+          console.error("Error fetching assessments:", err);
         }
       }
       // Always set loading to false after the auth check completes
@@ -327,7 +341,7 @@ const MyInterviews: React.FC = () => {
 
                 <div className="pt-4 border-t border-gray-100 dark:border-white/5 mt-auto relative z-10">
                   <Link
-                    to={`/report/${interview.id}`}
+                    to={`/report/${interview.interviewId}/${interview.id}`}
                     className="flex items-center justify-center w-full px-4 py-2.5 bg-white dark:bg-slate-800 border border-gray-200 dark:border-white/5 text-gray-700 dark:text-gray-300 hover:bg-primary hover:text-white hover:border-primary dark:hover:bg-primary dark:hover:border-primary rounded-xl transition-all font-semibold text-sm group-hover:shadow-md"
                   >
                     View Full Report <i className="fas fa-arrow-right ml-2"></i>

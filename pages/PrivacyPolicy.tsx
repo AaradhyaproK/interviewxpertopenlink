@@ -1,7 +1,11 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import Layout from '../components/Layout';
 
 const PrivacyPolicy: React.FC = () => {
+  useEffect(() => {
+    document.title = "Privacy Policy | InterviewXpert";
+  }, []);
+
   return (
     <Layout>
       <div className="max-w-4xl mx-auto py-12 px-4 sm:px-6 lg:px-8">

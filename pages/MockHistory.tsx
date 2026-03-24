@@ -13,40 +13,22 @@ const MockHistory: React.FC = () => {
     const unsubscribe = auth.onAuthStateChanged(async (user) => {
       if (user) {
         try {
-          // 1. Get all jobs created by this user that are mocks
-          const jobsQuery = query(
-            collection(db, 'jobs'),
-            where('recruiterUID', '==', user.uid),
-            where('isMock', '==', true)
-          );
-          const jobsSnap = await getDocs(jobsQuery);
-          const mockJobIds = jobsSnap.docs.map(doc => doc.id);
-
-          if (mockJobIds.length === 0) {
-            setInterviews([]);
-            setLoading(false);
-            return;
-          }
-
-          // 2. Get interviews for these jobs
-          // Note: Firestore 'in' query is limited to 10 items. If user has many mock jobs, we might need to batch or fetch all user interviews and filter in memory.
-          // For scalability, fetching all user interviews and filtering is safer here since a user won't have millions of interviews.
-          
-          const interviewsQuery = query(
-            collection(db, 'interviews'),
+          const attemptsQuery = query(
+            collectionGroup(db, 'attempts'),
             where('candidateUID', '==', user.uid),
+            where('isMock', '==', true), // Filter for mocks only
             orderBy('submittedAt', 'desc')
           );
-          
-          const interviewsSnap = await getDocs(interviewsQuery);
-          const allInterviews = interviewsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() } as Interview));
-          
-          // Filter for mock jobs
-          const mockInterviews = allInterviews.filter(i => mockJobIds.includes(i.jobId));
+
+          const attemptsSnap = await getDocs(attemptsQuery);
+          const mockInterviews = attemptsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() } as Interview));
           setInterviews(mockInterviews);
 
         } catch (err) {
           console.error("Error fetching mock history:", err);
+          // NOTE: If you see a 'missing index' error in the console,
+          // Firebase will provide a link to create the required database index.
+          // Please click that link to enable this query.
         }
       }
       setLoading(false);
@@ -151,7 +133,7 @@ const MockHistory: React.FC = () => {
                 </div>
 
                 <div className="pt-4 border-t border-gray-100 dark:border-slate-800 mt-auto relative z-10">
-                  <Link to={`/report/${interview.id}`} className="flex items-center justify-center w-full px-4 py-2.5 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 text-gray-700 dark:text-slate-300 hover:bg-primary hover:text-white hover:border-primary dark:hover:bg-primary dark:hover:border-primary rounded-xl transition-all font-semibold text-sm group-hover:shadow-md">
+                  <Link to={`/report/${interview.interviewId}/${interview.id}`} className="flex items-center justify-center w-full px-4 py-2.5 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 text-gray-700 dark:text-slate-300 hover:bg-primary hover:text-white hover:border-primary dark:hover:bg-primary dark:hover:border-primary rounded-xl transition-all font-semibold text-sm group-hover:shadow-md">
                     View Analysis <i className="fas fa-chart-pie ml-2"></i>
                   </Link>
                 </div>

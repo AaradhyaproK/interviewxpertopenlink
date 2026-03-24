@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { doc, getDoc, addDoc, collection, serverTimestamp } from 'firebase/firestore';
 import { db, auth } from '../services/firebase';
 import { GoogleGenAI } from '@google/genai';
+import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import { AlertTriangle, Clock, Code, Terminal, Play, FileCode, Settings, CheckCircle } from 'lucide-react';
 
@@ -28,6 +29,7 @@ const TakeTest: React.FC = () => {
   const { testId } = useParams();
   const navigate = useNavigate();
   const { isDark } = useTheme();
+  const { user, userProfile } = useAuth();
   const [test, setTest] = useState<any>(null);
   const [answers, setAnswers] = useState<any>({});
   const [currentQ, setCurrentQ] = useState(0);
@@ -39,10 +41,25 @@ const TakeTest: React.FC = () => {
   const [resultData, setResultData] = useState<any>(null);
   const [showPromoPopup, setShowPromoPopup] = useState(false);
   
-  const [step, setStep] = useState<'collect-info' | 'test' | 'finish'>('collect-info');
-  const [candidateInfo, setCandidateInfo] = useState({ name: '', email: '' });
+  const [step, setStep] = useState<'collect-info' | 'test' | 'finish'>(user ? 'test' : 'collect-info');
+  const [candidateInfo, setCandidateInfo] = useState({
+    name: userProfile?.fullname || user?.displayName || '',
+    email: user?.email || ''
+  });
 
   const handleSubmitRef = useRef<() => void>(() => { });
+
+  useEffect(() => {
+    // If user is logged in, skip the info collection step.
+    // This handles cases where user/profile data loads after initial render.
+    if (user && step === 'collect-info') {
+      setCandidateInfo({
+        name: userProfile?.fullname || user.displayName || '',
+        email: user.email || ''
+      });
+      setStep('test');
+    }
+  }, [user, userProfile, step]);
 
   useEffect(() => {
     const fetchTest = async () => {
@@ -133,8 +150,8 @@ const TakeTest: React.FC = () => {
 
     await addDoc(collection(db, 'testSubmissions'), {
       testId,
-      candidateUID: auth.currentUser ? auth.currentUser.uid : candidateInfo.email,
-      candidateName: auth.currentUser ? auth.currentUser.displayName : candidateInfo.name,
+      candidateUID: user?.uid || candidateInfo.email, // Use email as fallback ID for anonymous users
+      candidateName: candidateInfo.name,
       candidateEmail: candidateInfo.email,
       answers,
       score,

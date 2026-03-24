@@ -40,6 +40,8 @@ import RecruiterInterviews from './pages/RecruiterInterviews';
 import InterviewAccess from './pages/InterviewAccess';
 import TestAccess from './pages/TestAccess';
 import InterviewResponses from './pages/InterviewResponses';
+import PrivacyPolicy from './pages/PrivacyPolicy';
+import TermsOfService from './pages/TermsOfService';
 
 const ProtectedRoute: React.FC<{ children: React.ReactNode; role?: 'recruiter' | 'candidate' | 'admin' }> = ({ children, role }) => {
   const { user, userProfile, loading } = useAuth();
@@ -100,6 +102,8 @@ const App: React.FC = () => {
             <Route path="blogs" element={<Blogs />} />
             <Route path="contact" element={<ContactUs />} />
             <Route path="report-bug" element={<ReportBug />} />
+            <Route path="privacy-policy" element={<PrivacyPolicy />} />
+            <Route path="terms-of-service" element={<TermsOfService />} />
             <Route path="blog/:id" element={
               <ThemeProvider>
                 <BlogDetail />

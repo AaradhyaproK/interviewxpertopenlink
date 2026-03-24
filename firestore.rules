@@ -80,13 +80,16 @@ service cloud.firestore {
         match /attempts/{attemptId} {
             // Allow anyone to create a submission, required for "open" interviews
             allow create: if true;
-            
-            // Allow read by the owning recruiter or an admin
-            allow read: if request.auth != null && (
-                get(/databases/$(database)/documents/interviews/$(interviewId)).data.recruiterUID == request.auth.uid
-                || get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin'
-            );
+
+            // Allow anyone to read a report. This makes report links public.
+            allow read: if true;
         }
+    }
+
+    // --- Collection Group Rules ---
+    // Allow users to query their own interview attempts across all jobs
+    match /{path=**}/attempts/{attemptId} {
+      allow read: if request.auth.uid == resource.data.candidateUID;
     }
 
     // --- Interview Requests Collection Rules ---
@@ -154,7 +157,12 @@ service cloud.firestore {
 
     match /testSubmissions/{submissionId} {
       allow create: if true;
-      allow read: if request.auth != null;
+      // Allow candidate, the test's recruiter, or an admin to read
+      allow read: if request.auth != null && (
+                    resource.data.candidateUID == request.auth.uid ||
+                    get(/databases/$(database)/documents/tests/$(resource.data.testId)).data.recruiterUID == request.auth.uid ||
+                    get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin'
+                  );
     }
 
     // --- Contact Submissions ---

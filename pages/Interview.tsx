@@ -253,11 +253,24 @@ const CandidateInterviewFlow: React.FC = () => {
         return;
       }
       try {
-        const interviewDoc = await getDoc(doc(db, 'interviews', interviewId));
+        // Fetch both interview and job doc, since `isMock` is on the job.
+        const interviewDocRef = doc(db, 'interviews', interviewId);
+        const jobDocRef = doc(db, 'jobs', interviewId); // Assuming jobId is the same as interviewId
+
+        const [interviewDoc, jobDoc] = await Promise.all([
+            getDoc(interviewDocRef),
+            getDoc(jobDocRef)
+        ]);
+
         if (!interviewDoc.exists()) throw new Error("This interview does not exist or has been closed.");
         const interviewData = { id: interviewDoc.id, ...interviewDoc.data() } as Interview;
-        setInterview(interviewData);
-        setInterviewState(prev => ({ ...prev, jobTitle: interviewData.title, jobDescription: interviewData.description }));
+        const jobData = jobDoc.exists() ? jobDoc.data() : {};
+
+        // Combine data, giving interviewData precedence
+        const combinedData = { ...interviewData, isMock: jobData.isMock || false };
+
+        setInterview(combinedData as Interview);
+        setInterviewState(prev => ({ ...prev, jobTitle: combinedData.title, jobDescription: combinedData.description, isMock: combinedData.isMock }));
       } catch (err: any) { setErrorMsg(err.message); }
     };
     init();
@@ -1002,6 +1015,7 @@ const InterviewSubmission: React.FC<{
   candidateInfo: CandidateInfo;
   cvStats: any;
 }> = ({ state, tabSwitches, interviewId, candidateInfo, cvStats }) => {
+  const { user } = useAuth();
   const [status, setStatus] = useState("Finalizing transcripts...");
   const [showCompletionPopup, setShowCompletionPopup] = useState(false);
   const [reportUrl, setReportUrl] = useState('');
@@ -1057,6 +1071,10 @@ const InterviewSubmission: React.FC<{
               candidateInfo,
               status: 'Completed', 
               submittedAt: serverTimestamp(), 
+              candidateUID: user?.uid || null,
+              interviewId: interviewId,
+              jobId: interviewId,
+              isMock: state.isMock || false,
               meta: { tabSwitchCount: tabSwitches, cvStats }
           }
           const docRef = await addDoc(collection(db, 'interviews', interviewId, 'attempts'), attemptData);
@@ -1070,7 +1088,7 @@ const InterviewSubmission: React.FC<{
       }
     };
     finalize();
-  }, [state, interviewId, candidateInfo, tabSwitches, cvStats]);
+  }, [state, interviewId, candidateInfo, tabSwitches, cvStats, user]);
 
   return (
       <>

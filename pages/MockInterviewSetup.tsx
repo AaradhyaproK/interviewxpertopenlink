@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { addDoc, collection, serverTimestamp, Timestamp, doc, updateDoc, increment, getDoc } from 'firebase/firestore';
+import React, { useState, useEffect } from 'react';
+import { addDoc, collection, serverTimestamp, Timestamp, doc, updateDoc, increment, getDoc, setDoc } from 'firebase/firestore';
 import { db } from '../services/firebase';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
@@ -20,6 +20,25 @@ const MockInterviewSetup: React.FC = () => {
   const [assessmentTopic, setAssessmentTopic] = useState('');
   const [numQuestions, setNumQuestions] = useState(5);
   const [difficulty, setDifficulty] = useState<'Easy' | 'Medium' | 'Hard'>('Medium');
+
+  useEffect(() => {
+    document.title = "AI Mock Interview Practice | InterviewXpert";
+    const setMetaTag = (attr: 'name' | 'property', value: string, content: string) => {
+        let element = document.querySelector(`meta[${attr}='${value}']`) as HTMLMetaElement;
+        if (!element) {
+            element = document.createElement('meta');
+            element.setAttribute(attr, value);
+            document.head.appendChild(element);
+        }
+        element.setAttribute('content', content);
+    };
+
+    setMetaTag('name', 'description', 'Practice for any job role with our AI-powered mock interviews. Get tailored questions by providing a job description or LinkedIn URL and receive instant feedback.');
+    setMetaTag('property', 'og:title', 'AI Mock Interview Practice | InterviewXpert');
+    setMetaTag('property', 'og:description', 'Practice for any job role with our AI-powered mock interviews.');
+    setMetaTag('name', 'twitter:title', 'AI Mock Interview Practice | InterviewXpert');
+    setMetaTag('name', 'twitter:description', 'Practice for any job role with our AI-powered mock interviews.');
+  }, []);
 
   const fetchLinkedinJob = async () => {
     if (!linkedinUrl) return;
@@ -109,21 +128,33 @@ const MockInterviewSetup: React.FC = () => {
         walletBalance: increment(-INTERVIEW_COST)
       });
 
-      // Create a temporary/mock job
-      const docRef = await addDoc(collection(db, 'jobs'), {
+      // Pre-generate a single ID for both job and interview docs
+      const mockDocRef = doc(collection(db, 'jobs'));
+      const mockId = mockDocRef.id;
+
+      // Create the mock job document
+      await setDoc(mockDocRef, {
         title: jobTitle,
         description: jobDesc,
         companyName: 'Mock Interview',
         isMock: true,
-        recruiterUID: user.uid, // User owns this mock job
+        recruiterUID: user.uid,
         createdAt: serverTimestamp(),
-        applyDeadline: Timestamp.fromDate(new Date(Date.now() + 86400000 * 365)), // 1 year
-        interviewPermission: 'anyone', // Allow immediate start
-        skills: '',
-        category: 'Mock'
+        applyDeadline: Timestamp.fromDate(new Date(Date.now() + 86400000 * 365)),
+        interviewPermission: 'anyone',
       });
 
-      navigate(`/interview/${docRef.id}`);
+      // Create the corresponding interview document with the same ID
+      await setDoc(doc(db, 'interviews', mockId), {
+        title: jobTitle,
+        description: jobDesc,
+        recruiterUID: user.uid,
+        isMock: true,
+        createdAt: serverTimestamp(),
+        jobId: mockId,
+      });
+
+      navigate(`/interview/start/${mockId}`);
     } catch (err) {
       console.error(err);
       messageBox.showError("Failed to start interview");
@@ -202,7 +233,7 @@ const MockInterviewSetup: React.FC = () => {
         createdAt: serverTimestamp()
       });
 
-      navigate(`/candidate/test/${docRef.id}?isMock=true&returnUrl=${encodeURIComponent(`/candidate/test/${docRef.id}?showResult=true`)}`);
+      navigate(`/test/start/${docRef.id}?isMock=true`);
     } catch (error) {
       console.error("Error creating assessment:", error);
       messageBox.showError("Failed to generate assessment. Please try again.");

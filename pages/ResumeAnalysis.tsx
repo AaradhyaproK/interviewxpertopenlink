@@ -19,6 +19,25 @@ const ResumeAnalysis: React.FC = () => {
   const [fetchingLinkedin, setFetchingLinkedin] = useState(false);
 
   useEffect(() => {
+    document.title = "AI Resume Analysis & ATS Score Checker | InterviewXpert";
+    const setMetaTag = (attr: 'name' | 'property', value: string, content: string) => {
+        let element = document.querySelector(`meta[${attr}='${value}']`) as HTMLMetaElement;
+        if (!element) {
+            element = document.createElement('meta');
+            element.setAttribute(attr, value);
+            document.head.appendChild(element);
+        }
+        element.setAttribute('content', content);
+    };
+
+    setMetaTag('name', 'description', 'Get an instant ATS score and improvement tips. Upload your resume and a job description to see how well you match and identify missing keywords.');
+    setMetaTag('property', 'og:title', 'AI Resume Analysis & ATS Score Checker | InterviewXpert');
+    setMetaTag('property', 'og:description', 'Get an instant ATS score and improvement tips for your resume.');
+    setMetaTag('name', 'twitter:title', 'AI Resume Analysis & ATS Score Checker | InterviewXpert');
+    setMetaTag('name', 'twitter:description', 'Get an instant ATS score and improvement tips for your resume.');
+  }, []);
+
+  useEffect(() => {
     const fetchJobs = async () => {
       try {
         const now = Timestamp.now();

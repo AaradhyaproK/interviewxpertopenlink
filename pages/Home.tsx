@@ -15,6 +15,40 @@ import LandingJobs from '../components/LandingJobs';
 
 // --- Components ---
 
+const SEO: React.FC = () => {
+  useEffect(() => {
+    document.title = "InterviewXpert: AI-Powered Interview & Career Platform";
+
+    const setMetaTag = (attr: 'name' | 'property', value: string, content: string) => {
+      let element = document.querySelector(`meta[${attr}='${value}']`) as HTMLMetaElement;
+      if (!element) {
+        element = document.createElement('meta');
+        element.setAttribute(attr, value);
+        document.head.appendChild(element);
+      }
+      element.setAttribute('content', content);
+    };
+
+    setMetaTag('name', 'description', 'Master your next interview with InterviewXpert. Get AI-powered resume analysis, mock interviews with real-time feedback, and a smart resume builder. Prepare for your dream job today.');
+    setMetaTag('name', 'keywords', 'AI interview, mock interview, resume builder, resume analysis, ATS score, career prep, job interview practice, interviewxpert, interview xpert');
+
+    // Open Graph / Facebook
+    setMetaTag('property', 'og:type', 'website');
+    setMetaTag('property', 'og:url', 'https://interviewxpert.in/');
+    setMetaTag('property', 'og:title', 'InterviewXpert: AI-Powered Interview & Career Platform');
+    setMetaTag('property', 'og:description', 'Master your next interview with AI-powered resume analysis, mock interviews, and a smart resume builder.');
+    setMetaTag('property', 'og:image', 'https://i.ibb.co/3y9DKsB6/Yellow-and-Black-Illustrative-Education-Logo-1.png');
+
+    // Twitter
+    setMetaTag('name', 'twitter:card', 'summary_large_image');
+    setMetaTag('property', 'twitter:title', 'InterviewXpert: AI-Powered Interview & Career Platform');
+    setMetaTag('property', 'twitter:description', 'Master your next interview with AI-powered resume analysis, mock interviews, and a smart resume builder.');
+    setMetaTag('property', 'twitter:image', 'https://i.ibb.co/3y9DKsB6/Yellow-and-Black-Illustrative-Education-Logo-1.png');
+  }, []);
+
+  return null;
+};
+
 // Magnet Button UI Component
 const MagnetButton: React.FC<{ children: React.ReactNode; variant?: 'primary' | 'secondary'; className?: string }> = ({ children, variant = 'primary', className = '' }) => {
   return (
@@ -1185,6 +1219,8 @@ const Footer: React.FC = () => (
             <li><a href="#jobs" className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors">Jobs</a></li>
             <li><a href="#testimonials" className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors">Success Stories</a></li>
             <li><a href="#faq" className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors">FAQ</a></li>
+            <li><Link to="/privacy-policy" className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors">Privacy Policy</Link></li>
+            <li><Link to="/terms-of-service" className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors">Terms of Service</Link></li>
             <li className="pt-2 mt-2 border-t border-slate-200 dark:border-slate-800">
               <Link to="/contact" className="flex items-center gap-2 text-slate-700 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors font-medium group">
                 <Mail size={14} className="group-hover:scale-110 transition-transform" /> Contact Us
@@ -1323,6 +1359,7 @@ const Home: React.FC = () => {
   return (
     <ThemeProvider>
       <div className="min-h-screen bg-slate-50 dark:bg-slate-950 font-sans text-slate-900 dark:text-slate-100 selection:bg-blue-500/30 selection:text-blue-900 dark:selection:text-blue-200 transition-colors duration-300 overflow-x-hidden">
+        <SEO />
         <Navbar />
         <main>
           <NeuralBackground />

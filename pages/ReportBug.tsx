@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Sun, Moon, ArrowLeft, Bug } from 'lucide-react';
@@ -21,6 +21,20 @@ const ReportBugContent: React.FC = () => {
     });
     const [loading, setLoading] = useState(false);
     const messageBox = useMessageBox();
+
+    useEffect(() => {
+        document.title = "Report a Bug | InterviewXpert";
+        const setMetaTag = (attr: 'name' | 'property', value: string, content: string) => {
+            let element = document.querySelector(`meta[${attr}='${value}']`) as HTMLMetaElement;
+            if (!element) {
+                element = document.createElement('meta');
+                element.setAttribute(attr, value);
+                document.head.appendChild(element);
+            }
+            element.setAttribute('content', content);
+        };
+        setMetaTag('name', 'description', "Found an issue? Help us improve InterviewXpert by reporting a bug. We appreciate your feedback to make our platform better.");
+    }, []);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
