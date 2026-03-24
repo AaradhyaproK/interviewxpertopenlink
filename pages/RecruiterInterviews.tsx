@@ -7,6 +7,7 @@ import { Interview } from '../types';
 import * as pdfjsLib from 'pdfjs-dist';
 import { useMessageBox } from '../components/MessageBox';
 import { createPortal } from 'react-dom';
+import { sendInterviewInvitations } from '../services/brevoService';
 
 // Setup PDF.js worker to enable PDF parsing
 pdfjsLib.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjsLib.version}/build/pdf.worker.min.mjs`;
@@ -22,6 +23,7 @@ const RecruiterInterviews: React.FC = () => {
   const [newEmail, setNewEmail] = useState('');
   const [newEmails, setNewEmails] = useState<string[]>([]);
   const [parsingResumes, setParsingResumes] = useState(false);
+  const [sendingEmails, setSendingEmails] = useState(false);
   const messageBox = useMessageBox();
 
   useEffect(() => {
@@ -154,30 +156,33 @@ const RecruiterInterviews: React.FC = () => {
 
   const handleSendInvites = async () => {
     if (!selectedInterview || newEmails.length === 0) return;
+    
+    setSendingEmails(true);
     try {
         await updateDoc(doc(db, 'interviews', selectedInterview.id), { 
             candidateEmails: arrayUnion(...newEmails) 
         });
         
-        const subject = `Invitation to Interview: ${selectedInterview.title}`;
-        const body = `
-            <p>Dear Candidate,</p>
-            <p>You have been invited for an interview for the role of ${selectedInterview.title}.</p>
-            <p>Please use the following link and access code to join the interview:</p>
-            <p><strong>Link:</strong> <a href="${selectedInterview.interviewLink}">${selectedInterview.interviewLink}</a></p>
-            <p><strong>Access Code:</strong> ${selectedInterview.accessCode}</p>
-            <p>Best regards,</p>
-            <p>The Recruitment Team</p>
-        `;
-        const mailtoLink = `mailto:${newEmails.join(',')}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-        window.location.href = mailtoLink;
+        const result = await sendInterviewInvitations(
+            newEmails,
+            selectedInterview.title,
+            selectedInterview.interviewLink || '',
+            selectedInterview.accessCode
+        );
 
-        messageBox.showSuccess('Invitations sent successfully!');
-        setIsInviteModalOpen(false);
-        setSelectedInterview(null);
-        setNewEmails([]);
-    } catch (error) {
+        if (result.success) {
+            messageBox.showSuccess(`Successfully sent ${result.totalEmails} invitation(s)!`);
+            setIsInviteModalOpen(false);
+            setSelectedInterview(null);
+            setNewEmails([]);
+        } else {
+            messageBox.showError(`Failed to send emails: ${result.error}`);
+        }
+    } catch (error: any) {
+        console.error('Invite sending error:', error);
         messageBox.showError('Failed to send invitations.');
+    } finally {
+        setSendingEmails(false);
     }
   };
 
@@ -331,7 +336,18 @@ const RecruiterInterviews: React.FC = () => {
                 </div>
                 <div className="flex justify-end gap-2 p-4 border-t border-gray-200 dark:border-gray-700">
                     <button onClick={() => setIsInviteModalOpen(false)} className="bg-gray-200 dark:bg-gray-600 text-gray-800 dark:text-gray-200 px-4 py-2 rounded">Cancel</button>
-                    <button onClick={handleSendInvites} className="bg-green-500 text-white px-4 py-2 rounded">Send Invites</button>
+                    <button 
+                        onClick={handleSendInvites} 
+                        disabled={sendingEmails || newEmails.length === 0}
+                        className="bg-green-500 text-white px-4 py-2 rounded flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                        {sendingEmails ? (
+                            <>
+                                <i className="fa-solid fa-circle-notch fa-spin text-xs"></i>
+                                Sending...
+                            </>
+                        ) : 'Send Invites'}
+                    </button>
                 </div>
             </div>
         </div>,
