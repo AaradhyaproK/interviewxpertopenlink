@@ -11,7 +11,7 @@
   <!-- Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <!-- Font Awesome -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <!-- Tailwind CSS -->
@@ -23,9 +23,13 @@
         extend: {
           colors: {
             primary: {
-              DEFAULT: '#007bff',
-              dark: '#0056b3',
-              light: '#e7f2ff'
+              DEFAULT: '#3b82f6',
+              dark: '#2563eb',
+              light: 'rgba(59, 130, 246, 0.15)'
+            },
+            accent: {
+              DEFAULT: '#8b5cf6',
+              muted: 'rgba(139, 92, 246, 0.2)'
             },
             secondary: '#6c757d',
             success: '#28a745',
@@ -38,7 +42,8 @@
             light: '#f8f9fa'
           },
           fontFamily: {
-            sans: ['Poppins', 'sans-serif'],
+            sans: ['Inter', 'system-ui', 'sans-serif'],
+            mono: ['Geist Mono', 'ui-monospace', 'SFMono-Regular', 'Menlo', 'monospace'],
           },
           animation: {
             blob: "blob 7s infinite",
@@ -78,16 +83,10 @@
       document.documentElement.classList.remove('dark')
     }
   </script>
-  <style>
-    .dark body {
-      background-image: radial-gradient(circle at 50% 0%, #1e293b 0%, #0f172a 50%, #020617 100%);
-      background-attachment: fixed;
-    }
-  </style>
 </head>
 
 <body
-  class="bg-gray-50 dark:bg-[#020617] text-gray-800 dark:text-slate-100 font-sans antialiased min-h-screen flex flex-col transition-colors duration-300">
+  class="bg-gray-50 dark:bg-[#050509] text-gray-800 dark:text-slate-100 font-sans antialiased min-h-screen flex flex-col transition-colors duration-300">
   <div id="root"></div>
   <div id="portal-root"></div>
   <noscript>You need to enable JavaScript to run this app.</noscript>

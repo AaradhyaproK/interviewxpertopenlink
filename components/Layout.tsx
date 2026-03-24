@@ -34,9 +34,9 @@ const LayoutContent: React.FC<{ children: React.ReactNode }> = ({ children }) =>
   const isActive = (path: string) => location.pathname === path;
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-[#0a0a0a] text-gray-900 dark:text-gray-200 font-sans selection:bg-primary/30 selection:text-primary-foreground flex flex-col transition-colors duration-300">
+    <div className="min-h-screen bg-gray-50 dark:bg-[#08080c] text-gray-900 dark:text-gray-200 font-sans selection:bg-primary/30 selection:text-white flex flex-col transition-colors duration-300">
       {/* Background Subtle Gradient - Dark Mode Only */}
-      <div className="fixed inset-0 z-[-1] bg-gradient-to-tr from-[#000000] via-[#050505] to-[#0a0a0a] pointer-events-none opacity-0 dark:opacity-100 transition-opacity duration-300" />
+      <div className="fixed inset-0 z-[-1] bg-gradient-to-tr from-[#050509] via-[#08080c] to-[#0b0b0f] pointer-events-none opacity-0 dark:opacity-100 transition-opacity duration-300" />
 
       {/* Tech Grid Pattern - subtle texture */}
       <div className="fixed inset-0 z-[-1] pointer-events-none opacity-[0.03]"
@@ -46,7 +46,7 @@ const LayoutContent: React.FC<{ children: React.ReactNode }> = ({ children }) =>
         }}>
       </div>
 
-      <nav className="bg-white/80 dark:bg-[#050505]/80 backdrop-blur-xl border-b border-gray-200 dark:border-white/5 sticky top-0 z-40 transition-all duration-300">
+      <nav className="bg-white/80 dark:bg-[#08080c]/90 backdrop-blur-xl border-b border-gray-200 dark:border-white/[0.06] sticky top-0 z-40 transition-all duration-300">
         <div className="w-full mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-16 items-center">
 
@@ -145,7 +145,7 @@ const LayoutContent: React.FC<{ children: React.ReactNode }> = ({ children }) =>
                   <NotificationCenter />
                 </>
               ) : (
-                <Link to="/auth" className="px-5 py-2 bg-blue-600 text-white rounded-full font-bold text-sm hover:bg-blue-700 transition-colors shadow-lg shadow-blue-500/30">
+                <Link to="/auth" className="saas-btn-primary inline-flex items-center justify-center px-5 py-2 rounded-full font-bold text-sm">
                   Sign In
                 </Link>
               )}
@@ -238,12 +238,12 @@ const LayoutContent: React.FC<{ children: React.ReactNode }> = ({ children }) =>
         </div>
       </nav>
 
-      <main className={`flex-grow w-full ${isActive('/candidate/ai-agent') ? '' : 'max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8'} relative`}>
+      <main className={`workspace-card flex-grow w-full ${isActive('/candidate/ai-agent') ? '' : 'max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8'} relative`}>
         {children}
       </main>
 
       {!isActive('/candidate/ai-agent') && (
-        <footer className="border-t border-gray-200 dark:border-white/5 bg-white/50 dark:bg-[#050505]/50 backdrop-blur-sm py-8 mt-auto z-10">
+        <footer className="border-t border-gray-200 dark:border-white/[0.06] bg-white/50 dark:bg-[#08080c]/80 backdrop-blur-sm py-8 mt-auto z-10">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex flex-col md:flex-row justify-between items-center gap-6">
               <div className="flex items-center gap-2 opacity-60 hover:opacity-100 transition-opacity">

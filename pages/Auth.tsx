@@ -171,7 +171,7 @@ const AuthPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col relative bg-black text-white font-sans selection:bg-violet-500/30">
+    <div className="dark min-h-screen flex flex-col relative bg-[#050509] text-white font-sans selection:bg-primary/30">
 
       {/* Background Ambience */}
       <div className="fixed inset-0 z-0 pointer-events-none dark">
@@ -179,7 +179,7 @@ const AuthPage: React.FC = () => {
       </div>
 
       <div className="flex-grow flex items-center justify-center p-4 sm:p-6 relative z-10">
-        <div className="w-full max-w-4xl grid grid-cols-1 md:grid-cols-2 gap-0 bg-[#0a0a0a] rounded-3xl overflow-hidden shadow-2xl border border-white/10 min-h-[550px]">
+        <div className="auth-card w-full max-w-4xl grid grid-cols-1 md:grid-cols-2 gap-0 rounded-[14px] overflow-hidden min-h-[550px]">
 
           {/* Left Side - Form Section */}
           <div className="flex flex-col justify-center p-8 md:p-10 relative">
@@ -187,7 +187,7 @@ const AuthPage: React.FC = () => {
             <div className="w-full max-w-sm mx-auto">
               {/* Header */}
               <div className="mb-6">
-                <h1 className="text-3xl font-bold tracking-tight mb-2 text-white">
+                <h1 className="text-[22px] font-semibold tracking-tight mb-2 text-white">
                   {isReset ? 'Reset Password' : isLogin ? 'Welcome back!' : 'Create account'}
                 </h1>
                 <p className="text-zinc-400 text-sm">
@@ -218,15 +218,15 @@ const AuthPage: React.FC = () => {
               {isReset ? (
                 <form onSubmit={handleResetPassword} className="space-y-4">
                   <div className="space-y-1.5">
-                    <label className="text-xs font-medium text-zinc-300 ml-1">Email</label>
+                    <label className="saas-ui-mono text-xs font-medium text-zinc-300 ml-1">Email</label>
                     <div className="relative group">
-                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-zinc-500 group-focus-within:text-violet-400 transition-colors">
+                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-zinc-500 group-focus-within:text-primary transition-colors">
                         <i className="fa-regular fa-envelope text-sm"></i>
                       </div>
                       <input
                         type="email"
                         required
-                        className="w-full pl-9 pr-3 py-2.5 bg-zinc-900/50 border border-zinc-800 rounded-lg text-sm text-white placeholder-zinc-600 focus:outline-none focus:ring-2 focus:ring-violet-500/50 focus:border-violet-500 transition-all hover:border-zinc-700"
+                        className="w-full pl-9 pr-3 py-2.5 bg-zinc-900/50 border border-zinc-800 rounded-lg text-sm text-white placeholder-zinc-600 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all hover:border-zinc-700"
                         placeholder="Enter your mail address"
                         value={email}
                         onChange={e => setEmail(e.target.value)}
@@ -237,7 +237,7 @@ const AuthPage: React.FC = () => {
                   <button
                     type="submit"
                     disabled={loading}
-                    className="w-full py-2.5 rounded-lg bg-violet-600 hover:bg-violet-500 text-white text-sm font-semibold shadow-lg shadow-violet-900/20 transition-all transform hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed mt-2"
+                    className="w-full py-2.5 rounded-[12px] text-white text-sm font-semibold transition-all transform hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed mt-2"
                   >
                     {loading ? 'Sending...' : 'Send Reset Link'}
                   </button>
@@ -258,11 +258,11 @@ const AuthPage: React.FC = () => {
                     <>
                       <div className="grid grid-cols-2 gap-3">
                         <div className="space-y-1.5 col-span-2">
-                          <label className="text-xs font-medium text-zinc-300 ml-1">Full Name</label>
+                          <label className="saas-ui-mono text-xs font-medium text-zinc-300 ml-1">Full Name</label>
                           <input
                             type="text"
                             required
-                            className="w-full px-3 py-2.5 bg-zinc-900/50 border border-zinc-800 rounded-lg text-sm text-white placeholder-zinc-600 focus:outline-none focus:ring-2 focus:ring-violet-500/50 focus:border-violet-500 transition-all hover:border-zinc-700"
+                            className="w-full px-3 py-2.5 bg-zinc-900/50 border border-zinc-800 rounded-lg text-sm text-white placeholder-zinc-600 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all hover:border-zinc-700"
                             placeholder="John Doe"
                             value={fullname}
                             onChange={e => setFullname(e.target.value)}
@@ -272,9 +272,9 @@ const AuthPage: React.FC = () => {
 
                       <div className="grid grid-cols-2 gap-3">
                         <div className="space-y-1.5">
-                          <label className="text-xs font-medium text-zinc-300 ml-1">I am a...</label>
+                          <label className="saas-ui-mono text-xs font-medium text-zinc-300 ml-1">I am a...</label>
                           <select
-                            className="w-full px-3 py-2.5 bg-zinc-900/50 border border-zinc-800 rounded-lg text-sm text-white focus:outline-none focus:ring-2 focus:ring-violet-500/50 focus:border-violet-500 transition-all appearance-none cursor-pointer hover:border-zinc-700"
+                            className="w-full px-3 py-2.5 bg-zinc-900/50 border border-zinc-800 rounded-lg text-sm text-white focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all appearance-none cursor-pointer hover:border-zinc-700"
                             value={role}
                             onChange={e => setRole(e.target.value as 'candidate' | 'recruiter')}
                           >
@@ -283,12 +283,12 @@ const AuthPage: React.FC = () => {
                           </select>
                         </div>
                         <div className="space-y-1.5">
-                          <label className="text-xs font-medium text-zinc-300 ml-1">Experience (Yrs)</label>
+                          <label className="saas-ui-mono text-xs font-medium text-zinc-300 ml-1">Experience (Yrs)</label>
                           <input
                             type="number"
                             min="0"
                             required
-                            className="w-full px-3 py-2.5 bg-zinc-900/50 border border-zinc-800 rounded-lg text-sm text-white placeholder-zinc-600 focus:outline-none focus:ring-2 focus:ring-violet-500/50 focus:border-violet-500 transition-all hover:border-zinc-700"
+                            className="w-full px-3 py-2.5 bg-zinc-900/50 border border-zinc-800 rounded-lg text-sm text-white placeholder-zinc-600 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all hover:border-zinc-700"
                             value={experience}
                             onChange={e => setExperience(Number(e.target.value))}
                           />
@@ -297,13 +297,13 @@ const AuthPage: React.FC = () => {
 
                       {role === 'candidate' && (
                         <div className="space-y-1.5">
-                          <label className="text-xs font-medium text-zinc-300 ml-1">Phone Number</label>
+                          <label className="saas-ui-mono text-xs font-medium text-zinc-300 ml-1">Phone Number</label>
                           <input
                             type="tel"
                             pattern="[0-9]{10}"
                             required
                             placeholder="10 digit number"
-                            className="w-full px-3 py-2.5 bg-zinc-900/50 border border-zinc-800 rounded-lg text-sm text-white placeholder-zinc-600 focus:outline-none focus:ring-2 focus:ring-violet-500/50 focus:border-violet-500 transition-all hover:border-zinc-700"
+                            className="w-full px-3 py-2.5 bg-zinc-900/50 border border-zinc-800 rounded-lg text-sm text-white placeholder-zinc-600 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all hover:border-zinc-700"
                             value={phone}
                             onChange={e => setPhone(e.target.value)}
                           />
@@ -314,15 +314,15 @@ const AuthPage: React.FC = () => {
 
                   {/* Standard Fields */}
                   <div className="space-y-1.5">
-                    <label className="text-xs font-medium text-zinc-300 ml-1">Email</label>
+                    <label className="saas-ui-mono text-xs font-medium text-zinc-300 ml-1">Email</label>
                     <div className="relative group">
-                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-zinc-500 group-focus-within:text-violet-400 transition-colors">
+                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-zinc-500 group-focus-within:text-primary transition-colors">
                         <i className="fa-regular fa-envelope text-sm"></i>
                       </div>
                       <input
                         type="email"
                         required
-                        className="w-full pl-9 pr-3 py-2.5 bg-zinc-900/50 border border-zinc-800 rounded-lg text-sm text-white placeholder-zinc-600 focus:outline-none focus:ring-2 focus:ring-violet-500/50 focus:border-violet-500 transition-all hover:border-zinc-700"
+                        className="w-full pl-9 pr-3 py-2.5 bg-zinc-900/50 border border-zinc-800 rounded-lg text-sm text-white placeholder-zinc-600 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all hover:border-zinc-700"
                         placeholder="Enter your mail address"
                         value={email}
                         onChange={e => setEmail(e.target.value)}
@@ -331,16 +331,16 @@ const AuthPage: React.FC = () => {
                   </div>
 
                   <div className="space-y-1.5">
-                    <label className="text-xs font-medium text-zinc-300 ml-1">Password</label>
+                    <label className="saas-ui-mono text-xs font-medium text-zinc-300 ml-1">Password</label>
                     <div className="relative group">
-                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-zinc-500 group-focus-within:text-violet-400 transition-colors">
+                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-zinc-500 group-focus-within:text-primary transition-colors">
                         <i className="fa-solid fa-lock text-sm"></i>
                       </div>
                       <input
                         type="password"
                         required
                         minLength={6}
-                        className="w-full pl-9 pr-3 py-2.5 bg-zinc-900/50 border border-zinc-800 rounded-lg text-sm text-white placeholder-zinc-600 focus:outline-none focus:ring-2 focus:ring-violet-500/50 focus:border-violet-500 transition-all hover:border-zinc-700"
+                        className="w-full pl-9 pr-3 py-2.5 bg-zinc-900/50 border border-zinc-800 rounded-lg text-sm text-white placeholder-zinc-600 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all hover:border-zinc-700"
                         placeholder="Enter password"
                         value={password}
                         onChange={e => setPassword(e.target.value)}
@@ -351,7 +351,7 @@ const AuthPage: React.FC = () => {
                   {isLogin && (
                     <div className="flex items-center justify-between pt-1">
                       <label className="flex items-center gap-2 cursor-pointer group">
-                        <div className={`w-3.5 h-3.5 rounded border transition-colors flex items-center justify-center ${rememberMe ? 'border-violet-500 bg-violet-500' : 'border-zinc-700 bg-zinc-800 group-hover:border-violet-500'}`}>
+                        <div className={`w-3.5 h-3.5 rounded border transition-colors flex items-center justify-center ${rememberMe ? 'border-primary bg-primary' : 'border-zinc-700 bg-zinc-800 group-hover:border-primary'}`}>
                           {rememberMe && <i className="fa-solid fa-check text-[8px] text-white"></i>}
                         </div>
                         <span className="text-xs text-zinc-400 group-hover:text-zinc-300 transition-colors">Remember me</span>
@@ -365,7 +365,7 @@ const AuthPage: React.FC = () => {
                       <button
                         type="button"
                         onClick={() => setIsReset(true)}
-                        className="text-xs text-violet-400 hover:text-violet-300 transition-colors font-medium"
+                        className="text-xs text-primary hover:text-primary-dark transition-colors font-medium"
                       >
                         Forgot password?
                       </button>
@@ -375,7 +375,7 @@ const AuthPage: React.FC = () => {
                   <button
                     type="submit"
                     disabled={loading}
-                    className="w-full py-2.5 rounded-lg bg-violet-600 hover:bg-violet-500 text-white font-semibold shadow-lg shadow-violet-900/20 transition-all transform hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed mt-4 text-sm tracking-wide"
+                    className="w-full py-2.5 rounded-[12px] text-white font-semibold transition-all transform hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed mt-4 text-sm tracking-wide"
                   >
                     {loading ? (
                       <span className="flex items-center justify-center gap-2">
@@ -403,7 +403,7 @@ const AuthPage: React.FC = () => {
                       className="text-zinc-400 hover:text-white transition-colors text-xs"
                     >
                       {isLogin ? "Don't have an account? " : "Already have an account? "}
-                      <span className="text-violet-400 font-semibold hover:underline ml-1">
+                      <span className="text-primary font-semibold hover:underline ml-1">
                         {isLogin ? "Sign up" : "Log in"}
                       </span>
                     </button>
@@ -515,7 +515,7 @@ const AuthPage: React.FC = () => {
       {/* Verify Email Popup */}
       {showVerifyPopup && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
-          <div className="bg-[#111] border border-white/10 rounded-2xl p-8 max-w-sm w-full shadow-2xl text-center">
+          <div className="saas-modal-card border border-white/10 rounded-[12px] p-8 max-w-sm w-full text-center">
             <div className="w-16 h-16 bg-blue-500/20 text-blue-400 rounded-full flex items-center justify-center mx-auto mb-6">
               <i className="fa-regular fa-envelope-open text-2xl"></i>
             </div>
@@ -525,7 +525,7 @@ const AuthPage: React.FC = () => {
             </p>
             <button 
               onClick={() => setShowVerifyPopup(false)}
-              className="w-full py-3 bg-violet-600 hover:bg-violet-500 text-white rounded-xl font-bold transition-colors"
+              className="saas-btn-primary w-full py-3 rounded-[12px] font-bold transition-colors"
             >
               Got it, thanks!
             </button>
@@ -536,7 +536,7 @@ const AuthPage: React.FC = () => {
       {/* Unverified Email Login Error Popup */}
       {showVerifyErrorPopup && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
-          <div className="bg-[#111] border border-red-500/20 rounded-2xl p-8 max-w-sm w-full shadow-2xl text-center">
+          <div className="saas-modal-card border border-red-500/20 rounded-[12px] p-8 max-w-sm w-full text-center">
             <div className="w-16 h-16 bg-red-500/10 text-red-500 rounded-full flex items-center justify-center mx-auto mb-6">
               <i className="fa-solid fa-triangle-exclamation text-2xl"></i>
             </div>

@@ -277,7 +277,7 @@ const CandidateDashboard: React.FC<{ onlyBestMatches?: boolean }> = ({ onlyBestM
 
   // Visual Components with Light Mode Support
   const MetricCard = ({ icon: Icon, label, value, colorClass, percent, onClick }: any) => (
-    <div onClick={onClick} className={`bg-white dark:bg-[#1A1A1A] p-6 rounded-2xl border border-gray-100 dark:border-white/5 shadow-sm dark:shadow-none relative overflow-hidden group hover:border-gray-200 dark:hover:border-white/10 transition-all ${onClick ? 'cursor-pointer hover:scale-[1.02] active:scale-[0.98]' : ''}`}>
+    <div onClick={onClick} className={`card bg-white dark:bg-[#1A1A1A] p-6 rounded-2xl border border-gray-100 dark:border-white/5 shadow-sm dark:shadow-none relative overflow-hidden group hover:border-gray-200 dark:hover:border-white/10 transition-all ${onClick ? 'cursor-pointer hover:scale-[1.02] active:scale-[0.98]' : ''}`}>
       <div className={`p-3 rounded-lg w-fit mb-4 ${colorClass} bg-opacity-10 dark:bg-opacity-20`}>
         <Icon className={`w-6 h-6 ${colorClass.replace('bg-', 'text-')}`} />
       </div>
@@ -295,7 +295,7 @@ const CandidateDashboard: React.FC<{ onlyBestMatches?: boolean }> = ({ onlyBestM
     const isCompleted = rawInterviews.some(i => i.jobId === job.id);
 
     return (
-      <div key={job.id} onClick={() => setSelectedJob(job)} className="bg-white dark:bg-[#1A1A1A] p-6 rounded-2xl border border-gray-100 dark:border-white/5 hover:border-blue-500/30 dark:hover:border-white/10 transition-all cursor-pointer group hover:-translate-y-1 duration-300 shadow-sm dark:shadow-none hover:shadow-lg">
+      <div key={job.id} onClick={() => setSelectedJob(job)} className="card bg-white dark:bg-[#1A1A1A] p-6 rounded-2xl border border-gray-100 dark:border-white/5 hover:border-blue-500/30 dark:hover:border-white/10 transition-all cursor-pointer group hover:-translate-y-1 duration-300 shadow-sm dark:shadow-none hover:shadow-lg">
         <div className="flex justify-between items-start mb-6">
           <div className="w-12 h-12 rounded-lg bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center text-xl font-bold text-blue-600 dark:text-blue-500 border border-blue-100 dark:border-blue-500/20">
             {job.companyName.charAt(0)}
@@ -483,7 +483,7 @@ const CandidateDashboard: React.FC<{ onlyBestMatches?: boolean }> = ({ onlyBestM
         </div>
 
         {/* Activity Overview Section */}
-        <div className="bg-white dark:bg-[#1A1A1A] p-6 rounded-2xl border border-gray-100 dark:border-white/5 shadow-sm">
+        <div className="card bg-white dark:bg-[#1A1A1A] p-6 rounded-2xl border border-gray-100 dark:border-white/5 shadow-sm">
           <div className="flex flex-col lg:flex-row gap-8">
             
             {/* Side Stats Boxes */}

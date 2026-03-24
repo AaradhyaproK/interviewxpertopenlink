@@ -1,0 +1,218 @@
+/* Premium Dark SaaS — Linear / Vercel / Framer-adjacent surfaces */
+
+@font-face {
+  font-family: 'Geist Mono';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('https://cdn.jsdelivr.net/npm/@fontsource/geist-mono@5.2.6/files/geist-mono-latin-400-normal.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Geist Mono';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url('https://cdn.jsdelivr.net/npm/@fontsource/geist-mono@5.2.6/files/geist-mono-latin-500-normal.woff2') format('woff2');
+}
+
+:root {
+  --saas-bg-deep: #050509;
+  --saas-bg-mid: #08080c;
+  --saas-bg-raised: #0b0b0f;
+  --saas-card: #121216;
+  --saas-card-alt: #15151b;
+  --saas-accent: #3b82f6;
+  --saas-accent-deep: #2563eb;
+  --saas-accent-purple: #8b5cf6;
+  --saas-border-inset: rgba(255, 255, 255, 0.06);
+  --saas-shadow-card: 0 18px 45px rgba(0, 0, 0, 0.6);
+  --saas-radius: 12px;
+}
+
+/* —— Dark app shell —— */
+.dark body {
+  background-color: var(--saas-bg-deep) !important;
+  background-image: radial-gradient(ellipse 120% 80% at 50% -20%, rgba(59, 130, 246, 0.06), transparent 55%),
+    linear-gradient(180deg, var(--saas-bg-deep) 0%, var(--saas-bg-raised) 100%) !important;
+  background-attachment: fixed;
+}
+
+.dark .font-sans,
+.dark body {
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.dark .saas-ui-mono,
+.dark label.saas-ui-mono {
+  font-family: 'Geist Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 11px;
+  letter-spacing: 0.02em;
+}
+
+/* —— Workspace (main content rhythm) —— */
+.dark main.workspace-card {
+  font-size: 14px;
+  color: rgb(226 232 240);
+}
+
+.dark main.workspace-card h1,
+.dark main.workspace-card > div > h1,
+.dark main.workspace-card h2.text-2xl,
+.dark main.workspace-card h2.text-3xl {
+  font-size: 1.375rem;
+  line-height: 1.25;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+/* —— Core cards —— */
+.dark .card,
+.dark .kpi-card,
+.dark .analytics-card,
+.dark .candidate-card,
+.dark .stat-card,
+.dark .chart-box {
+  background-color: var(--saas-card) !important;
+  border-radius: var(--saas-radius) !important;
+  border-color: var(--saas-border-inset) !important;
+  box-shadow: var(--saas-shadow-card), inset 0 0 0 1px var(--saas-border-inset) !important;
+  transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+}
+
+.dark .card:hover,
+.dark .kpi-card:hover,
+.dark .candidate-card:hover,
+.dark .stat-card:hover {
+  transform: translateY(-2px) scale(1.01);
+  border-color: rgba(59, 130, 246, 0.35) !important;
+  box-shadow: 0 22px 55px rgba(0, 0, 0, 0.65), inset 0 0 0 1px rgba(59, 130, 246, 0.12) !important;
+}
+
+.dark .analytics-card:hover,
+.dark .chart-box:hover {
+  border-color: rgba(59, 130, 246, 0.22) !important;
+  box-shadow: 0 20px 48px rgba(0, 0, 0, 0.62), inset 0 0 0 1px rgba(59, 130, 246, 0.08) !important;
+}
+
+.dark .auth-card {
+  background: linear-gradient(165deg, var(--saas-card-alt) 0%, var(--saas-card) 45%, #0e0e14 100%) !important;
+  border-radius: 14px !important;
+  border: 1px solid var(--saas-border-inset) !important;
+  box-shadow: var(--saas-shadow-card), inset 0 0 0 1px var(--saas-border-inset) !important;
+}
+
+/* —— Modals (system message + auth dialogs) —— */
+.dark .saas-modal-card {
+  background-color: var(--saas-card) !important;
+  border-radius: var(--saas-radius) !important;
+  border: 1px solid var(--saas-border-inset) !important;
+  box-shadow: var(--saas-shadow-card), inset 0 0 0 1px var(--saas-border-inset) !important;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+/* —— Primary CTA (gradient) —— */
+.dark .saas-btn-primary {
+  background: linear-gradient(180deg, #3b82f6 0%, #2563eb 100%) !important;
+  color: #fff !important;
+  border: none !important;
+  box-shadow: 0 8px 28px rgba(37, 99, 235, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.12);
+  transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease;
+}
+
+.dark .saas-btn-primary:hover:not(:disabled) {
+  transform: translateY(-1px);
+  filter: brightness(1.05);
+  box-shadow: 0 12px 36px rgba(37, 99, 235, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.14);
+}
+
+.dark .saas-btn-primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Auth form submit buttons (no class addition needed beyond auth-card context) */
+.dark .auth-card button[type='submit']:not(.no-saas-gradient) {
+  background: linear-gradient(180deg, #3b82f6 0%, #2563eb 100%) !important;
+  color: #fff !important;
+  border: none !important;
+  box-shadow: 0 8px 28px rgba(37, 99, 235, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.12);
+  transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease;
+}
+
+.dark .auth-card button[type='submit']:not(:disabled):hover {
+  transform: translateY(-1px);
+  filter: brightness(1.05);
+}
+
+/* —— Animated tabs —— */
+.saas-tabs {
+  display: flex;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+  margin-bottom: 1.5rem;
+}
+
+.saas-tab {
+  position: relative;
+  padding-bottom: 0.75rem;
+  background: none !important;
+  border: none !important;
+  border-bottom: none !important;
+  cursor: pointer;
+  transition: color 0.2s ease;
+  color: rgb(107 114 128);
+}
+
+.dark .saas-tabs {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06) !important;
+}
+
+html:not(.dark) .saas-tabs {
+  border-bottom: 1px solid rgb(229 231 235);
+}
+
+.dark .saas-tab::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 2px;
+  background: linear-gradient(90deg, var(--saas-accent), var(--saas-accent-deep));
+  border-radius: 2px 2px 0 0;
+  transform: scaleX(0);
+  transform-origin: center;
+  transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.dark .saas-tab.saas-tab-active {
+  color: var(--saas-accent) !important;
+}
+
+.dark .saas-tab.saas-tab-active::after {
+  transform: scaleX(1);
+}
+
+.dark .saas-tab:not(.saas-tab-active) {
+  color: rgb(148 163 184);
+}
+
+.dark .saas-tab:not(.saas-tab-active):hover {
+  color: rgb(203 213 225);
+}
+
+html:not(.dark) .saas-tab.saas-tab-active {
+  color: var(--saas-accent);
+  border-bottom: 2px solid var(--saas-accent) !important;
+  border-radius: 0;
+}
+
+html:not(.dark) .saas-tab::after {
+  display: none;
+}
+
+html:not(.dark) .saas-tab:not(.saas-tab-active):hover {
+  color: rgb(55 65 81);
+}

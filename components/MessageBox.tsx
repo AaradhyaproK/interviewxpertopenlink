@@ -181,7 +181,7 @@ const MessageBoxModal: React.FC<{
         >
             <div
                 ref={modalRef}
-                className="w-full max-w-md bg-white dark:bg-zinc-900 rounded-2xl shadow-2xl border border-gray-200 dark:border-white/10 overflow-hidden"
+                className="saas-modal-card w-full max-w-md bg-white dark:bg-zinc-900 rounded-[12px] shadow-xl border border-gray-200 dark:border-white/10 overflow-hidden"
                 onClick={(e) => e.stopPropagation()}
             >
                 {/* Header */}

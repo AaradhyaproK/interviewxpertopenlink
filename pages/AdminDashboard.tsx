@@ -595,18 +595,18 @@ const AdminDashboard: React.FC = () => {
 
               {/* Charts Row 1 */}
               <div ref={chartsRef} className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
-                <div className="chart-box lg:col-span-2 p-4 sm:p-6 rounded-2xl bg-white dark:bg-zinc-900 border border-gray-200 dark:border-white/5 shadow-sm">
+                <div className="card chart-box lg:col-span-2 p-4 sm:p-6 rounded-2xl bg-white dark:bg-zinc-900 border border-gray-200 dark:border-white/5 shadow-sm">
                   <h3 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4 text-gray-800 dark:text-white">Revenue Overview</h3>
                   <RevenueAreaChart data={revenueData} />
                 </div>
-                <div className="chart-box p-4 sm:p-6 rounded-2xl bg-white dark:bg-zinc-900 border border-gray-200 dark:border-white/5 shadow-sm">
+                <div className="card chart-box p-4 sm:p-6 rounded-2xl bg-white dark:bg-zinc-900 border border-gray-200 dark:border-white/5 shadow-sm">
                   <h3 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4 text-gray-800 dark:text-white">User Distribution</h3>
                   <UserPieChart data={userStats} />
                 </div>
               </div>
 
               {/* Charts Row 2 */}
-              <div className="chart-box p-4 sm:p-6 rounded-2xl bg-white dark:bg-zinc-900 border border-gray-200 dark:border-white/5 shadow-sm">
+              <div className="card chart-box p-4 sm:p-6 rounded-2xl bg-white dark:bg-zinc-900 border border-gray-200 dark:border-white/5 shadow-sm">
                 <h3 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4 text-gray-800 dark:text-white">Recent Job Postings Trend</h3>
                 <JobBarChart data={jobStats} />
               </div>
@@ -950,7 +950,7 @@ const AdminDashboard: React.FC = () => {
 };
 
 const StatCard: React.FC<{ title: string; value: string | number; change: string; icon: any; color: string; className?: string }> = ({ title, value, change, icon: Icon, color, className }) => (
-  <div className={`p-3 sm:p-5 rounded-xl sm:rounded-2xl bg-white dark:bg-zinc-900 border border-gray-200 dark:border-white/5 shadow-sm hover:shadow-md transition-all ${className || ''}`}>
+  <div className={`card p-3 sm:p-5 rounded-xl sm:rounded-2xl bg-white dark:bg-zinc-900 border border-gray-200 dark:border-white/5 shadow-sm hover:shadow-md transition-all ${className || ''}`}>
     <div className="flex justify-between items-start mb-2 sm:mb-4">
       <div className="min-w-0 flex-1">
         <p className="text-[10px] sm:text-sm font-medium text-gray-500 dark:text-gray-400 truncate">{title}</p>

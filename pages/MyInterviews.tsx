@@ -159,37 +159,31 @@ const MyInterviews: React.FC = () => {
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-6 mb-6 border-b border-gray-200 dark:border-white/5">
+      <div className="saas-tabs mb-6">
         <button
+          type="button"
           onClick={() => setActiveTab('real')}
-          className={`pb-3 px-1 text-sm font-bold transition-all relative ${activeTab === 'real'
-            ? 'text-primary border-b-2 border-primary'
-            : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-slate-300'
-            }`}
+          className={`saas-tab text-sm font-bold ${activeTab === 'real' ? 'saas-tab-active' : ''}`}
         >
           Job Interviews <span className="ml-1 px-2 py-0.5 bg-gray-100 dark:bg-slate-800 rounded-full text-xs">{realInterviews.length}</span>
         </button>
         <button
+          type="button"
           onClick={() => setActiveTab('mock')}
-          className={`pb-3 px-1 text-sm font-bold transition-all relative ${activeTab === 'mock'
-            ? 'text-primary border-b-2 border-primary'
-            : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-slate-300'
-            }`}
+          className={`saas-tab text-sm font-bold ${activeTab === 'mock' ? 'saas-tab-active' : ''}`}
         >
           Mock Interviews <span className="ml-1 px-2 py-0.5 bg-gray-100 dark:bg-slate-800 rounded-full text-xs">{mockInterviews.length}</span>
         </button>
         <button
+          type="button"
           onClick={() => setActiveTab('assessment')}
-          className={`pb-3 px-1 text-sm font-bold transition-all relative ${activeTab === 'assessment'
-            ? 'text-primary border-b-2 border-primary'
-            : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-slate-300'
-            }`}
+          className={`saas-tab text-sm font-bold ${activeTab === 'assessment' ? 'saas-tab-active' : ''}`}
         >
           Skill Assessments <span className="ml-1 px-2 py-0.5 bg-gray-100 dark:bg-slate-800 rounded-full text-xs">{assessments.length}</span>
         </button>
       </div>
 
-      <div className="mb-8 bg-white dark:bg-[#111] p-4 rounded-xl shadow-sm border border-gray-100 dark:border-white/5">
+      <div className="card mb-8 bg-white dark:bg-[#111] p-4 rounded-xl shadow-sm border border-gray-100 dark:border-white/5">
         <div className="flex flex-col md:flex-row gap-4">
           <div className="relative flex-1">
             <i className="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500"></i>

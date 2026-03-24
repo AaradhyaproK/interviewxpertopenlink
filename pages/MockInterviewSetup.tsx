@@ -247,16 +247,18 @@ const MockInterviewSetup: React.FC = () => {
       <div className="w-full relative z-10">
 
         {/* Tabs */}
-        <div className="flex gap-6 mb-8 border-b border-gray-200 dark:border-white/10">
+        <div className="saas-tabs mb-8">
           <button
+            type="button"
             onClick={() => setActiveTab('video')}
-            className={`pb-4 px-2 text-sm font-bold transition-all relative ${activeTab === 'video' ? 'text-primary border-b-2 border-primary' : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'}`}
+            className={`saas-tab pb-4 px-2 text-sm font-bold ${activeTab === 'video' ? 'saas-tab-active' : ''}`}
           >
             <i className="fas fa-video mr-2"></i> Video Interview
           </button>
           <button
+            type="button"
             onClick={() => setActiveTab('assessment')}
-            className={`pb-4 px-2 text-sm font-bold transition-all relative ${activeTab === 'assessment' ? 'text-primary border-b-2 border-primary' : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'}`}
+            className={`saas-tab pb-4 px-2 text-sm font-bold ${activeTab === 'assessment' ? 'saas-tab-active' : ''}`}
           >
             <i className="fas fa-laptop-code mr-2"></i> Skill Assessment
           </button>
