@@ -1,11 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { useParams, useNavigate } from 'react-router-dom';
 import { doc, getDoc, addDoc, collection, serverTimestamp } from 'firebase/firestore';
 import { db, auth } from '../services/firebase';
 import { GoogleGenAI } from '@google/genai';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
-import { AlertTriangle, Clock, Code, Terminal, Play, FileCode, Settings, CheckCircle } from 'lucide-react';
+import { AlertTriangle, Clock, Code, Terminal, Play, FileCode, Settings, CheckCircle, Calculator as CalculatorIcon, Flag } from 'lucide-react';
 
 const TestInfoForm: React.FC<{ onSubmit: (info: {name: string, email: string}) => void }> = ({ onSubmit }) => {
   const [name, setName] = useState('');
@@ -25,6 +26,228 @@ const TestInfoForm: React.FC<{ onSubmit: (info: {name: string, email: string}) =
   );
 };
 
+const Calculator: React.FC<{ onClose: () => void }> = ({ onClose }) => {
+  const [display, setDisplay] = useState('0');
+  const [history, setHistory] = useState('');
+  const [firstOperand, setFirstOperand] = useState<number | null>(null);
+  const [operator, setOperator] = useState<string | null>(null);
+  const [waitingForSecondOperand, setWaitingForSecondOperand] = useState(false);
+  const calculatorRef = useRef<HTMLDivElement>(null);
+  const [position, setPosition] = useState({ x: window.innerWidth / 2 - 160, y: window.innerHeight / 2 - 260 });
+  const [isDragging, setIsDragging] = useState(false);
+  const dragStartPos = useRef({ x: 0, y: 0 });
+  const initialPos = useRef({ x: 0, y: 0 });
+
+  const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (calculatorRef.current) {
+      setIsDragging(true);
+      dragStartPos.current = { x: e.clientX, y: e.clientY };
+      initialPos.current = { x: position.x, y: position.y };
+    }
+  };
+
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!isDragging) return;
+      const dx = e.clientX - dragStartPos.current.x;
+      const dy = e.clientY - dragStartPos.current.y;
+      setPosition({
+        x: initialPos.current.x + dx,
+        y: initialPos.current.y + dy,
+      });
+    };
+
+    const handleMouseUp = () => setIsDragging(false);
+
+    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mouseup', handleMouseUp);
+
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, [isDragging]);
+
+  const handleDigit = (digit: string) => {
+    if (history.includes('=')) {
+      handleClear();
+      setDisplay(digit);
+      return;
+    }
+    if (waitingForSecondOperand) {
+      setDisplay(digit);
+      setWaitingForSecondOperand(false);
+    } else {
+      setDisplay(display === '0' ? digit : display.length < 12 ? display + digit : display);
+    }
+  };
+
+  const handleDecimal = () => {
+    if (history.includes('=')) {
+      handleClear();
+      setDisplay('0.');
+      return;
+    }
+    if (waitingForSecondOperand) {
+      setDisplay('0.');
+      setWaitingForSecondOperand(false);
+      return;
+    }
+    if (!display.includes('.')) {
+      setDisplay(display + '.');
+    }
+  };
+
+  const handleOperator = (nextOperator: string) => {
+    const inputValue = parseFloat(display);
+    if (operator && !waitingForSecondOperand) {
+      const result = calculate(firstOperand!, inputValue, operator);
+      setDisplay(String(result));
+      setFirstOperand(result);
+      setHistory(`${result} ${nextOperator}`);
+    } else {
+      setFirstOperand(inputValue);
+      setHistory(`${inputValue} ${nextOperator}`);
+    }
+    setWaitingForSecondOperand(true);
+    setOperator(nextOperator);
+  };
+
+  const calculate = (first: number, second: number, op: string) => {
+    switch (op) {
+      case '+':
+        return first + second;
+      case '-':
+        return first - second;
+      case '*':
+        return first * second;
+      case '/':
+        return second === 0 ? 'Error' : first / second;
+      default:
+        return second;
+    }
+  };
+
+  const handleEquals = () => {
+    if (operator && firstOperand !== null) {
+      const inputValue = parseFloat(display);
+      if (waitingForSecondOperand) return;
+      const result = calculate(firstOperand, inputValue, operator);
+      setHistory(`${firstOperand} ${operator} ${inputValue} =`);
+      setDisplay(String(result));
+      setFirstOperand(null);
+      setOperator(null);
+    }
+  };
+
+  const handleClear = () => {
+    setDisplay('0');
+    setHistory('');
+    setFirstOperand(null);
+    setOperator(null);
+    setWaitingForSecondOperand(false);
+  };
+
+  const handleBackspace = () => {
+    if (history.includes('=')) return;
+    if (waitingForSecondOperand) return;
+    setDisplay(d => d.length > 1 ? d.slice(0, -1) : '0');
+  };
+
+  const handleToggleSign = () => {
+    if (display !== '0') {
+      setDisplay(String(parseFloat(display) * -1));
+    }
+  };
+
+  const handleButtonClick = (btnValue: string) => {
+    if (['7', '8', '9', '4', '5', '6', '1', '2', '3', '0'].includes(btnValue)) {
+      handleDigit(btnValue);
+    } else if (btnValue === '.') {
+      handleDecimal();
+    } else if (['/', '*', '-', '+'].includes(btnValue)) {
+      handleOperator(btnValue);
+    } else if (btnValue === '=') {
+      handleEquals();
+    } else if (btnValue === 'AC') {
+      handleClear();
+    } else if (btnValue === 'backspace') {
+      handleBackspace();
+    } else if (btnValue === '+/-') {
+      handleToggleSign();
+    }
+  };
+
+  const getButtonClass = (type: 'operator' | 'number' | 'special') => {
+    switch (type) {
+      case 'operator':
+        return 'bg-orange-500 hover:bg-orange-400 active:bg-orange-600 text-white';
+      case 'special':
+        return 'bg-gray-300 dark:bg-gray-400 hover:bg-gray-400 dark:hover:bg-gray-500 active:bg-gray-500 text-black';
+      case 'number':
+      default:
+        return 'bg-gray-600 dark:bg-gray-700 hover:bg-gray-500 dark:hover:bg-gray-600 active:bg-gray-600 text-white';
+    }
+  };
+
+  const buttonGrid = [
+    { label: 'AC', type: 'special', value: 'AC' },
+    { label: '+/-', type: 'special', value: '+/-' },
+    { label: '⌫', type: 'special', value: 'backspace' },
+    { label: '÷', type: 'operator', value: '/' },
+    { label: '7', type: 'number', value: '7' },
+    { label: '8', type: 'number', value: '8' },
+    { label: '9', type: 'number', value: '9' },
+    { label: '×', type: 'operator', value: '*' },
+    { label: '4', type: 'number', value: '4' },
+    { label: '5', type: 'number', value: '5' },
+    { label: '6', type: 'number', value: '6' },
+    { label: '−', type: 'operator', value: '-' },
+    { label: '1', type: 'number', value: '1' },
+    { label: '2', type: 'number', value: '2' },
+    { label: '3', type: 'number', value: '3' },
+    { label: '+', type: 'operator', value: '+' },
+    { label: '0', type: 'number', value: '0', className: 'col-span-2' },
+    { label: '.', type: 'number', value: '.' },
+    { label: '=', type: 'operator', value: '=' },
+  ];
+
+  return createPortal(
+    <div
+      ref={calculatorRef}
+      className="fixed z-[100] bg-black rounded-2xl shadow-2xl border border-gray-800 w-80 select-none"
+      style={{ top: position.y, left: position.x }}
+    >
+      <div onMouseDown={handleMouseDown} className="p-3 flex items-center cursor-move">
+        <div className="flex items-center gap-1.5">
+          <button onClick={onClose} className="w-3 h-3 rounded-full bg-red-500 hover:bg-red-600 active:bg-red-700 transition-colors"></button>
+          <div className="w-3 h-3 rounded-full bg-yellow-500 cursor-not-allowed"></div>
+          <div className="w-3 h-3 rounded-full bg-green-500 cursor-not-allowed"></div>
+        </div>
+      </div>
+      <div className="p-6 pt-0">
+        <div className="text-right font-sans mb-4 h-24 flex flex-col justify-end">
+          <div className="text-gray-400 text-xl h-8 truncate">{history}</div>
+          <div className="text-white text-6xl font-light break-all leading-tight">{display}</div>
+        </div>
+        <div className="grid grid-cols-4 gap-3">
+          {buttonGrid.map(btn => (
+            <button
+              key={btn.label}
+              onClick={() => handleButtonClick(btn.value)}
+              disabled={btn.disabled}
+              className={`h-16 rounded-full text-2xl font-medium transition-colors transform active:scale-95 disabled:opacity-50 ${getButtonClass(btn.type)} ${btn.className || ''} ${btn.label === '0' ? 'text-left pl-6' : ''}`}
+            >
+              {btn.label}
+            </button>
+          ))}
+        </div>
+      </div>
+    </div>,
+    document.body
+  );
+};
+
 const TakeTest: React.FC = () => {
   const { testId } = useParams();
   const navigate = useNavigate();
@@ -40,6 +263,8 @@ const TakeTest: React.FC = () => {
   const [showWarning, setShowWarning] = useState(false);
   const [resultData, setResultData] = useState<any>(null);
   const [showPromoPopup, setShowPromoPopup] = useState(false);
+  const [markedQuestions, setMarkedQuestions] = useState<Record<number, boolean>>({});
+  const [showCalculator, setShowCalculator] = useState(false);
   
   const [step, setStep] = useState<'collect-info' | 'test' | 'finish'>(user ? 'test' : 'collect-info');
   const [candidateInfo, setCandidateInfo] = useState({
@@ -104,6 +329,13 @@ const TakeTest: React.FC = () => {
 
   const handleAnswer = (val: any) => {
     setAnswers({ ...answers, [currentQ]: val });
+  };
+
+  const handleMarkForReview = () => {
+    setMarkedQuestions(prev => ({
+      ...prev,
+      [currentQ]: !prev[currentQ]
+    }));
   };
 
   const sendEmailWithApi = async (emailPayload: { to: string; subject: string; html: string; }) => {
@@ -404,6 +636,8 @@ const TakeTest: React.FC = () => {
 
   return (
     <div className={`min-h-screen flex flex-col ${isDark ? 'bg-[#050505] text-white' : 'bg-gray-50 text-gray-900'}`}>
+      {showCalculator && <Calculator onClose={() => setShowCalculator(false)} />}
+
       {/* Header */}
       <div className="p-6 border-b border-gray-200 dark:border-white/10 bg-white dark:bg-[#111] flex justify-between items-center">
         <div>
@@ -419,6 +653,9 @@ const TakeTest: React.FC = () => {
           <div className="flex items-center gap-2 text-yellow-600 bg-yellow-50 dark:bg-yellow-900/20 px-3 py-1 rounded-lg text-sm font-bold">
             <AlertTriangle size={16} /> No Copy Paste Allowed
           </div>
+          <div onClick={() => setShowCalculator(true)} className="flex items-center gap-2 text-blue-600 bg-blue-50 dark:bg-blue-900/20 px-3 py-1 rounded-lg text-sm font-bold cursor-pointer">
+            <CalculatorIcon size={16} /> Calculator
+          </div>
         </div>
       </div>
 
@@ -430,113 +667,152 @@ const TakeTest: React.FC = () => {
       )}
 
       {/* Content */}
-      <div className={`flex-1 w-full p-4 md:p-6 ${test.type === 'coding' ? 'max-w-[1600px] mx-auto' : 'max-w-4xl mx-auto'}`}>
-        {test.type === 'aptitude' ? (
-          <div className="bg-white dark:bg-[#111] p-8 rounded-2xl shadow-sm border border-gray-200 dark:border-white/10 mt-8">
-            <h2 className="text-xl font-bold mb-6">{question.question || 'Question text missing'}</h2>
-            <div className="space-y-3">
-              {question.options?.map((opt: string, i: number) => (
+      <div className="flex-1 grid grid-cols-12 gap-6 p-6 min-h-0">
+        {/* Main Question Area */}
+        <div className="col-span-12 lg:col-span-9 flex flex-col min-h-0">
+          {test.type === 'aptitude' ? (
+            <div className="bg-white dark:bg-[#111] p-8 rounded-2xl shadow-sm border border-gray-200 dark:border-white/10">
+              <h2 className="text-xl font-bold mb-6">{question.question || 'Question text missing'}</h2>
+              <div className="space-y-3">
+                {question.options?.map((opt: string, i: number) => (
+                  <button
+                    key={i}
+                    onClick={() => handleAnswer(i)}
+                    className={`w-full text-left p-4 rounded-xl border transition-all ${answers[currentQ] === i
+                      ? 'bg-blue-50 dark:bg-blue-900/20 border-blue-500 text-blue-700 dark:text-blue-300'
+                      : 'bg-gray-50 dark:bg-[#1a1a1a] border-transparent hover:bg-gray-100 dark:hover:bg-white/5'
+                      }`}
+                  >
+                    {opt}
+                  </button>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 h-full min-h-0">
+              {/* Problem Description Panel */}
+              <div className="lg:col-span-2 bg-white dark:bg-[#111] rounded-2xl border border-gray-200 dark:border-white/10 flex flex-col overflow-hidden shadow-sm">
+                <div className="p-4 border-b border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#161616] flex items-center gap-2">
+                  <FileCode size={18} className="text-blue-500" />
+                  <h2 className="font-bold text-gray-800 dark:text-white">Problem Description</h2>
+                </div>
+                <div className="p-6 overflow-y-auto flex-1 prose dark:prose-invert max-w-none">
+                  <h3 className="text-xl font-bold mb-4 text-gray-900 dark:text-white">{question.title || 'Problem Title'}</h3>
+                  <div className="text-gray-600 dark:text-gray-300 whitespace-pre-wrap mb-6 text-sm leading-relaxed">
+                    {question.description || 'No description provided.'}
+                  </div>
+
+                  <div className="mt-6">
+                    <h4 className="text-sm font-bold uppercase text-gray-500 dark:text-gray-400 mb-3 tracking-wider">Test Cases</h4>
+                    <div className="bg-gray-50 dark:bg-[#1a1a1a] p-4 rounded-xl border border-gray-200 dark:border-white/5 font-mono text-sm text-gray-700 dark:text-gray-300">
+                      {question.testCases || 'No test cases provided.'}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Code Editor Panel */}
+              <div className="lg:col-span-3 flex flex-col bg-[#1e1e1e] rounded-2xl overflow-hidden border border-gray-700 shadow-2xl">
+                {/* Editor Toolbar */}
+                <div className="flex items-center justify-between px-4 py-2 bg-[#252526] border-b border-[#333]">
+                  <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-2">
+                      <Code size={16} className="text-gray-400" />
+                      <span className="text-xs font-medium text-gray-300">Code Editor</span>
+                    </div>
+                    <div className="h-4 w-px bg-[#444]"></div>
+                    <select
+                      value={codeLang}
+                      onChange={e => setCodeLang(e.target.value)}
+                      className="bg-[#333] text-gray-200 text-xs rounded px-2 py-1 border border-[#444] focus:outline-none focus:border-blue-500 hover:bg-[#3c3c3c] transition-colors cursor-pointer"
+                    >
+                      <option value="javascript">JavaScript</option>
+                      <option value="python">Python</option>
+                      <option value="java">Java</option>
+                      <option value="cpp">C++</option>
+                    </select>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <button className="p-1.5 hover:bg-[#333] rounded text-gray-400 hover:text-white transition-colors" title="Settings">
+                      <Settings size={14} />
+                    </button>
+                  </div>
+                </div>
+
+                {/* Editor Area */}
+                <div className="flex-1 relative group bg-[#1e1e1e]">
+                  {/* Line Numbers (Visual only) */}
+                  <div className="absolute left-0 top-0 bottom-0 w-10 bg-[#1e1e1e] border-r border-[#333] flex flex-col items-end pt-4 pr-2 text-gray-600 text-xs font-mono select-none pointer-events-none">
+                    {Array.from({ length: 20 }).map((_, i) => <div key={i} className="leading-6">{i + 1}</div>)}
+                  </div>
+                  <textarea
+                    value={answers[currentQ] || ''}
+                    onChange={e => handleAnswer(e.target.value)}
+                    onPaste={e => e.preventDefault()}
+                    className="w-full h-full pl-12 pr-4 py-4 bg-[#1e1e1e] text-gray-300 font-mono text-sm resize-none outline-none leading-6"
+                    placeholder={`// Write your ${codeLang} solution here...\n\nfunction solution() {\n  // your code\n}`}
+                    spellCheck={false}
+                    style={{ tabSize: 2 }}
+                  />
+                </div>
+
+                {/* Editor Footer / Console */}
+                <div className="bg-[#252526] border-t border-[#333]">
+                  <div className="flex items-center justify-between px-4 py-2">
+                    <div className="flex items-center gap-2 text-xs text-gray-400">
+                      <Terminal size={12} />
+                      <span>Console Output</span>
+                    </div>
+                    <button className="flex items-center gap-2 px-4 py-1.5 bg-green-600 hover:bg-green-700 text-white text-xs font-bold rounded transition-colors">
+                      <Play size={12} /> Run Code
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Question Palette */}
+        <div className="col-span-12 lg:col-span-3 bg-white dark:bg-[#111] rounded-2xl border border-gray-200 dark:border-white/10 shadow-sm p-4 flex flex-col">
+          <h3 className="font-bold mb-4 text-center">Question Palette</h3>
+          <div className="grid grid-cols-5 gap-2 flex-1">
+            {test.questions.map((_: any, i: number) => {
+              const isAnswered = answers[i] !== undefined && answers[i] !== '';
+              const isMarked = markedQuestions[i];
+              const isCurrent = currentQ === i;
+
+              let statusClass = 'bg-gray-100 dark:bg-[#1a1a1a] text-gray-500 dark:text-gray-400 border-transparent';
+              if (isCurrent) statusClass = 'bg-blue-500 text-white border-blue-700 ring-2 ring-blue-300';
+              else if (isAnswered) statusClass = 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 border-green-200 dark:border-green-800/50';
+
+              return (
                 <button
                   key={i}
-                  onClick={() => handleAnswer(i)}
-                  className={`w-full text-left p-4 rounded-xl border transition-all ${answers[currentQ] === i
-                    ? 'bg-blue-50 dark:bg-blue-900/20 border-blue-500 text-blue-700 dark:text-blue-300'
-                    : 'bg-gray-50 dark:bg-[#1a1a1a] border-transparent hover:bg-gray-100 dark:hover:bg-white/5'
-                    }`}
+                  onClick={() => setCurrentQ(i)}
+                  className={`relative w-10 h-10 rounded-lg border text-sm font-bold flex items-center justify-center transition-all ${statusClass}`}
                 >
-                  {opt}
+                  {i + 1}
+                  {isMarked && <Flag size={10} className="absolute -top-1 -right-1 text-red-500" fill="currentColor" />}
                 </button>
-              ))}
-            </div>
+              );
+            })}
           </div>
-        ) : (
-          <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 h-[calc(100vh-140px)] min-h-[500px]">
-            {/* Problem Description Panel */}
-            <div className="lg:col-span-2 bg-white dark:bg-[#111] rounded-2xl border border-gray-200 dark:border-white/10 flex flex-col overflow-hidden shadow-sm">
-              <div className="p-4 border-b border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#161616] flex items-center gap-2">
-                <FileCode size={18} className="text-blue-500" />
-                <h2 className="font-bold text-gray-800 dark:text-white">Problem Description</h2>
-              </div>
-              <div className="p-6 overflow-y-auto flex-1 prose dark:prose-invert max-w-none">
-                <h3 className="text-xl font-bold mb-4 text-gray-900 dark:text-white">{question.title || 'Problem Title'}</h3>
-                <div className="text-gray-600 dark:text-gray-300 whitespace-pre-wrap mb-6 text-sm leading-relaxed">
-                  {question.description || 'No description provided.'}
-                </div>
-
-                <div className="mt-6">
-                  <h4 className="text-sm font-bold uppercase text-gray-500 dark:text-gray-400 mb-3 tracking-wider">Test Cases</h4>
-                  <div className="bg-gray-50 dark:bg-[#1a1a1a] p-4 rounded-xl border border-gray-200 dark:border-white/5 font-mono text-sm text-gray-700 dark:text-gray-300">
-                    {question.testCases || 'No test cases provided.'}
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Code Editor Panel */}
-            <div className="lg:col-span-3 flex flex-col bg-[#1e1e1e] rounded-2xl overflow-hidden border border-gray-700 shadow-2xl">
-              {/* Editor Toolbar */}
-              <div className="flex items-center justify-between px-4 py-2 bg-[#252526] border-b border-[#333]">
-                <div className="flex items-center gap-4">
-                  <div className="flex items-center gap-2">
-                    <Code size={16} className="text-gray-400" />
-                    <span className="text-xs font-medium text-gray-300">Code Editor</span>
-                  </div>
-                  <div className="h-4 w-px bg-[#444]"></div>
-                  <select
-                    value={codeLang}
-                    onChange={e => setCodeLang(e.target.value)}
-                    className="bg-[#333] text-gray-200 text-xs rounded px-2 py-1 border border-[#444] focus:outline-none focus:border-blue-500 hover:bg-[#3c3c3c] transition-colors cursor-pointer"
-                  >
-                    <option value="javascript">JavaScript</option>
-                    <option value="python">Python</option>
-                    <option value="java">Java</option>
-                    <option value="cpp">C++</option>
-                  </select>
-                </div>
-                <div className="flex items-center gap-3">
-                  <button className="p-1.5 hover:bg-[#333] rounded text-gray-400 hover:text-white transition-colors" title="Settings">
-                    <Settings size={14} />
-                  </button>
-                </div>
-              </div>
-
-              {/* Editor Area */}
-              <div className="flex-1 relative group bg-[#1e1e1e]">
-                {/* Line Numbers (Visual only) */}
-                <div className="absolute left-0 top-0 bottom-0 w-10 bg-[#1e1e1e] border-r border-[#333] flex flex-col items-end pt-4 pr-2 text-gray-600 text-xs font-mono select-none pointer-events-none">
-                  {Array.from({ length: 20 }).map((_, i) => <div key={i} className="leading-6">{i + 1}</div>)}
-                </div>
-                <textarea
-                  value={answers[currentQ] || ''}
-                  onChange={e => handleAnswer(e.target.value)}
-                  onPaste={e => e.preventDefault()}
-                  className="w-full h-full pl-12 pr-4 py-4 bg-[#1e1e1e] text-gray-300 font-mono text-sm resize-none outline-none leading-6"
-                  placeholder={`// Write your ${codeLang} solution here...\n\nfunction solution() {\n  // your code\n}`}
-                  spellCheck={false}
-                  style={{ tabSize: 2 }}
-                />
-              </div>
-
-              {/* Editor Footer / Console */}
-              <div className="bg-[#252526] border-t border-[#333]">
-                <div className="flex items-center justify-between px-4 py-2">
-                  <div className="flex items-center gap-2 text-xs text-gray-400">
-                    <Terminal size={12} />
-                    <span>Console Output</span>
-                  </div>
-                  <button className="flex items-center gap-2 px-4 py-1.5 bg-green-600 hover:bg-green-700 text-white text-xs font-bold rounded transition-colors">
-                    <Play size={12} /> Run Code
-                  </button>
-                </div>
-              </div>
-            </div>
+          <div className="mt-4 text-xs text-gray-500 space-y-1">
+            <div className="flex items-center gap-2"><div className="w-3 h-3 rounded-full bg-green-100 border border-green-200"></div> Answered</div>
+            <div className="flex items-center gap-2"><div className="w-3 h-3 rounded-full bg-gray-100 border border-gray-200"></div> Not Answered</div>
+            <div className="flex items-center gap-2"><Flag size={10} className="text-red-500" fill="currentColor" /> Marked for Review</div>
           </div>
-        )}
+        </div>
       </div>
 
       {/* Footer */}
       <div className="p-6 border-t border-gray-200 dark:border-white/10 bg-white dark:bg-[#111] flex justify-end gap-4">
-        {currentQ > 0 && <button onClick={() => setCurrentQ(c => c - 1)} className="px-6 py-2.5 rounded-xl font-bold text-gray-500 hover:bg-gray-100 dark:hover:bg-white/5">Previous</button>}
+        <button onClick={handleMarkForReview} className={`px-6 py-2.5 rounded-xl font-bold flex items-center gap-2 transition-colors ${markedQuestions[currentQ] ? 'bg-yellow-100 dark:bg-yellow-900/20 text-yellow-700 dark:text-yellow-400' : 'text-gray-500 hover:bg-gray-100 dark:hover:bg-white/5'}`}>
+          <Flag size={16} /> Mark for Review
+        </button>
+        <div className="flex-grow"></div>
+        {currentQ > 0 && <button onClick={() => setCurrentQ(c => c - 1)} className="px-6 py-2.5 rounded-xl font-bold text-gray-500 bg-gray-100 dark:bg-white/5 hover:bg-gray-200 dark:hover:bg-white/10">Previous</button>}
         {currentQ < test.questions.length - 1 ? (
           <button onClick={() => setCurrentQ(c => c + 1)} className="px-6 py-2.5 bg-blue-600 text-white rounded-xl font-bold hover:bg-blue-700">Next</button>
         ) : (
