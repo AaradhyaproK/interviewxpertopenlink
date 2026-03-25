@@ -235,13 +235,18 @@ const TakeTest: React.FC = () => {
   const [showCalculator, setShowCalculator] = useState(false);
   const [activeCodeTab, setActiveCodeTab] = useState<'problem' | 'code'>('problem');
   
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [fullscreenEscapes, setFullscreenEscapes] = useState(0);
+  const [isTerminated, setIsTerminated] = useState(false);
+  const hasEnteredFullscreenRef = useRef(false);
+  
   const [step, setStep] = useState<'collect-info' | 'test' | 'finish'>(user ? 'test' : 'collect-info');
   const [candidateInfo, setCandidateInfo] = useState({
     name: userProfile?.name || user?.displayName || '',
     email: user?.email || ''
   });
 
-  const handleSubmitRef = useRef<() => void>(() => { });
+  const handleSubmitRef = useRef<(reason?: string) => void>(() => { });
 
   useEffect(() => {
     // If user is logged in, skip the info collection step.
@@ -270,16 +275,45 @@ const TakeTest: React.FC = () => {
     fetchTest();
   }, [testId]);
 
+  // Fullscreen effect
+  useEffect(() => {
+    if (step !== 'test' || isTerminated) return;
+
+    const handleFullscreenChange = () => {
+      const isFS = !!document.fullscreenElement;
+      setIsFullscreen(isFS);
+      
+      if (isFS) {
+        hasEnteredFullscreenRef.current = true;
+      } else if (hasEnteredFullscreenRef.current) {
+        setFullscreenEscapes(prev => {
+          const newCount = prev + 1;
+          if (newCount >= 3) {
+            setIsTerminated(true);
+            handleSubmitRef.current?.('terminated');
+          }
+          return newCount;
+        });
+      }
+    };
+
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+
+    return () => {
+      document.removeEventListener('fullscreenchange', handleFullscreenChange);
+    };
+  }, [step, isTerminated]);
+
   // Timer effect
   useEffect(() => {
-    if (step !== 'test' || timeLeft === null || timeLeft <= 0 || submitting) return;
+    if (step !== 'test' || timeLeft === null || timeLeft <= 0 || submitting || !isFullscreen || isTerminated) return;
 
     const timer = setInterval(() => {
       setTimeLeft(prev => (prev !== null ? prev - 1 : null));
     }, 1000);
 
     return () => clearInterval(timer);
-  }, [step, timeLeft, submitting]);
+  }, [step, timeLeft, submitting, isFullscreen, isTerminated]);
 
   // Tab switch detection
   useEffect(() => {
@@ -360,14 +394,17 @@ const TakeTest: React.FC = () => {
   };
 
 
-  const handleSubmit = async () => {
+  const handleSubmit = async (reason?: string) => {
     if (!test || !test.questions) return;
     setSubmitting(true);
 
     let score = 0;
     let feedback = '';
 
-    if (test.type === 'aptitude') {
+    if (reason === 'terminated') {
+      score = 0;
+      feedback = 'Test terminated automatically due to security violations (left fullscreen too many times).';
+    } else if (test.type === 'aptitude') {
       let correctCount = 0;
       test.questions.forEach((q: any, i: number) => {
         if (answers[i] === q.correctIndex) correctCount++;
@@ -410,7 +447,8 @@ const TakeTest: React.FC = () => {
     console.log('[Assessment] Next Interview ID:', fullTestData.nextInterviewId || 'none');
     console.log('[Assessment] External Link:', fullTestData.externalInterviewLink || 'none');
 
-    const submissionStatus = (fullTestData.passingScore && score >= fullTestData.passingScore) ? 'passed' : 'failed';
+    let submissionStatus = (fullTestData.passingScore && score >= fullTestData.passingScore) ? 'passed' : 'failed';
+    if (reason === 'terminated') submissionStatus = 'terminated';
     console.log('[Assessment] Status:', submissionStatus);
 
     // If passed and there's a next step, generate token and send email
@@ -556,6 +594,41 @@ const TakeTest: React.FC = () => {
     }} />;
   }
 
+  const renderFullscreenOverlay = () => {
+    if (step === 'test' && !isFullscreen && !isTerminated && !submitting && !resultData) {
+      return createPortal(
+        <div className="fixed inset-0 z-[200] bg-black/95 backdrop-blur-md flex items-center justify-center p-6 text-white text-center">
+          <div className="max-w-md p-8 bg-[#111] rounded-2xl border border-red-500/30 shadow-2xl relative overflow-hidden">
+            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-red-500 to-yellow-500"></div>
+            <AlertTriangle size={48} className="mx-auto text-yellow-500 mb-4 animate-pulse" />
+            <h2 className="text-2xl font-bold mb-4">Fullscreen Required</h2>
+            <p className="text-gray-300 mb-6 font-medium text-sm leading-relaxed">
+              {hasEnteredFullscreenRef.current 
+                ? `You have exited fullscreen mode. The timer is paused. You have ${3 - fullscreenEscapes} escape(s) remaining before automatic termination.`
+                : "This assessment must be taken in fullscreen mode to ensure a secure environment. Please enter fullscreen to start."}
+            </p>
+            <button 
+              onClick={async () => {
+                try {
+                  await document.documentElement.requestFullscreen();
+                } catch (err) {
+                  console.error(err);
+                  alert("Fullscreen request denied. Please click the button again or use browser settings.");
+                }
+              }}
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3.5 px-6 rounded-xl transition-all shadow-lg hover:shadow-blue-500/20 active:scale-95 flex items-center justify-center gap-2"
+            >
+              <Terminal size={18} />
+              {hasEnteredFullscreenRef.current ? "Return to Fullscreen" : "Enter Fullscreen & Start"}
+            </button>
+          </div>
+        </div>,
+        document.body
+      );
+    }
+    return null;
+  };
+
   if (resultData || step === 'finish') {
     return (
       <div className={`min-h-screen flex flex-col items-center justify-center p-6 ${isDark ? 'bg-[#050505] text-white' : 'bg-gray-50 text-gray-900'}`}>
@@ -566,7 +639,11 @@ const TakeTest: React.FC = () => {
             </div>
             <h2 className="text-3xl font-bold mb-2">Assessment Completed</h2>
             <p className="text-gray-500 dark:text-gray-400">You scored <span className="text-blue-600 dark:text-blue-400 font-black text-xl">{resultData.score}%</span></p>
-            {resultData.passingScore && (
+            {resultData.status === 'terminated' ? (
+              <div className="mt-4 text-lg font-bold text-red-600 dark:text-red-500 bg-red-50 dark:bg-red-900/10 p-4 rounded-xl border border-red-200 dark:border-red-900/30">
+                Assessment terminated due to security rule violations (left fullscreen).
+              </div>
+            ) : resultData.passingScore && (
               <div className={`mt-4 text-lg font-bold ${resultData.status === 'passed' ? 'text-green-500' : 'text-red-500'}`}>
                 {resultData.status === 'passed' 
                   ? `Congratulations, you passed! (Passing score: ${resultData.passingScore}%)`
@@ -689,6 +766,7 @@ const TakeTest: React.FC = () => {
 
   return (
     <div className={`min-h-screen flex flex-col select-none ${isDark ? 'bg-[#050505] text-white' : 'bg-gray-50 text-gray-900'}`}>
+      {renderFullscreenOverlay()}
       {showCalculator && <Calculator onClose={() => setShowCalculator(false)} />}
 
       {/* Header */}
@@ -866,7 +944,7 @@ const TakeTest: React.FC = () => {
           {currentQ < test.questions.length - 1 ? (
             <button onClick={() => setCurrentQ(c => c + 1)} className="px-6 py-2.5 bg-blue-600 text-white rounded-xl font-bold hover:bg-blue-700">Next</button>
           ) : (
-            <button onClick={handleSubmit} disabled={submitting} className="px-8 py-2.5 bg-green-600 text-white rounded-xl font-bold hover:bg-green-700 disabled:opacity-50">{submitting ? 'Submitting...' : 'Submit Test'}</button>
+            <button onClick={() => handleSubmit()} disabled={submitting} className="px-8 py-2.5 bg-green-600 text-white rounded-xl font-bold hover:bg-green-700 disabled:opacity-50">{submitting ? 'Submitting...' : 'Submit Test'}</button>
           )}
         </div>
       </div>
