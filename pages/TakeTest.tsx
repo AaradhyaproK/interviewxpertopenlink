@@ -7,6 +7,7 @@ import { GoogleGenAI } from '@google/genai';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import { AlertTriangle, Clock, Code, Terminal, Play, FileCode, Settings, CheckCircle, Calculator as CalculatorIcon, Flag, X } from 'lucide-react';
+import { sendInterviewInvitations } from '../services/brevoService';
 
 const TestInfoForm: React.FC<{ onSubmit: (info: {name: string, email: string}) => void }> = ({ onSubmit }) => {
   const [name, setName] = useState('');
@@ -68,7 +69,11 @@ const Calculator: React.FC<{ onClose: () => void }> = ({ onClose }) => {
     if (operator && !waitingForSecondOperand) {
       const result = calculate(firstOperand!, inputValue, operator);
       setDisplay(String(result));
-      setFirstOperand(result);
+      if (typeof result === 'number') {
+        setFirstOperand(result);
+      } else {
+        setFirstOperand(null);
+      }
       setHistory(`${result} ${nextOperator}`);
     } else {
       setFirstOperand(inputValue);
@@ -232,7 +237,7 @@ const TakeTest: React.FC = () => {
   
   const [step, setStep] = useState<'collect-info' | 'test' | 'finish'>(user ? 'test' : 'collect-info');
   const [candidateInfo, setCandidateInfo] = useState({
-    name: userProfile?.fullname || user?.displayName || '',
+    name: userProfile?.name || user?.displayName || '',
     email: user?.email || ''
   });
 
@@ -243,7 +248,7 @@ const TakeTest: React.FC = () => {
     // This handles cases where user/profile data loads after initial render.
     if (user && step === 'collect-info') {
       setCandidateInfo({
-        name: userProfile?.fullname || user.displayName || '',
+        name: userProfile?.name || user.displayName || '',
         email: user.email || ''
       });
       setStep('test');
@@ -302,27 +307,6 @@ const TakeTest: React.FC = () => {
     }));
   };
 
-  const sendEmailWithApi = async (emailPayload: { to: string; subject: string; html: string; }) => {
-    try {
-      // IMPORTANT: This is a placeholder for your actual serverless function endpoint.
-      // This endpoint should be a backend function that securely sends the email.
-      const response = await fetch('/api/send-email', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(emailPayload),
-      });
-  
-      if (!response.ok) throw new Error(`API call failed with status: ${response.status}`);
-      console.log("Email sent successfully via API.");
-    } catch (error) {
-      console.error("Could not send email via API, falling back to Firestore 'mail' collection.", error);
-      // Fallback to the original method if the API call fails
-      await addDoc(collection(db, 'mail'), {
-        to: emailPayload.to,
-        message: { subject: emailPayload.subject, html: emailPayload.html },
-      });
-    }
-  };
 
   const handleSubmit = async () => {
     if (!test || !test.questions) return;
@@ -370,11 +354,104 @@ const TakeTest: React.FC = () => {
     const testDoc = await getDoc(doc(db, 'tests', testId!));
     const fullTestData = testDoc.data() as any;
 
+    console.log('[Assessment] Score:', score, '| Passing Score:', fullTestData.passingScore);
+    console.log('[Assessment] Next Interview ID:', fullTestData.nextInterviewId || 'none');
+    console.log('[Assessment] External Link:', fullTestData.externalInterviewLink || 'none');
+
     const submissionStatus = (fullTestData.passingScore && score >= fullTestData.passingScore) ? 'passed' : 'failed';
+    console.log('[Assessment] Status:', submissionStatus);
+
+    // If passed and there's a next step, generate token and send email
+    let emailSent = false;
+    let emailError = '';
+
+    if (submissionStatus === 'passed') {
+      console.log('[Assessment] Candidate PASSED! Checking for next round...');
+
+      // Internal AI Interview flow
+      if (fullTestData.nextInterviewId) {
+        console.log('[Assessment] Internal interview flow. Interview ID:', fullTestData.nextInterviewId);
+        try {
+          // Step 1: Fetch the interview details FIRST (read-only, allowed by rules)
+          const interviewDoc = await getDoc(doc(db, 'interviews', fullTestData.nextInterviewId));
+          if (!interviewDoc.exists()) {
+            console.error('[Assessment] Interview document not found for ID:', fullTestData.nextInterviewId);
+            emailError = 'Interview not found in database';
+          } else {
+            const interviewData = interviewDoc.data() as any;
+            const nextRoundAccessCode = interviewData?.accessCode || '';
+            const interviewTitle = interviewData?.title || test.title;
+            // Build the interview link directly (no token needed for access-code-based interviews)
+            const interviewLink = `${window.location.origin}/#/interview/${fullTestData.nextInterviewId}`;
+            console.log('[Assessment] Interview title:', interviewTitle, '| Access code:', nextRoundAccessCode);
+            console.log('[Assessment] Interview link:', interviewLink);
+
+            // Step 2: Try to create a one-time access token (optional, may fail for anonymous users)
+            let finalLink = interviewLink;
+            try {
+              const tokenDocRef = await addDoc(collection(db, 'interviewAccessTokens'), {
+                testId,
+                nextInterviewId: fullTestData.nextInterviewId,
+                candidateEmail: candidateInfo.email,
+                candidateName: candidateInfo.name,
+                generatedAt: serverTimestamp(),
+                isUsed: false,
+              });
+              finalLink = `${interviewLink}?token=${tokenDocRef.id}`;
+              console.log('[Assessment] Token created. Final link:', finalLink);
+            } catch (tokenErr) {
+              console.warn('[Assessment] Token creation failed (permissions), using direct link instead:', tokenErr);
+              // Continue with the direct interview link — the candidate can still use the access code
+            }
+
+            // Step 3: SEND THE EMAIL (this is the critical part)
+            console.log('[Assessment] Sending email to:', candidateInfo.email);
+            const emailResult = await sendInterviewInvitations(
+              [candidateInfo.email],
+              interviewTitle,
+              finalLink,
+              nextRoundAccessCode
+            );
+
+            console.log('[Assessment] Email result:', JSON.stringify(emailResult));
+            emailSent = emailResult.success;
+            if (!emailResult.success) emailError = emailResult.error || 'Failed to send email';
+          }
+        } catch (error: any) {
+          console.error('[Assessment] Error in internal interview email flow:', error);
+          emailError = error.message;
+        }
+
+      // External Link flow
+      } else if (fullTestData.externalInterviewLink) {
+        console.log('[Assessment] External link flow. Link:', fullTestData.externalInterviewLink);
+        try {
+          const emailResult = await sendInterviewInvitations(
+            [candidateInfo.email],
+            test.title,
+            fullTestData.externalInterviewLink,
+            fullTestData.externalAccessCode || ''
+          );
+
+          console.log('[Assessment] Email result:', JSON.stringify(emailResult));
+          emailSent = emailResult.success;
+          if (!emailResult.success) emailError = emailResult.error || 'Failed to send email';
+        } catch (error: any) {
+          console.error('[Assessment] Error in external interview email flow:', error);
+          emailError = error.message;
+        }
+      } else {
+        console.log('[Assessment] No next round configured (no nextInterviewId or externalInterviewLink).');
+      }
+    } else {
+      console.log('[Assessment] Candidate did NOT pass. No email will be sent.');
+    }
+
+    console.log('[Assessment] Final email status - Sent:', emailSent, '| Error:', emailError || 'none');
 
     await addDoc(collection(db, 'testSubmissions'), {
       testId,
-      candidateUID: user?.uid || candidateInfo.email, // Use email as fallback ID for anonymous users
+      candidateUID: user?.uid || candidateInfo.email,
       candidateName: candidateInfo.name,
       candidateEmail: candidateInfo.email,
       answers,
@@ -382,50 +459,10 @@ const TakeTest: React.FC = () => {
       feedback,
       status: submissionStatus,
       tabSwitchCount,
+      emailSent,
+      emailError,
       submittedAt: serverTimestamp()
     });
-
-    // If passed and there's a next step, generate token and send email
-    if (submissionStatus === 'passed') {
-      // Internal AI Interview flow
-      if (fullTestData.nextInterviewId) {
-        try {
-          const tokenDocRef = await addDoc(collection(db, 'interviewAccessTokens'), {
-            testId,
-            nextInterviewId: fullTestData.nextInterviewId,
-            candidateEmail: candidateInfo.email,
-            candidateName: candidateInfo.name,
-            generatedAt: serverTimestamp(),
-            isUsed: false,
-          });
-          const interviewToken = tokenDocRef.id;
-          const interviewLink = `${window.location.origin}/#/interview/${fullTestData.nextInterviewId}?token=${interviewToken}`;
-          
-          await sendEmailWithApi({
-            to: candidateInfo.email,
-            subject: `Congratulations! You've Passed the Assessment for ${test.title}`,
-            html: `<p>Dear ${candidateInfo.name},</p><p>Congratulations! You have successfully passed the online assessment for the <strong>${test.title}</strong> position.</p><p>Your performance was impressive, and we would like to invite you to the next stage: an AI-powered video interview.</p><p>Please use the link below to start your interview. This is a unique, one-time use link.</p><p><a href="${interviewLink}"><strong>Start Your AI Interview Now</strong></a></p><p>Best of luck!</p><p>The Hiring Team</p>`,
-          });
-        } catch (emailError) {
-          console.error("Error processing internal interview email:", emailError);
-        }
-      // External Link flow
-      } else if (fullTestData.externalInterviewLink) {
-        try {
-          const accessCodeInfo = fullTestData.externalAccessCode 
-            ? `<p><strong>Access Code:</strong> ${fullTestData.externalAccessCode}</p>` 
-            : '';
-
-          await sendEmailWithApi({
-            to: candidateInfo.email,
-            subject: `Congratulations! Next Steps for ${test.title}`,
-            html: `<p>Dear ${candidateInfo.name},</p><p>Congratulations! You have successfully passed the online assessment for the <strong>${test.title}</strong> position.</p><p>Please use the link below for the next round of the interview process.</p><p><a href="${fullTestData.externalInterviewLink}"><strong>Join Interview</strong></a></p>${accessCodeInfo}<p>Best of luck!</p><p>The Hiring Team</p>`,
-          });
-        } catch (emailError) {
-          console.error("Error processing external interview email:", emailError);
-        }
-      }
-    }
 
     if (document.fullscreenElement) {
       await document.exitFullscreen().catch(e => console.error(e));
