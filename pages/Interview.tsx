@@ -558,6 +558,79 @@ const ActiveInterviewSession: React.FC<{
   const [tabWarning, setTabWarning] = useState<string | null>(null);
   const tabWarningTimerRef = useRef<any>(null);
 
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [fullscreenEscapes, setFullscreenEscapes] = useState(0);
+  const [isTerminated, setIsTerminated] = useState(false);
+  const hasEnteredFullscreenRef = useRef(false);
+
+  // Anti-cheating & Fullscreen effect
+  useEffect(() => {
+    // Basic Anti-Copy
+    const handleCopyCutPaste = (e: ClipboardEvent) => e.preventDefault();
+    const handleContextMenu = (e: MouseEvent) => e.preventDefault();
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.ctrlKey || e.metaKey) {
+        if (['c', 'v', 'x', 's'].includes(e.key.toLowerCase())) e.preventDefault();
+      }
+      if (e.key === 'F12') e.preventDefault();
+      if ((e.ctrlKey || e.metaKey) && e.shiftKey && ['i', 'I', 'j', 'J', 'c', 'C'].includes(e.key)) e.preventDefault();
+      if ((e.ctrlKey || e.metaKey) && ['u', 'U'].includes(e.key)) e.preventDefault();
+    };
+    const blockDrag = (e: DragEvent) => e.preventDefault();
+
+    document.addEventListener('copy', handleCopyCutPaste);
+    document.addEventListener('cut', handleCopyCutPaste);
+    document.addEventListener('paste', handleCopyCutPaste);
+    document.addEventListener('contextmenu', handleContextMenu);
+    document.addEventListener('keydown', handleKeyDown);
+    document.addEventListener('dragstart', blockDrag);
+
+    return () => {
+      document.removeEventListener('copy', handleCopyCutPaste);
+      document.removeEventListener('cut', handleCopyCutPaste);
+      document.removeEventListener('paste', handleCopyCutPaste);
+      document.removeEventListener('contextmenu', handleContextMenu);
+      document.removeEventListener('keydown', handleKeyDown);
+      document.removeEventListener('dragstart', blockDrag);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (isTerminated) return;
+
+    const handleFullscreenChange = () => {
+      const isFS = !!document.fullscreenElement;
+      setIsFullscreen(isFS);
+      
+      if (isFS) {
+        hasEnteredFullscreenRef.current = true;
+      } else if (hasEnteredFullscreenRef.current) {
+        setFullscreenEscapes(prev => {
+          const newCount = prev + 1;
+          if (newCount >= 3) {
+            setIsTerminated(true);
+            const total = cvDataRef.current.totalFrames || 1;
+            const finalStats = {
+              eyeContactScore: Math.round((cvDataRef.current.eyeContactFrames / total) * 100),
+              confidenceScore: Math.round(cvDataRef.current.confidenceScoreAcc / total),
+              facesDetected: cvDataRef.current.facesDetectedMax,
+              expressions: cvDataRef.current.expressions,
+              terminated: true
+            };
+            if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
+              mediaRecorderRef.current.stop();
+            }
+            onFinish(finalStats);
+          }
+          return newCount;
+        });
+      }
+    };
+
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
+  }, [isTerminated, onFinish]);
+
   // Computer Vision State Refs (Simulating OpenCV)
   const cvDataRef = useRef({
     eyeContactFrames: 0,
@@ -799,13 +872,13 @@ const ActiveInterviewSession: React.FC<{
   }, [countdown, isRecording, processingVideo, isStopping]);
 
   useEffect(() => {
-    if (isRecording && timeLeft > 0) {
+    if (isRecording && timeLeft > 0 && isFullscreen && !isTerminated) {
       const t = setTimeout(() => setTimeLeft(prev => prev - 1), 1000);
       return () => clearTimeout(t);
-    } else if (isRecording && timeLeft === 0) {
+    } else if (isRecording && Math.floor(timeLeft) === 0) {
       stopRecording();
     }
-  }, [isRecording, timeLeft]);
+  }, [isRecording, timeLeft, isFullscreen, isTerminated]);
 
   const startRecording = () => {
     if ('speechSynthesis' in window) window.speechSynthesis.cancel();
@@ -865,9 +938,60 @@ const ActiveInterviewSession: React.FC<{
     }
   };
 
+  const renderFullscreenOverlay = () => {
+    if (!isFullscreen && !isTerminated) {
+      return createPortal(
+        <div className="fixed inset-0 z-[10000] bg-black/95 backdrop-blur-md flex items-center justify-center p-4 sm:p-6 text-white text-center">
+          <div className="max-w-md w-full p-6 sm:p-8 bg-[#111] rounded-2xl border border-red-500/30 shadow-2xl relative overflow-hidden">
+            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-red-500 to-yellow-500"></div>
+            <i className="fas fa-exclamation-triangle text-5xl text-yellow-500 mb-4 animate-pulse"></i>
+            <h2 className="text-xl sm:text-2xl font-bold mb-3 sm:mb-4">Fullscreen Required</h2>
+            <p className="text-gray-300 mb-6 font-medium text-xs sm:text-sm leading-relaxed">
+              {hasEnteredFullscreenRef.current 
+                ? `You have exited fullscreen mode. The timer is paused. You have ${3 - fullscreenEscapes} escape(s) remaining before automatic termination.`
+                : "This assessment must be taken in fullscreen mode to ensure a secure environment. Please enter fullscreen to start."}
+            </p>
+            <button 
+              onClick={async () => {
+                try {
+                  const docEl = document.documentElement as any;
+                  if (docEl.requestFullscreen) {
+                    await docEl.requestFullscreen();
+                  } else if (docEl.webkitRequestFullscreen) {
+                    await docEl.webkitRequestFullscreen();
+                  } else if (docEl.msRequestFullscreen) {
+                    await docEl.msRequestFullscreen();
+                  } else {
+                    setIsFullscreen(true);
+                    hasEnteredFullscreenRef.current = true;
+                    return;
+                  }
+                } catch (err) {
+                  console.error("Fullscreen error:", err);
+                  setIsFullscreen(true);
+                  hasEnteredFullscreenRef.current = true;
+                }
+              }}
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3.5 px-6 rounded-xl transition-all shadow-lg hover:shadow-blue-500/20 active:scale-95 flex items-center justify-center gap-2"
+            >
+              <i className="fas fa-terminal text-lg"></i>
+              {hasEnteredFullscreenRef.current ? "Return to Fullscreen" : "Enter Fullscreen & Start"}
+            </button>
+          </div>
+        </div>,
+        document.body
+      );
+    }
+    return null;
+  };
+
   // --- SPLIT-PANEL DASHBOARD LAYOUT ---
   return (
-    <div className="fixed inset-0 z-[9999] bg-gray-100 dark:bg-slate-950 text-gray-900 dark:text-white flex flex-col overflow-hidden transition-colors duration-300">
+    <div 
+      className="fixed inset-0 z-[9999] bg-gray-100 dark:bg-slate-950 text-gray-900 dark:text-white flex flex-col overflow-hidden transition-colors duration-300 select-none"
+      style={{ WebkitTouchCallout: 'none', WebkitUserSelect: 'none', userSelect: 'none' }}
+    >
+      {renderFullscreenOverlay()}
 
       {/* ── MAIN CONTENT: Camera (Left) + Question (Right) ── */}
       <div className="flex-1 flex flex-col md:flex-row gap-3 p-3 overflow-hidden min-h-0">
@@ -1115,7 +1239,7 @@ const InterviewSubmission: React.FC<{
               resumeScore: parseScore(/Resume Score:\s*(\d{1,3})/i),
               qnaScore: parseScore(/Q&A Score:\s*(\d{1,3})/i),
               candidateInfo,
-              status: 'Completed', 
+              status: cvStats?.terminated ? 'Terminated' : 'Completed', 
               submittedAt: serverTimestamp(), 
               candidateUID: user?.uid || null,
               interviewId: interviewId,
@@ -1144,8 +1268,12 @@ const InterviewSubmission: React.FC<{
           <div className="absolute inset-0 border-4 border-t-green-500 border-r-green-400 border-b-transparent border-l-transparent rounded-full animate-spin"></div>
           <i className="fas fa-check absolute inset-0 flex items-center justify-center text-3xl text-green-500"></i>
         </div>
-        <h2 className="text-3xl font-bold text-gray-800 dark:text-white mb-2">Interview Complete</h2>
-        <p className="text-gray-500 dark:text-gray-400 mb-12 animate-pulse">{status}</p>
+        <h2 className="text-3xl font-bold text-gray-800 dark:text-white mb-2">
+          {cvStats?.terminated ? 'Interview Terminated' : 'Interview Complete'}
+        </h2>
+        <p className={`mb-12 animate-pulse ${cvStats?.terminated ? 'text-red-500 font-bold' : 'text-gray-500 dark:text-gray-400'}`}>
+          {cvStats?.terminated ? 'Session revoked due to security violations.' : status}
+        </p>
 
         <div className="bg-white dark:bg-gray-800 p-6 rounded-2xl max-w-lg text-center border border-gray-100 dark:border-gray-700 shadow-xl">
           <p className="text-xs font-bold text-blue-500 uppercase mb-3 tracking-widest">Tech Fact</p>

@@ -126,14 +126,19 @@ export interface Interview {
   }
   
   export interface InterviewState {
+    jobId?: string;
     jobTitle: string;
     jobDescription: string;
     questions: string[];
     answers: string[];
     videoURLs: string[];
     transcriptIds: string[];
+    transcriptTexts?: string[];
     candidateResumeURL: string | null;
     candidateResumeMimeType: string | null;
     language: string;
+    currentQuestionIndex: number;
+    isMock?: boolean;
+    terminated?: boolean;
   }
   

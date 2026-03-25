@@ -610,10 +610,25 @@ const TakeTest: React.FC = () => {
             <button 
               onClick={async () => {
                 try {
-                  await document.documentElement.requestFullscreen();
+                  const docEl = document.documentElement as any;
+                  if (docEl.requestFullscreen) {
+                    await docEl.requestFullscreen();
+                  } else if (docEl.webkitRequestFullscreen) {
+                    await docEl.webkitRequestFullscreen();
+                  } else if (docEl.msRequestFullscreen) {
+                    await docEl.msRequestFullscreen();
+                  } else {
+                    // Fallback for iOS/mobile devices that don't support fullscreen API
+                    setIsFullscreen(true);
+                    hasEnteredFullscreenRef.current = true;
+                    return;
+                  }
                 } catch (err) {
-                  console.error(err);
-                  alert("Fullscreen request denied. Please click the button again or use browser settings.");
+                  console.error("Fullscreen error:", err);
+                  // If browser denies request or it fails for whatever reason on mobile/desktop, grant fallback
+                  // so the user is not permanently stuck.
+                  setIsFullscreen(true);
+                  hasEnteredFullscreenRef.current = true;
                 }
               }}
               className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3.5 px-6 rounded-xl transition-all shadow-lg hover:shadow-blue-500/20 active:scale-95 flex items-center justify-center gap-2"
@@ -765,7 +780,10 @@ const TakeTest: React.FC = () => {
   };
 
   return (
-    <div className={`min-h-screen flex flex-col select-none ${isDark ? 'bg-[#050505] text-white' : 'bg-gray-50 text-gray-900'}`}>
+    <div 
+      className={`min-h-screen flex flex-col select-none ${isDark ? 'bg-[#050505] text-white' : 'bg-gray-50 text-gray-900'}`}
+      style={{ WebkitTouchCallout: 'none', WebkitUserSelect: 'none', userSelect: 'none' }}
+    >
       {renderFullscreenOverlay()}
       {showCalculator && <Calculator onClose={() => setShowCalculator(false)} />}
 
