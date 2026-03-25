@@ -296,6 +296,58 @@ const TakeTest: React.FC = () => {
     };
   }, []);
 
+  // Anti-cheating: Disable Copy, Cut, Paste, Context Menu, and Keyboard Shortcuts
+  useEffect(() => {
+    if (step !== 'test') return;
+
+    const handleCopyCutPaste = (e: ClipboardEvent) => {
+      e.preventDefault();
+    };
+
+    const handleContextMenu = (e: MouseEvent) => {
+      e.preventDefault();
+    };
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Prevent Ctrl+C, Ctrl+V, Ctrl+X, Ctrl+S
+      if (e.ctrlKey || e.metaKey) {
+        if (['c', 'v', 'x', 's'].includes(e.key.toLowerCase())) {
+          e.preventDefault();
+        }
+      }
+      // Prevent F12, Ctrl+Shift+I, Ctrl+Shift+J, Ctrl+U
+      if (e.key === 'F12') {
+        e.preventDefault();
+      }
+      if ((e.ctrlKey || e.metaKey) && e.shiftKey && ['i', 'I', 'j', 'J', 'c', 'C'].includes(e.key)) {
+        e.preventDefault();
+      }
+      if ((e.ctrlKey || e.metaKey) && ['u', 'U'].includes(e.key)) {
+        e.preventDefault();
+      }
+    };
+
+    const blockDrag = (e: DragEvent) => {
+      e.preventDefault();
+    };
+
+    document.addEventListener('copy', handleCopyCutPaste);
+    document.addEventListener('cut', handleCopyCutPaste);
+    document.addEventListener('paste', handleCopyCutPaste);
+    document.addEventListener('contextmenu', handleContextMenu);
+    document.addEventListener('keydown', handleKeyDown);
+    document.addEventListener('dragstart', blockDrag);
+
+    return () => {
+      document.removeEventListener('copy', handleCopyCutPaste);
+      document.removeEventListener('cut', handleCopyCutPaste);
+      document.removeEventListener('paste', handleCopyCutPaste);
+      document.removeEventListener('contextmenu', handleContextMenu);
+      document.removeEventListener('keydown', handleKeyDown);
+      document.removeEventListener('dragstart', blockDrag);
+    };
+  }, [step]);
+
   const handleAnswer = (val: any) => {
     setAnswers({ ...answers, [currentQ]: val });
   };
@@ -636,7 +688,7 @@ const TakeTest: React.FC = () => {
   };
 
   return (
-    <div className={`min-h-screen flex flex-col ${isDark ? 'bg-[#050505] text-white' : 'bg-gray-50 text-gray-900'}`}>
+    <div className={`min-h-screen flex flex-col select-none ${isDark ? 'bg-[#050505] text-white' : 'bg-gray-50 text-gray-900'}`}>
       {showCalculator && <Calculator onClose={() => setShowCalculator(false)} />}
 
       {/* Header */}
