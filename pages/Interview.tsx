@@ -3,9 +3,9 @@ import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { doc, getDoc, addDoc, collection, serverTimestamp, updateDoc } from 'firebase/firestore';
 import { db } from '../services/firebase';
 import { uploadToCloudinary, generateInterviewQuestions, requestTranscription, fetchTranscriptText, generateFeedback, generateOpenAITTS } from '../services/api';
-import { Interview, InterviewState } from '../types';
+import { Interview, InterviewState, CandidateInfo } from '../types';
 import { createPortal } from 'react-dom';
-import { LanguageSelector } from '../components/landing/LanguageSelector';
+import { LanguageSelector } from './LanguageSelector';
 import { useAuth } from '../context/AuthContext';
 
 // --- Types ---
@@ -24,6 +24,42 @@ const loadFaceAPI = (onLoaded: () => void) => {
   script.onload = onLoaded;
   document.body.appendChild(script);
 };
+
+// --- Sarvam AI Transcription Helper ---
+const transcribeWithSarvam = async (audioBlob: Blob, languageCode: string): Promise<string> => {
+  // IMPORTANT: Storing API keys on the client-side is a major security risk.
+  // This should be moved to a secure backend environment in a production application.
+  // The key is now read from environment variables.
+  const SARVAM_API_KEY = import.meta.env.VITE_SARVAM_API_KEY;
+
+  const langMap: { [key: string]: string } = {
+      en: 'en-IN',
+      hi: 'hi-IN',
+      mr: 'mr-IN'
+  };
+  const apiLangCode = langMap[languageCode] || 'en-IN';
+
+  const formData = new FormData();
+  // NOTE: The Sarvam API might expect a specific audio format like WAV.
+  // MediaRecorder in most browsers produces WebM or Ogg. This might require server-side conversion if the API doesn't support it.
+  formData.append('file', audioBlob, 'audio.webm');
+  formData.append('language_code', apiLangCode);
+  formData.append('model', 'saaras:v3');
+
+  try {
+      const response = await fetch('https://api.sarvam.ai/speech-to-text', {
+          method: 'POST',
+          headers: { 'api-subscription-key': SARVAM_API_KEY },
+          body: formData
+      });
+      const data = await response.json();
+      if (response.ok) return data.transcript || "No speech detected.";
+      throw new Error(data.message || "API Error during transcription");
+  } catch (err) { 
+      console.error("Transcription fetch error:", err);
+      return `Error: ${(err as Error).message}`;
+  }
+}
 
 const QUESTION_TIME_MS = 2 * 60 * 1000; // 2 minutes
 
@@ -210,10 +246,8 @@ const CandidateInfoForm: React.FC<{
             </div>
           )}
 
-          <div className="pt-2">
-            <label className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1 block">Interview Language</label>
-            <LanguageSelector selectedLanguage={language} onLanguageChange={setLanguage} />
-          </div>
+          {/* The label is now inside the LanguageSelector component */}
+          <LanguageSelector selectedLanguage={language} onLanguageChange={setLanguage} className="pt-2" />
 
           <button type="submit" className="w-full bg-blue-600 text-white p-3.5 rounded-xl font-bold hover:bg-blue-700 shadow-lg shadow-blue-500/30 transition-all transform hover:-translate-y-0.5 mt-4">
             Proceed to Interview
@@ -891,10 +925,11 @@ const ActiveInterviewSession: React.FC<{
       const blob = new Blob(chunksRef.current, { type: 'video/webm' });
       chunksRef.current = [];
       let videoUrl: string | null = null;
-      let transcriptId: string | null = null;
+      let transcriptText: string | null = null;
       try {
         videoUrl = await uploadToCloudinary(blob, 'video');
-        transcriptId = await requestTranscription(videoUrl, state.language);
+        // Use Sarvam AI for transcription directly with the audio blob
+        transcriptText = await transcribeWithSarvam(blob, state.language);
       } catch (err) { console.error("Upload error", err); }
 
       const idx = state.currentQuestionIndex;
@@ -902,9 +937,10 @@ const ActiveInterviewSession: React.FC<{
 
       setState(prev => {
         const newVids = [...prev.videoURLs]; newVids[idx] = videoUrl;
-        const newTrans = [...prev.transcriptIds]; newTrans[idx] = transcriptId;
+        const newTrans = [...prev.transcriptIds]; newTrans[idx] = null; // No ID from Sarvam
+        const newTexts = [...prev.transcriptTexts]; newTexts[idx] = transcriptText;
         const newAns = [...prev.answers]; newAns[idx] = "Answered";
-        return { ...prev, videoURLs: newVids, transcriptIds: newTrans, answers: newAns, currentQuestionIndex: isLast ? idx : idx + 1 };
+        return { ...prev, videoURLs: newVids, transcriptIds: newTrans, transcriptTexts: newTexts, answers: newAns, currentQuestionIndex: isLast ? idx : idx + 1 };
       });
 
       setProcessingVideo(false);
@@ -1204,20 +1240,8 @@ const InterviewSubmission: React.FC<{
   useEffect(() => {
     const finalize = async () => {
       try {
-        setStatus("Fetching transcripts...");
-        const transcriptTexts = await Promise.all(
-          state.transcriptIds.map(async (id) => {
-            if (!id) return "";
-            for (let i = 0; i < 10; i++) {
-              await new Promise(r => setTimeout(r, 2000));
-              const res = await fetchTranscriptText(id);
-              if (res.status === 'completed') return res.text!;
-              if (res.status === 'error') return "Error";
-            }
-            return "";
-          })
-        );
-
+        // Transcripts are now directly available in the state, no fetching needed.
+        const transcriptTexts = state.transcriptTexts;
         setStatus("AI Analyzing performance...");
         const resp = await fetch(state.candidateResumeURL!);
         const blob = await resp.blob();
