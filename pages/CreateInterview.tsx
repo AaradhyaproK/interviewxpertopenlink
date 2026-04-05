@@ -15,8 +15,6 @@ const CreateInterview: React.FC = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
-  const [interviewLink, setInterviewLink] = useState('');
-  const [accessCode, setAccessCode] = useState('');
   const [skillSearch, setSkillSearch] = useState('');
   const [candidateEmails, setCandidateEmails] = useState<string[]>([]);
   const [currentEmail, setCurrentEmail] = useState('');
@@ -67,17 +65,6 @@ const CreateInterview: React.FC = () => {
     return () => ctx.revert();
   }, []);
 
-  const [interviewId, setInterviewId] = useState('');
-
-  const generateLink = () => {
-    const newRand = Math.random().toString(36).substring(2, 15);
-    const newInterviewLink = `${window.location.origin}/#/interview/${newRand}`;
-    const newAccessCode = Math.random().toString(36).substring(2, 8).toUpperCase();
-    setInterviewId(newRand);
-    setInterviewLink(newInterviewLink);
-    setAccessCode(newAccessCode);
-  };
-  
   const toggleSkill = (skill: string) => {
     const currentSkills = formData.skills
       ? formData.skills.split(',').map(s => s.trim()).filter(s => s)
@@ -171,55 +158,58 @@ const CreateInterview: React.FC = () => {
     setLoading(true);
 
     try {
-      await setDoc(doc(db, 'interviews', interviewId), {
+      // 1. Generate Interview ID, Link, and Access Code locally
+      const newRand = Math.random().toString(36).substring(2, 15);
+      const newInterviewLink = `${window.location.origin}/#/interview/${newRand}`;
+      const newAccessCode = Math.random().toString(36).substring(2, 8).toUpperCase();
+
+      // 2. Save to Firestore
+      await setDoc(doc(db, 'interviews', newRand), {
         ...formData,
         manualQuestions,
         candidateEmails,
-        interviewLink,
-        accessCode,
+        interviewLink: newInterviewLink,
+        accessCode: newAccessCode,
         recruiterUID: user.uid,
         createdAt: serverTimestamp(),
         isMock: false,
       });
-      // Logic to send email will be added here
+
+      // 3. Send invitation emails if candidates are present
+      if (candidateEmails.length > 0) {
+        setSendingEmails(true);
+        try {
+          const result = await sendInterviewInvitations(
+            candidateEmails,
+            formData.title,
+            newInterviewLink,
+            newAccessCode
+          );
+
+          if (result.success) {
+            console.log(`[Brevo] Successfully sent ${result.totalEmails} invitation email(s)!`);
+          } else {
+            console.warn(`[Brevo] Partial failure sending emails: ${result.error}`);
+            alert(`⚠️ Interview created, but failed to send some emails: ${result.error}`);
+          }
+        } catch (err: any) {
+          console.error('[Brevo] Email sending error:', err);
+          alert(`⚠️ Interview created, but error sending emails: ${err.message}`);
+        } finally {
+          setSendingEmails(false);
+        }
+      }
+
+      alert(candidateEmails.length > 0 
+        ? "✅ Interview created and invitations sent successfully!" 
+        : "✅ Interview created successfully!");
+      
       navigate('/recruiter/interviews');
     } catch (err) {
       console.error(err);
-      alert("Failed to create interview");
+      alert("❌ Failed to create interview");
     } finally {
       setLoading(false);
-    }
-  };
-
-  const sendEmail = async () => {
-    if (!interviewLink || !accessCode) {
-      alert('Please generate the interview link and access code first.');
-      return;
-    }
-    if (candidateEmails.length === 0) {
-      alert('No candidate emails to send to.');
-      return;
-    }
-
-    setSendingEmails(true);
-    try {
-      const result = await sendInterviewInvitations(
-        candidateEmails,
-        formData.title,
-        interviewLink,
-        accessCode
-      );
-
-      if (result.success) {
-        alert(`✅ Successfully sent ${result.totalEmails} invitation email(s)!`);
-      } else {
-        alert(`❌ Failed to send emails: ${result.error}`);
-      }
-    } catch (err: any) {
-      console.error('Email sending error:', err);
-      alert(`❌ Error sending emails: ${err.message}`);
-    } finally {
-      setSendingEmails(false);
     }
   };
 
@@ -505,65 +495,25 @@ const CreateInterview: React.FC = () => {
 
           <div className="pt-4 form-field">
             <button
-              type="button"
-              onClick={generateLink}
-              className="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-3.5 px-4 rounded-xl shadow-lg shadow-blue/20 transition-all transform hover:-translate-y-0.5 active:translate-y-0"
-            >
-              Generate Interview Link & Access Code
-            </button>
-          </div>
-
-          {interviewLink && accessCode && (
-            <div className="space-y-4 form-field">
-                <div className="p-4 bg-gray-50 dark:bg-[#1a1a1a] border border-gray-200 dark:border-white/10 rounded-xl">
-                    <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Interview Link</label>
-                    <div className="flex items-center mt-1">
-                        <input
-                            type="text"
-                            readOnly
-                            value={interviewLink}
-                            className="w-full px-4 py-3 bg-white dark:bg-[#2a2a2a] border border-gray-200 dark:border-white/10 rounded-l-xl text-gray-900 dark:text-white"
-                        />
-                        <button type="button" onClick={() => navigator.clipboard.writeText(interviewLink)} className="px-4 py-3 bg-gray-200 dark:bg-white/10 hover:bg-gray-300 dark:hover:bg-white/20 text-gray-700 dark:text-gray-300 rounded-r-xl transition-colors">Copy</button>
-                    </div>
-                </div>
-                <div className="p-4 bg-gray-50 dark:bg-[#1a1a1a] border border-gray-200 dark:border-white/10 rounded-xl">
-                    <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Access Code</label>
-                    <div className="flex items-center mt-1">
-                        <input
-                            type="text"
-                            readOnly
-                            value={accessCode}
-                            className="w-full px-4 py-3 bg-white dark:bg-[#2a2a2a] border border-gray-200 dark:border-white/10 rounded-l-xl text-gray-900 dark:text-white"
-                        />
-                        <button type="button" onClick={() => navigator.clipboard.writeText(accessCode)} className="px-4 py-3 bg-gray-200 dark:bg-white/10 hover:bg-gray-300 dark:hover:bg-white/20 text-gray-700 dark:text-gray-300 rounded-r-xl transition-colors">Copy</button>
-                    </div>
-                </div>
-                <div className="pt-4 form-field">
-                  <button
-                    type="button"
-                    onClick={sendEmail}
-                    disabled={candidateEmails.length === 0 || sendingEmails}
-                    className="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-3.5 px-4 rounded-xl shadow-lg shadow-green/20 transition-all transform hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    {sendingEmails ? (
-                      <><i className="fa-solid fa-circle-notch fa-spin mr-2"></i>Sending {candidateEmails.length} Email(s)...</>
-                    ) : (
-                      <>Send Invitation Email ({candidateEmails.length})</>
-                    )}
-                  </button>
-              </div>
-            </div>
-          )}
-
-          <div className="pt-4 form-field">
-            <button
               type="submit"
-              disabled={loading || !interviewLink}
-              className="w-full bg-primary hover:bg-primary-dark text-white dark:text-black font-bold py-3.5 px-4 rounded-xl shadow-lg shadow-primary/20 transition-all transform hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-50 disabled:cursor-not-allowed"
+              disabled={loading || sendingEmails}
+              className="w-full bg-primary hover:bg-primary-dark text-white dark:text-black font-bold py-4 px-4 rounded-xl shadow-lg shadow-primary/20 transition-all transform hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3"
             >
-              {loading ? 'Creating...' : 'Create Interview'}
+              {loading || sendingEmails ? (
+                <>
+                  <i className="fa-solid fa-circle-notch fa-spin"></i>
+                  {loading ? 'Saving Interview...' : `Sending Invitations...`}
+                </>
+              ) : (
+                <>
+                  <i className="fa-solid fa-paper-plane text-sm"></i>
+                  Create Interview & Send Invitations
+                </>
+              )}
             </button>
+            <p className="text-center text-xs text-gray-500 dark:text-gray-400 mt-3 italic">
+              This will generate access codes and notify listed candidates automatically.
+            </p>
           </div>
         </form>
       </div>
