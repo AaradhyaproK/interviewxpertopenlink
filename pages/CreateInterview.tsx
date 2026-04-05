@@ -364,18 +364,46 @@ const CreateInterview: React.FC = () => {
             </div>
           </div>
 
-          <div className="space-y-2 form-field">
-            <label className="text-sm font-semibold text-gray-900 dark:text-white flex items-center gap-2">
-              <i className="fa-solid fa-robot text-blue-500"></i>
-              Number of AI-Generated Questions
-            </label>
-            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Specify how many questions the AI should create based on the job description.</p>
-            <input
-              type="number" min="1" max="15"
-              className="w-full px-4 py-3 bg-gray-50 dark:bg-[#1a1a1a] border border-gray-200 dark:border-white/10 rounded-xl text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/50 transition-all"
-              value={formData.numQuestions}
-              onChange={e => setFormData({ ...formData, numQuestions: parseInt(e.target.value) || 5 })}
-            />
+          <div className="space-y-4 form-field p-6 bg-blue-50/50 dark:bg-blue-500/5 border border-blue-100 dark:border-blue-500/20 rounded-2xl">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div>
+                <label className="text-sm font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+                  <i className="fa-solid fa-robot text-blue-500"></i>
+                  Number of AI-Generated Questions
+                </label>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Specify how many questions the AI should create based on the job description.</p>
+              </div>
+              
+              <div className="flex items-center gap-3 bg-white dark:bg-[#1a1a1a] p-1.5 rounded-xl border border-gray-200 dark:border-white/10 shadow-sm self-start md:self-center">
+                <button
+                  type="button"
+                  disabled={formData.numQuestions <= 1}
+                  onClick={() => setFormData(prev => ({ ...prev, numQuestions: Math.max(1, prev.numQuestions - 1) }))}
+                  className="w-10 h-10 flex items-center justify-center rounded-lg bg-gray-50 dark:bg-white/5 text-gray-600 dark:text-gray-400 hover:bg-blue-500 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed transition-all border border-gray-100 dark:border-white/5"
+                >
+                  <i className="fa-solid fa-minus text-xs"></i>
+                </button>
+                
+                <input
+                  type="number" min="1" max="25"
+                  className="w-12 text-center bg-transparent border-none text-lg font-bold text-gray-900 dark:text-white focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                  value={formData.numQuestions}
+                  onChange={e => {
+                    const val = parseInt(e.target.value) || 1;
+                    setFormData({ ...formData, numQuestions: Math.max(1, Math.min(25, val)) });
+                  }}
+                />
+                
+                <button
+                  type="button"
+                  disabled={formData.numQuestions >= 25}
+                  onClick={() => setFormData(prev => ({ ...prev, numQuestions: Math.min(25, prev.numQuestions + 1) }))}
+                  className="w-10 h-10 flex items-center justify-center rounded-lg bg-gray-50 dark:bg-white/5 text-gray-600 dark:text-gray-400 hover:bg-blue-500 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed transition-all border border-gray-100 dark:border-white/5"
+                >
+                  <i className="fa-solid fa-plus text-xs"></i>
+                </button>
+              </div>
+            </div>
           </div>
 
           <div className="space-y-4 form-field p-6 bg-blue-50/50 dark:bg-blue-500/5 border border-blue-100 dark:border-blue-500/20 rounded-2xl">
