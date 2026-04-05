@@ -37,17 +37,53 @@ let activeAudio: HTMLAudioElement | null = null;
 let webVoicesReady = false;
 let webVoices: SpeechSynthesisVoice[] = [];
 
+const loadVoices = () => {
+  if (typeof window === 'undefined' || !('speechSynthesis' in window)) return;
+  webVoices = window.speechSynthesis.getVoices();
+  if (webVoices.length > 0) webVoicesReady = true;
+};
+
 // Pre-load Web Speech voices as soon as this module is imported
 if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
-  const loadVoices = () => {
-    webVoices = window.speechSynthesis.getVoices();
-    if (webVoices.length > 0) webVoicesReady = true;
-  };
   loadVoices();
-  window.speechSynthesis.onvoiceschanged = loadVoices;
+  if (window.speechSynthesis.onvoiceschanged !== undefined) {
+    window.speechSynthesis.onvoiceschanged = loadVoices;
+  }
 }
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
+
+const ensureVoicesLoaded = async (): Promise<void> => {
+  if (webVoicesReady && webVoices.length > 0) return;
+  loadVoices();
+  if (webVoicesReady && webVoices.length > 0) return;
+
+  if (typeof window === 'undefined' || !('speechSynthesis' in window)) return;
+
+  return new Promise<void>((resolve) => {
+    let resolved = false;
+    const onVoicesChanged = () => {
+      if (resolved) return;
+      loadVoices();
+      if (webVoicesReady) {
+        resolved = true;
+        window.speechSynthesis.removeEventListener('voiceschanged', onVoicesChanged);
+        resolve();
+      }
+    };
+    window.speechSynthesis.addEventListener('voiceschanged', onVoicesChanged);
+    
+    // Timeout fallback (e.g., Chrome bug where event doesn't fire if already loaded)
+    setTimeout(() => {
+      if (!resolved) {
+        loadVoices();
+        resolved = true;
+        window.speechSynthesis.removeEventListener('voiceschanged', onVoicesChanged);
+        resolve();
+      }
+    }, 1000);
+  });
+};
 
 /** Returns true when the text contains Devanagari characters (Hindi / Marathi) */
 const containsDevanagari = (text: string): boolean =>
@@ -71,7 +107,8 @@ const getKokoro = async (): Promise<InstanceType<typeof KokoroTTS>> => {
     kokoroLoading = KokoroTTS.from_pretrained(
       'onnx-community/Kokoro-82M-v1.0-ONNX',
       { 
-         dtype: isWebGPU ? 'fp32' : 'q4', 
+         // use fp32 for WASM too, as q4 causes extreme noise ("gibberish") on some devices
+         dtype: 'fp32', 
          device: isWebGPU ? 'webgpu' : 'wasm' 
       } as any
     ).then((tts) => {
@@ -85,24 +122,28 @@ const getKokoro = async (): Promise<InstanceType<typeof KokoroTTS>> => {
 
 /** Pick the best Web Speech voice for a given BCP-47 language tag */
 const pickVoice = (lang: string): SpeechSynthesisVoice | undefined => {
-  if (!webVoicesReady) {
-    webVoices = window.speechSynthesis.getVoices();
-    if (webVoices.length > 0) webVoicesReady = true;
-  }
-
+  loadVoices();
+  
   // Prefer Google voices for quality
   const googleVoice = webVoices.find(
-    (v) => v.lang === lang && v.name.toLowerCase().includes('google'),
+    (v) => v.lang.startsWith(lang) && v.name.toLowerCase().includes('google')
   );
   if (googleVoice) return googleVoice;
 
-  // Fallback: any voice matching the language
+  // Fallback: any voice matching the exact language
   const fallback = webVoices.find((v) => v.lang === lang);
   if (fallback) return fallback;
 
-  // Wider match (prefix): e.g. 'hi' matches 'hi-IN'
+  // Wider match (prefix): e.g. 'en' matches 'en-US', 'en-GB', 'en-IN'
   const prefix = lang.split('-')[0];
-  return webVoices.find((v) => v.lang.startsWith(prefix));
+  const genericVoice = webVoices.find((v) => v.lang.startsWith(prefix));
+  
+  // For English, strictly try to get an English voice if Web Speech gets wonky
+  if (!genericVoice && prefix === 'en') {
+     return webVoices.find(v => v.lang.toLowerCase().includes('en'));
+  }
+  
+  return genericVoice;
 };
 
 // ─── Cancellation token ──────────────────────────────────────────────────────
@@ -134,13 +175,15 @@ async function speak(text: string, options?: SpeakOptions): Promise<void> {
     // Use Google हिन्दी (hi-IN) voice for BOTH Hindi and Marathi
     const voiceLang = 'hi-IN';
 
-    return new Promise<void>((resolve) => {
+    return new Promise<void>(async (resolve) => {
       if (!('speechSynthesis' in window)) {
         console.warn('[TTS] Web Speech API not supported in this browser');
         options?.onEnd?.();
         resolve();
         return;
       }
+      
+      await ensureVoicesLoaded();
 
       // Cancel any leftovers
       window.speechSynthesis.cancel();
@@ -262,20 +305,24 @@ async function speak(text: string, options?: SpeakOptions): Promise<void> {
     console.warn('[TTS] Kokoro generation failed, falling back to Web Speech:', err);
 
     // ── Fallback: Web Speech API for English too ────────────────────────
-    return new Promise<void>((resolve) => {
+    return new Promise<void>(async (resolve) => {
       if (!('speechSynthesis' in window)) {
         options?.onEnd?.();
         resolve();
         return;
       }
+      
+      await ensureVoicesLoaded();
 
       window.speechSynthesis.cancel();
       const utter = new SpeechSynthesisUtterance(text);
       utter.lang = 'en-US';
       utter.rate = options?.rate ?? 1.0;
 
-      const voice = pickVoice('en-US') || pickVoice('en-GB');
-      if (voice) utter.voice = voice;
+      const voice = pickVoice('en-US') || pickVoice('en-GB') || pickVoice('en');
+      if (voice) {
+        utter.voice = voice;
+      }
 
       utter.onend = () => {
         options?.onEnd?.();
@@ -320,3 +367,4 @@ if (typeof window !== 'undefined') {
     console.warn('[TTS] Background preload of Kokoro failed:', err);
   });
 }
+
