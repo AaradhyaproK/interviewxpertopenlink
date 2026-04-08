@@ -18,7 +18,9 @@ const CandidateDashboard: React.FC<{ onlyBestMatches?: boolean }> = ({ onlyBestM
   const [rawRequests, setRawRequests] = useState<any[]>([]);
   const [rawInterviews, setRawInterviews] = useState<any[]>([]);
   const [funnelData, setFunnelData] = useState<any[]>([]);
+  const [directInvites, setDirectInvites] = useState<any[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
+  const [invitationSearchTerm, setInvitationSearchTerm] = useState('');
   const [dateFilter, setDateFilter] = useState('all');
   const navigate = useNavigate();
   const [selectedJob, setSelectedJob] = useState<Job | null>(null);
@@ -110,11 +112,37 @@ const CandidateDashboard: React.FC<{ onlyBestMatches?: boolean }> = ({ onlyBestM
       setAssessmentCount(realAssessments.length);
     });
 
+    // Real-time: Fetch direct interview invitations
+    let unsubscribeInvites = () => {};
+    if (user.email) {
+      const lowerEmail = user.email.toLowerCase();
+      const invitesQuery = query(
+        collection(db, 'interviews'),
+        where('candidateEmails', 'array-contains', lowerEmail)
+      );
+      unsubscribeInvites = onSnapshot(invitesQuery, (snapshot) => {
+        const invites = snapshot.docs.map(doc => {
+          const data = doc.data() as any;
+          return { 
+            id: doc.id, 
+            companyName: data.companyName || 'Target Company',
+            qualifications: data.skills || data.qualifications || '',
+            jobType: data.employmentType || data.jobType || 'Full-time',
+            isDirectInvite: true,
+            ...(data as any) 
+          };
+        });
+        // Filter out any mock ones if they sneak in, and only keep ones with access codes
+        setDirectInvites(invites.filter(inv => !inv.isMock && inv.accessCode));
+      });
+    }
+
     return () => {
       unsubscribeRequests();
       unsubscribeJobs();
       unsubscribeStats();
       unsubscribeSubmissions();
+      unsubscribeInvites();
     };
   }, [user]);
 
@@ -272,6 +300,12 @@ const CandidateDashboard: React.FC<{ onlyBestMatches?: boolean }> = ({ onlyBestM
 
   const filteredAllJobs = filterBySearch(allJobs);
   const filteredBestMatches = filterBySearch(bestMatches);
+  const filteredDirectInvites = directInvites.filter(inv => 
+    invitationSearchTerm 
+      ? (inv.title?.toLowerCase().includes(invitationSearchTerm.toLowerCase()) || 
+         inv.companyName?.toLowerCase().includes(invitationSearchTerm.toLowerCase()))
+      : true
+  );
 
   if (loading) return <div className="text-center py-20 text-gray-500 animate-pulse">Loading dashboard...</div>;
 
@@ -351,7 +385,7 @@ const CandidateDashboard: React.FC<{ onlyBestMatches?: boolean }> = ({ onlyBestM
               Start
             </button>
           ) : (
-            <button onClick={(e) => { e.stopPropagation(); openApplyModal(job); }} className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-bold transition-colors shadow-lg shadow-blue-900/20">
+            <button onClick={(e) => { e.stopPropagation(); (job as any).isDirectInvite ? window.open(`/#/interview/${job.id}`, '_blank') : openApplyModal(job); }} className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-bold transition-colors shadow-lg shadow-blue-900/20">
               Apply
             </button>
           )}
@@ -558,6 +592,43 @@ const CandidateDashboard: React.FC<{ onlyBestMatches?: boolean }> = ({ onlyBestM
           </div>
         </div>
 
+        {/* Direct Interview Invitations Row */}
+        {(directInvites.length > 0) && (
+          <div className="mb-8 p-6 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/10 dark:to-indigo-900/10 rounded-2xl border border-blue-100 dark:border-blue-800/30 shadow-sm animate-in fade-in duration-500">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-lg bg-blue-500/20 text-blue-600 dark:text-blue-400">
+                  <i className="fas fa-paper-plane text-xl"></i>
+                </div>
+                <div>
+                  <h2 className="text-xl font-bold text-blue-900 dark:text-blue-100">Direct Invitations</h2>
+                  <p className="text-sm text-blue-600 dark:text-blue-300">You have been specifically invited to these interviews</p>
+                </div>
+              </div>
+              <div className="w-full md:w-64 relative">
+                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-blue-500/70 dark:text-blue-400" />
+                 <input 
+                   type="text" 
+                   placeholder="Search invitations..." 
+                   className="w-full pl-9 pr-4 py-2 border border-blue-200 dark:border-blue-800/40 rounded-xl bg-white/70 dark:bg-black/30 backdrop-blur-sm focus:ring-2 focus:ring-blue-500 outline-none text-sm text-gray-800 dark:text-gray-200"
+                   value={invitationSearchTerm}
+                   onChange={e => setInvitationSearchTerm(e.target.value)}
+                 />
+              </div>
+            </div>
+
+            {filteredDirectInvites.length > 0 ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {filteredDirectInvites.map(invite => renderJobCard(invite as any))}
+                </div>
+            ) : (
+                <div className="text-center py-6 text-blue-600 dark:text-blue-400/80 border border-dashed border-blue-300 dark:border-blue-800/50 rounded-xl">
+                   No specific invitations match your internal search.
+                </div>
+            )}
+          </div>
+        )}
+
         {/* Best Matches Row */}
         {filteredBestMatches.length > 0 && (
           <div>
@@ -710,7 +781,7 @@ const CandidateDashboard: React.FC<{ onlyBestMatches?: boolean }> = ({ onlyBestM
                     <span className="text-lg">▶</span> Start Interview
                   </button>
                 ) : (
-                  <button onClick={() => openApplyModal(selectedJob)} className="whitespace-nowrap px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold shadow-lg shadow-blue-900/20 transition-all flex items-center gap-2">
+                  <button onClick={() => (selectedJob as any).isDirectInvite ? window.open(`/#/interview/${selectedJob.id}`, '_blank') : openApplyModal(selectedJob)} className="whitespace-nowrap px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold shadow-lg shadow-blue-900/20 transition-all flex items-center gap-2">
                     Apply Now
                   </button>
                 )}

@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { collection, getDocs, query, limit } from 'firebase/firestore';
 import { db, auth } from '../services/firebase';
 import { useNavigate } from 'react-router-dom';
-import { MapPin, Clock, ArrowRight, Building2, DollarSign, Briefcase } from 'lucide-react';
+import { MapPin, Clock, ArrowRight, Building2, DollarSign, Briefcase, Lock } from 'lucide-react';
 
 interface Job {
   id: string;
@@ -16,6 +16,8 @@ interface Job {
   deadline?: string;
   isMock?: boolean;
   jobDescription?: string;
+  accessCode?: string;
+  title?: string;
 }
 
 const LandingJobs: React.FC = () => {
@@ -27,32 +29,26 @@ const LandingJobs: React.FC = () => {
     const fetchJobs = async () => {
       try {
         const q = query(
-          collection(db, 'jobs'),
-          limit(50) // Increased limit to ensure we find valid jobs after expiration filtering
+          collection(db, 'interviews'),
+          limit(50)
         );
         
         const querySnapshot = await getDocs(q);
         const jobsData = querySnapshot.docs.map(doc => ({
           id: doc.id,
-          ...doc.data()
+          ...doc.data(),
+          jobTitle: doc.data().title || doc.data().jobTitle || 'Role'
         })) as Job[];
 
-        // Filter out expired jobs and sort by newest
-        const now = new Date();
+        // Filter valid Open Link Interviews
         const validJobs = jobsData
-          .filter(job => {
-            if (job.isMock) return false;
-            if (job.deadline) {
-              return new Date(job.deadline) > now;
-            }
-            return true;
-          })
+          .filter(job => !job.isMock && job.accessCode)
           .sort((a, b) => {
             const dateA = a.createdAt?.seconds || 0;
             const dateB = b.createdAt?.seconds || 0;
             return dateB - dateA;
           })
-          .slice(0, 6); // Show top 6
+          .slice(0, 6);
 
         setJobs(validJobs);
       } catch (error) {
@@ -65,11 +61,11 @@ const LandingJobs: React.FC = () => {
     fetchJobs();
   }, []);
 
-  const handleApply = () => {
-    if (auth.currentUser) {
-      navigate('/candidate/jobs');
+  const handleApply = (id?: string) => {
+    if (id && typeof id === 'string') {
+        navigate('/interview/' + id);
     } else {
-      navigate('/auth');
+        navigate('/available-jobs');
     }
   };
 
@@ -116,6 +112,11 @@ const LandingJobs: React.FC = () => {
                   {job.jobTitle}
                 </h3>
                 <p className="text-sm font-medium text-gray-500 dark:text-gray-400">{job.companyName}</p>
+                {job.accessCode && (
+                   <div className="mt-3 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-bold bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400 border border-purple-100 dark:border-purple-900/30">
+                     <Lock size={12} /> Access Code: {job.accessCode}
+                   </div>
+                )}
               </div>
               
               <div className="flex flex-wrap gap-2 mb-4">
@@ -147,10 +148,10 @@ const LandingJobs: React.FC = () => {
               </div>
 
               <button 
-                onClick={handleApply}
+                onClick={() => handleApply(job.id)}
                 className="w-full py-3 rounded-xl bg-gray-900 dark:bg-white text-white dark:text-black font-bold text-sm hover:bg-blue-600 dark:hover:bg-gray-200 transition-all flex items-center justify-center gap-2 group-hover:shadow-lg group-hover:shadow-blue-500/20 mt-auto"
               >
-                Apply Now <ArrowRight size={16} />
+                Enter Code & Apply <ArrowRight size={16} />
               </button>
             </div>
           ))}
@@ -159,10 +160,10 @@ const LandingJobs: React.FC = () => {
 
         <div className="mt-16 text-center">
             <button 
-                onClick={handleApply}
+                onClick={() => handleApply()}
                 className="inline-flex items-center gap-2 px-8 py-4 rounded-full bg-blue-600 text-white font-bold hover:bg-blue-700 transition-all shadow-lg shadow-blue-600/30 hover:shadow-blue-600/40 hover:-translate-y-0.5"
             >
-                View All Jobs <ArrowRight size={18} />
+                View Available Jobs <ArrowRight size={18} />
             </button>
         </div>
       </div>

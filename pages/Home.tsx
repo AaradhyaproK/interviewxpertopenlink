@@ -208,7 +208,7 @@ const NeuralBackground: React.FC = () => {
   );
 };
 
-const Navbar: React.FC = () => {
+export const Navbar: React.FC = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { scrollY } = useScroll();
@@ -219,7 +219,8 @@ const Navbar: React.FC = () => {
   });
 
   const navLinks = [
-    { name: "Jobs", href: "#jobs" },
+    { name: "Jobs", href: "/available-jobs", isRoute: true },
+    
     { name: "Features", href: "#features" },
     { name: "How it Works", href: "#process" },
     { name: "Pricing", href: "#pricing" },

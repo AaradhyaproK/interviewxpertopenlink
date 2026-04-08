@@ -57,6 +57,36 @@ const InterviewResponses: React.FC = () => {
   }, [submissions, searchTerm, sortOrder]);
 
 
+  const exportToCSV = () => {
+    const jobNameForFile = filteredAndSortedSubmissions.length > 0 ? ((filteredAndSortedSubmissions[0] as any).jobTitle || "Job") : "Job";
+    const safeJobNameFile = `${jobNameForFile}`.replace(/[^a-zA-Z0-9_\-]/g, '_').substring(0, 30);
+    const headers = ["Job Name", "Candidate Name", "Contact", "Email", "Resume Link", "Overall Score", "Report Link"];
+    
+    const csvContent = [
+      headers.join(","),
+      ...filteredAndSortedSubmissions.map(sub => {
+        const jobName = `"${((sub as any).jobTitle || "Unknown Role").replace(/"/g, '""')}"`;
+        const name = `"${(sub.candidateInfo?.name || "Unknown").replace(/"/g, '""')}"`;
+        const contact = `"${(sub.candidateInfo?.phone || "N/A").replace(/"/g, '""')}"`;
+        const email = `"${(sub.candidateInfo?.email || "N/A").replace(/"/g, '""')}"`;
+        const resumeURL = `"${(sub.candidateResumeURL || "N/A").replace(/"/g, '""')}"`;
+        const score = `"${getScoreValue(sub.score).toFixed(0)}"`;
+        const reportUrl = `"${window.location.origin}/#/report/${sub.interviewId}/${sub.id}"`;
+        return [jobName, name, contact, email, resumeURL, score, reportUrl].join(",");
+      })
+    ].join("\n");
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute("download", `Responses_${safeJobNameFile}_${interviewId}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   const parseFeedback = (feedback: unknown) => {
     if (typeof feedback !== 'string') return { resumeAnalysis: 'N/A', answerQuality: 'N/A', overallEvaluation: 'N/A' };
     const resumeMatch = feedback.match(/\*\*Resume Analysis:\*\*([\s\S]*?)(?=\*\*Answer Quality:\*\*|$)/);
@@ -88,16 +118,22 @@ const InterviewResponses: React.FC = () => {
           placeholder="Search by name or email..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          className="w-full md:w-1/2 p-3 border border-gray-200 dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent bg-white dark:bg-black/80 backdrop-blur-sm dark:text-white dark:placeholder-slate-500"
+          className="w-full md:flex-1 p-3 border border-gray-200 dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent bg-white dark:bg-black/80 backdrop-blur-sm dark:text-white dark:placeholder-slate-500"
         />
         <select
           value={sortOrder}
           onChange={(e) => setSortOrder(e.target.value as 'desc' | 'asc')}
-          className="w-full md:w-1/4 p-3 border border-gray-200 dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent bg-white dark:bg-black/80 backdrop-blur-sm dark:text-white cursor-pointer"
+          className="w-full md:w-auto p-3 border border-gray-200 dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent bg-white dark:bg-black/80 backdrop-blur-sm dark:text-white cursor-pointer"
         >
           <option value="desc">Score: High to Low</option>
           <option value="asc">Score: Low to High</option>
         </select>
+        <button
+          onClick={exportToCSV}
+          className="w-full md:w-auto px-6 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg focus:ring-2 focus:ring-green-500 font-bold flex items-center justify-center gap-2 transition-colors whitespace-nowrap shadow-sm"
+        >
+          <i className="fas fa-file-excel"></i> Export CSV
+        </button>
       </div>
 
       {filteredAndSortedSubmissions.length === 0 ? (
@@ -134,7 +170,7 @@ const InterviewResponses: React.FC = () => {
                             {submission.candidateResumeURL && !submission.candidateResumeURL.startsWith('data:text/plain') ? (
                               <a href={submission.candidateResumeURL} target="_blank" rel="noopener noreferrer" className="bg-gray-50 dark:bg-gray-800/50 p-4 rounded-lg text-center hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors block">
                                   <i className="fas fa-file-alt text-2xl text-blue-500 mb-2"></i>
-                                  <p className="font-semibold text-sm">View Resume Options</p>
+                                  <p className="font-semibold text-sm">View Resume</p>
                               </a>
                             ) : (
                               <div className="bg-gray-50 dark:bg-gray-800/50 p-4 rounded-lg text-center opacity-50">
@@ -151,6 +187,43 @@ const InterviewResponses: React.FC = () => {
                                 <p className="font-semibold text-sm">Q&A Score: {getScoreValue(submission.qnaScore).toFixed(0)}%</p>
                             </div>
                           </div>
+
+                          {(submission.candidateInfo as any)?.experienceType && (
+                            <div className="space-y-4 mb-6">
+                              <h4 className="font-bold text-lg">Candidate Questionnaire</h4>
+                              <div className="p-4 bg-gray-50 dark:bg-gray-800/50 rounded-lg grid grid-cols-1 md:grid-cols-2 gap-4">
+                                  <div>
+                                    <h5 className="text-xs font-semibold text-gray-500 uppercase">Contact Details</h5>
+                                    <p className="text-sm font-medium">{submission.candidateInfo?.email}</p>
+                                    <p className="text-sm">{submission.candidateInfo?.phone || 'No phone provided'}</p>
+                                  </div>
+                                  <div>
+                                    <h5 className="text-xs font-semibold text-gray-500 uppercase">Experience</h5>
+                                    <p className="text-sm font-medium">
+                                      {(submission.candidateInfo as any).experienceType === 'fresher' 
+                                        ? `Fresher (Graduated: ${(submission.candidateInfo as any).graduationYear})` 
+                                        : `${(submission.candidateInfo as any).totalExperienceYears}y ${(submission.candidateInfo as any).totalExperienceMonths}m 
+                                           (${(submission.candidateInfo as any).workStatus === 'working' ? `At ${(submission.candidateInfo as any).currentCompany}` : `Left ${(submission.candidateInfo as any).pastCompany} on ${(submission.candidateInfo as any).leaveDate}`})`
+                                      }
+                                    </p>
+                                  </div>
+                                  <div>
+                                    <h5 className="text-xs font-semibold text-gray-500 uppercase">Location & Relocation</h5>
+                                    <p className="text-sm font-medium">{(submission.candidateInfo as any).currentLocation}</p>
+                                    <p className="text-sm">{(submission.candidateInfo as any).readyToRelocate === 'yes' ? `Ready to relocate (${(submission.candidateInfo as any).relocateReason || 'No reason'})` : 'Not ready to relocate'}</p>
+                                  </div>
+                                  <div>
+                                    <h5 className="text-xs font-semibold text-gray-500 uppercase">Salary Details</h5>
+                                    <p className="text-sm font-medium">Current: {(submission.candidateInfo as any).currentSalary} LPA | Expected: {(submission.candidateInfo as any).expectedSalary} LPA</p>
+                                    <p className="text-sm">Has proofs: {(submission.candidateInfo as any).hasSalaryProof === 'yes' ? 'Yes' : 'No'}</p>
+                                  </div>
+                                  <div>
+                                    <h5 className="text-xs font-semibold text-gray-500 uppercase">Resume Updated?</h5>
+                                    <p className="text-sm font-medium">{(submission.candidateInfo as any).resumeUpdated === 'yes' ? 'Yes' : 'No'}</p>
+                                  </div>
+                              </div>
+                            </div>
+                          )}
 
                           <div className="space-y-4 mb-6">
                             <h4 className="font-bold text-lg">AI Evaluation</h4>

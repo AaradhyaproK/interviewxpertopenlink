@@ -42,6 +42,7 @@ import TestAccess from './pages/TestAccess';
 import InterviewResponses from './pages/InterviewResponses';
 import PrivacyPolicy from './pages/PrivacyPolicy';
 import TermsOfService from './pages/TermsOfService';
+import AvailableJobs from './pages/AvailableJobs';
 
 const ProtectedRoute: React.FC<{ children: React.ReactNode; role?: 'recruiter' | 'candidate' | 'admin' }> = ({ children, role }) => {
   const { user, userProfile, loading } = useAuth();
@@ -99,6 +100,11 @@ const App: React.FC = () => {
             {/* Public Routes (No Layout) */}
             <Route path="/" element={<HomeRoute />} />
             <Route path="auth" element={<AuthPage />} />
+            <Route path="available-jobs" element={
+              <ThemeProvider>
+                <AvailableJobs />
+              </ThemeProvider>
+            } />
             <Route path="blogs" element={<Blogs />} />
             <Route path="contact" element={<ContactUs />} />
             <Route path="report-bug" element={<ReportBug />} />

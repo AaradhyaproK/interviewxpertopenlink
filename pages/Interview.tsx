@@ -11,7 +11,27 @@ import { useAuth } from '../context/AuthContext';
 
 // --- Types ---
 type WizardStep = 'validating' | 'collect-info' | 'instructions' | 'setup' | 'interview' | 'processing' | 'finish';
-type CandidateInfo = { name: string; email: string; phone: string; language: string; };
+type CandidateInfo = { 
+  name: string; 
+  email: string; 
+  phone: string; 
+  language: string;
+  resumeUpdated: string;
+  experienceType: string;
+  graduationYear?: string;
+  workStatus?: string;
+  currentCompany?: string;
+  pastCompany?: string;
+  leaveDate?: string;
+  currentLocation: string;
+  readyToRelocate: string;
+  relocateReason?: string;
+  currentSalary: string;
+  expectedSalary: string;
+  hasSalaryProof: string;
+  totalExperienceYears: string;
+  totalExperienceMonths: string;
+};
 
 // --- Helper: Load Face API ---
 const loadFaceAPI = (onLoaded: () => void) => {
@@ -140,11 +160,12 @@ const TicTacToe: React.FC = () => {
 
 // --- Component: Candidate Info Form ---
 const CandidateInfoForm: React.FC<{
+  jobTitle?: string;
   onSubmit: (info: CandidateInfo, file: File | null, existingResumeUrl?: string, cloudinaryUrl?: string) => void;
   errorMsg: string | null;
   user: any;
   userProfile: any;
-}> = ({ onSubmit, errorMsg: initialError, user, userProfile }) => {
+}> = ({ jobTitle, onSubmit, errorMsg: initialError, user, userProfile }) => {
   const [name, setName] = useState(userProfile?.fullname || userProfile?.name || '');
   const [email, setEmail] = useState(user?.email || '');
   const [phone, setPhone] = useState(userProfile?.phone || '');
@@ -152,6 +173,23 @@ const CandidateInfoForm: React.FC<{
   const [cloudinaryUrl, setCloudinaryUrl] = useState<string | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(initialError);
   const [language, setLanguage] = useState('en');
+
+  // Pre-interview questionnaire states
+  const [resumeUpdated, setResumeUpdated] = useState('yes');
+  const [experienceType, setExperienceType] = useState('fresher'); 
+  const [graduationYear, setGraduationYear] = useState('');
+  const [workStatus, setWorkStatus] = useState('working'); 
+  const [currentCompany, setCurrentCompany] = useState('');
+  const [pastCompany, setPastCompany] = useState('');
+  const [leaveDate, setLeaveDate] = useState('');
+  const [currentLocation, setCurrentLocation] = useState('');
+  const [readyToRelocate, setReadyToRelocate] = useState('yes');
+  const [relocateReason, setRelocateReason] = useState('');
+  const [currentSalary, setCurrentSalary] = useState('');
+  const [expectedSalary, setExpectedSalary] = useState('');
+  const [hasSalaryProof, setHasSalaryProof] = useState('yes');
+  const [totalExperienceYears, setTotalExperienceYears] = useState('');
+  const [totalExperienceMonths, setTotalExperienceMonths] = useState('');
 
   const existingResumeUrl = userProfile?.resumeURL || userProfile?.resumeUrl;
 
@@ -197,18 +235,61 @@ const CandidateInfoForm: React.FC<{
       setErrorMsg("Please fill in your name and email.");
       return;
     }
+    if (!phone) {
+      setErrorMsg("Please provide your contact number.");
+      return;
+    }
     if (!resumeFile && !existingResumeUrl && !userProfile && !cloudinaryUrl) {
       setErrorMsg("Please upload your resume.");
       return;
     }
+
+    // Questionnaire Validations
+    if (experienceType === 'fresher' && !graduationYear) {
+      setErrorMsg("Please provide your graduation year.");
+      return;
+    }
+    if (experienceType === 'experienced') {
+      if (workStatus === 'working' && !currentCompany) {
+        setErrorMsg("Please provide your current company name.");
+        return;
+      }
+      if (workStatus === 'not_working' && (!pastCompany || !leaveDate)) {
+        setErrorMsg("Please provide your past company and the date you left.");
+        return;
+      }
+      if (!totalExperienceYears || !totalExperienceMonths) {
+        setErrorMsg("Please provide your total experience in years and months.");
+        return;
+      }
+    }
+    if (!currentLocation) {
+        setErrorMsg("Please provide your current job location.");
+        return;
+    }
+    if (!currentSalary || !expectedSalary) {
+        setErrorMsg("Please provide your current and expected salary.");
+        return;
+    }
+
     setErrorMsg(null);
-    onSubmit({ name, email, phone, language }, resumeFile, existingResumeUrl, cloudinaryUrl || undefined);
+    onSubmit({ 
+      name, email, phone, language,
+      resumeUpdated, experienceType, graduationYear, workStatus, currentCompany, pastCompany, leaveDate,
+      currentLocation, readyToRelocate, relocateReason, currentSalary, expectedSalary, hasSalaryProof,
+      totalExperienceYears, totalExperienceMonths
+    }, resumeFile, existingResumeUrl, cloudinaryUrl || undefined);
   };
 
   return (
-      <div className="max-w-lg w-full bg-white dark:bg-gray-800 p-8 rounded-2xl shadow-lg border border-gray-100 dark:border-gray-700">
-        <h2 className="text-2xl font-bold text-center mb-2">Candidate Information</h2>
-        <p className="text-center text-gray-500 dark:text-gray-400 mb-6">Confirm your details to begin the AI interview.</p>
+      <div className="w-11/12 md:max-w-2xl lg:max-w-3xl bg-white dark:bg-gray-800 p-6 md:p-8 rounded-2xl shadow-lg border border-gray-100 dark:border-gray-700">
+        <div className="text-center mb-6">
+          <div className="inline-block px-3 py-1 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 text-xs font-bold rounded-full mb-3 border border-blue-100 dark:border-blue-800">
+            Applying for: {jobTitle || 'AI Interview'}
+          </div>
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Candidate Information</h2>
+          <p className="text-sm text-gray-500 dark:text-gray-400">Confirm your details to begin the AI interview.</p>
+        </div>
         
         {userProfile && (
           <div className="mb-6 p-5 bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-2xl border border-blue-100 dark:border-blue-800/50 shadow-sm relative overflow-hidden">
@@ -258,17 +339,128 @@ const CandidateInfoForm: React.FC<{
         {errorMsg && <div className="mb-4 p-3 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 rounded-lg text-sm">{errorMsg}</div>}
         
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1 block">Full Name</label>
-            <input type="text" placeholder="Full Name" required value={name} onChange={e => setName(e.target.value)} className="w-full p-3 border border-gray-200 rounded-xl dark:bg-gray-700/50 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 outline-none" />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1 block">Full Name <span className="text-red-500">*</span></label>
+              <input type="text" placeholder="John Doe" required value={name} onChange={e => setName(e.target.value)} className="w-full p-3 border border-gray-200 rounded-xl dark:bg-gray-700/50 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 outline-none" />
+            </div>
+            <div>
+              <label className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1 block">Email Address <span className="text-red-500">*</span></label>
+              <input type="email" placeholder="Email Address" required value={email} onChange={e => setEmail(e.target.value)} className="w-full p-3 border border-gray-200 rounded-xl dark:bg-gray-700/50 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 outline-none" />
+            </div>
           </div>
           <div>
-            <label className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1 block">Email</label>
-            <input type="email" placeholder="Email Address" required value={email} onChange={e => setEmail(e.target.value)} className="w-full p-3 border border-gray-200 rounded-xl dark:bg-gray-700/50 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 outline-none" />
+            <label className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1 block">Contact Number <span className="text-red-500">*</span></label>
+            <input type="tel" required placeholder="Contact Number" value={phone} onChange={e => setPhone(e.target.value)} className="w-full p-3 border border-gray-200 rounded-xl dark:bg-gray-700/50 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 outline-none" />
           </div>
-          <div>
-            <label className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1 block">Phone (Optional)</label>
-            <input type="tel" placeholder="Contact Number" value={phone} onChange={e => setPhone(e.target.value)} className="w-full p-3 border border-gray-200 rounded-xl dark:bg-gray-700/50 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 outline-none" />
+
+          <div className="bg-gray-50 dark:bg-gray-900/30 p-5 rounded-xl border border-gray-200 dark:border-gray-700 space-y-4">
+            <h3 className="text-sm font-bold text-gray-800 dark:text-gray-200 uppercase tracking-wider mb-3">Pre-Interview Details</h3>
+            
+            {/* Resume Verification */}
+            <div>
+               <label className="text-xs font-bold text-gray-500 block mb-1">Is your resume up to date?</label>
+               <select value={resumeUpdated} onChange={e => setResumeUpdated(e.target.value)} className="w-full p-2.5 border border-gray-200 rounded-lg dark:bg-gray-700/50 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 outline-none text-sm">
+                  <option value="yes">Yes, it is updated</option>
+                  <option value="no">No, but I will update it later</option>
+               </select>
+            </div>
+            
+            {/* Experience Type */}
+            <div className="grid grid-cols-2 md:grid-cols-2 gap-2 mt-2">
+               <button type="button" onClick={() => setExperienceType('fresher')} className={`p-2 rounded-lg text-sm font-bold border transition-colors ${experienceType === 'fresher' ? 'bg-blue-100 border-blue-500 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300' : 'bg-white border-gray-200 text-gray-500 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400'}`}>Fresher</button>
+               <button type="button" onClick={() => setExperienceType('experienced')} className={`p-2 rounded-lg text-sm font-bold border transition-colors ${experienceType === 'experienced' ? 'bg-blue-100 border-blue-500 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300' : 'bg-white border-gray-200 text-gray-500 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400'}`}>Experienced</button>
+            </div>
+            
+            {/* Conditional Logic */}
+            {experienceType === 'fresher' && (
+              <div className="animate-in fade-in slide-in-from-top-2 duration-300 grid grid-cols-1 md:grid-cols-2 gap-4">
+                 <div>
+                   <label className="text-xs font-bold text-gray-500 block mb-1 mt-2">Graduation Year <span className="text-red-500">*</span></label>
+                   <input type="text" placeholder="e.g. 2024" required value={graduationYear} onChange={e => setGraduationYear(e.target.value)} className="w-full p-2.5 border border-gray-200 rounded-lg dark:bg-gray-700/50 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 outline-none text-sm" />
+                 </div>
+              </div>
+            )}
+            
+            {experienceType === 'experienced' && (
+              <div className="space-y-4 border-l-2 border-blue-500/50 pl-4 mt-4 animate-in fade-in slide-in-from-left-2 duration-300">
+                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                   <div>
+                      <label className="text-xs font-bold text-gray-500 block mb-1">Total Experience <span className="text-red-500">*</span></label>
+                      <div className="flex gap-2">
+                         <input type="number" min="0" placeholder="Years" required value={totalExperienceYears} onChange={e => setTotalExperienceYears(e.target.value)} className="w-1/2 p-2.5 border border-gray-200 rounded-lg dark:bg-gray-700/50 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 outline-none text-sm" />
+                         <input type="number" min="0" max="11" placeholder="Months" required value={totalExperienceMonths} onChange={e => setTotalExperienceMonths(e.target.value)} className="w-1/2 p-2.5 border border-gray-200 rounded-lg dark:bg-gray-700/50 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 outline-none text-sm" />
+                      </div>
+                   </div>
+                   <div>
+                      <label className="text-xs font-bold text-gray-500 block mb-1">Current Work Status <span className="text-red-500">*</span></label>
+                      <select value={workStatus} onChange={e => setWorkStatus(e.target.value)} className="w-full p-2.5 border border-gray-200 rounded-lg dark:bg-gray-700/50 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 outline-none text-sm">
+                        <option value="working">Currently Working</option>
+                        <option value="not_working">Not Working / On Break</option>
+                      </select>
+                   </div>
+                 </div>
+                 {workStatus === 'working' ? (
+                   <div>
+                     <label className="text-xs font-bold text-gray-500 block mb-1">Current Company Name <span className="text-red-500">*</span></label>
+                     <input type="text" required value={currentCompany} onChange={e => setCurrentCompany(e.target.value)} className="w-full p-2.5 border border-gray-200 rounded-lg dark:bg-gray-700/50 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 outline-none text-sm" />
+                   </div>
+                 ) : (
+                   <div className="flex flex-col sm:flex-row gap-2">
+                     <div className="w-full sm:w-1/2">
+                       <label className="text-xs font-bold text-gray-500 block mb-1">Past Company Name <span className="text-red-500">*</span></label>
+                       <input type="text" required value={pastCompany} onChange={e => setPastCompany(e.target.value)} className="w-full p-2.5 border border-gray-200 rounded-lg dark:bg-gray-700/50 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 outline-none text-sm" />
+                     </div>
+                     <div className="w-full sm:w-1/2">
+                       <label className="text-xs font-bold text-gray-500 block mb-1">Leave Date (MM/YYYY) <span className="text-red-500">*</span></label>
+                       <input type="text" required placeholder="e.g. 05/2023" value={leaveDate} onChange={e => setLeaveDate(e.target.value)} className="w-full p-2.5 border border-gray-200 rounded-lg dark:bg-gray-700/50 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 outline-none text-sm" />
+                     </div>
+                   </div>
+                 )}
+              </div>
+            )}
+            
+            {/* Location */}
+            <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+               <div>
+                 <label className="text-xs font-bold text-gray-500 block mb-1">Current Job Location (City, State) <span className="text-red-500">*</span></label>
+                 <input type="text" required value={currentLocation} onChange={e => setCurrentLocation(e.target.value)} placeholder="e.g. Mumbai, Maharashtra" className="w-full p-2.5 border border-gray-200 rounded-lg dark:bg-gray-700/50 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 outline-none text-sm" />
+               </div>
+               <div>
+                 <div className="flex gap-2 items-start h-full md:mt-6 text-sm text-gray-700 dark:text-gray-300">
+                    <input type="checkbox" id="ready_relocate" checked={readyToRelocate === 'yes'} onChange={e => setReadyToRelocate(e.target.checked ? 'yes' : 'no')} className="mt-1 w-4 h-4 rounded text-blue-600 border-gray-300 focus:ring-blue-500 dark:border-gray-600" />
+                    <div>
+                       <label htmlFor="ready_relocate" className="font-medium cursor-pointer">I am ready to relocate if required</label>
+                    </div>
+                 </div>
+               </div>
+            </div>
+            {readyToRelocate === 'yes' && (
+              <div className="mt-2 animate-in fade-in slide-in-from-top-2 duration-300">
+                 <label className="text-xs font-bold text-gray-500 block mb-1">Reason for Relocation</label>
+                 <input type="text" placeholder="e.g. Seeking better opportunities, family reasons" value={relocateReason} onChange={e => setRelocateReason(e.target.value)} className="w-full p-2.5 border border-gray-200 rounded-lg dark:bg-gray-700/50 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 outline-none text-sm" />
+              </div>
+            )}
+            
+            {/* Salary */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
+               <div>
+                 <label className="text-xs font-bold text-gray-500 block mb-1">Current Salary (LPA) <span className="text-red-500">*</span></label>
+                 <input type="text" placeholder="e.g. 6.5" required value={currentSalary} onChange={e => setCurrentSalary(e.target.value)} className="w-full p-2.5 border border-gray-200 rounded-lg dark:bg-gray-700/50 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 outline-none text-sm" />
+               </div>
+               <div>
+                 <label className="text-xs font-bold text-gray-500 block mb-1">Expected Salary (LPA) <span className="text-red-500">*</span></label>
+                 <input type="text" placeholder="e.g. 10.0" required value={expectedSalary} onChange={e => setExpectedSalary(e.target.value)} className="w-full p-2.5 border border-gray-200 rounded-lg dark:bg-gray-700/50 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 outline-none text-sm" />
+               </div>
+            </div>
+            
+            <div className="flex flex-col sm:flex-row justify-between sm:items-center bg-white dark:bg-gray-800/80 p-3 rounded-lg border border-gray-200 dark:border-gray-600 mt-4 gap-2">
+               <span className="text-xs font-bold text-gray-600 dark:text-gray-400">Do you have salary slips/bank statements to support your current salary?</span>
+               <div className="flex gap-2">
+                 <button type="button" onClick={() => setHasSalaryProof('yes')} className={`flex-1 sm:flex-none px-4 py-1.5 rounded-md text-xs font-bold transition-colors ${hasSalaryProof === 'yes' ? 'bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-400 border border-green-200 dark:border-green-800' : 'bg-gray-100 text-gray-500 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-400'}`}>Yes</button>
+                 <button type="button" onClick={() => setHasSalaryProof('no')} className={`flex-1 sm:flex-none px-4 py-1.5 rounded-md text-xs font-bold transition-colors ${hasSalaryProof === 'no' ? 'bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-400 border border-red-200 dark:border-red-800' : 'bg-gray-100 text-gray-500 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-400'}`}>No</button>
+               </div>
+            </div>
           </div>
           
           {/* Hide Resume Upload entirely if the user is signed in (we use their Profile Box instead) */}
@@ -514,7 +706,7 @@ const CandidateInterviewFlow: React.FC = () => {
 
   // --- RENDER ---
   const Container = ({ children }: { children: React.ReactNode }) => (
-    <div className="fixed inset-0 z-[9999] overflow-y-auto bg-gray-50 dark:bg-slate-950 text-gray-800 dark:text-gray-100 flex flex-col items-center justify-center p-4 transition-colors duration-500">
+    <div className="fixed inset-0 z-[9999] overflow-y-auto bg-gray-50 dark:bg-slate-950 text-gray-800 dark:text-gray-100 flex flex-col items-center justify-start py-12 px-4 transition-colors duration-500">
       {children}
     </div>
   );
@@ -547,14 +739,15 @@ const CandidateInterviewFlow: React.FC = () => {
   if (step === 'collect-info') {
     return (
       <Container>
-        <CandidateInfoForm 
-            onSubmit={(info, file, existingResumeUrl, cloudinaryUrl) => {
-                handleInfoSubmit(info, file, existingResumeUrl, cloudinaryUrl);
-            }} 
+        {step === 'collect-info' && (
+          <CandidateInfoForm 
+            jobTitle={interviewState.jobTitle}
+            onSubmit={handleInfoSubmit} 
             errorMsg={errorMsg}
             user={user}
             userProfile={userProfile}
-        />
+          />
+        )}
       </Container>
     );
   }
@@ -991,7 +1184,7 @@ const ActiveInterviewSession: React.FC<{
     if (!isFullscreen && !isTerminated) {
       return createPortal(
         <div className="fixed inset-0 z-[10000] bg-black/95 backdrop-blur-md flex items-center justify-center p-4 sm:p-6 text-white text-center">
-          <div className="max-w-md w-full p-6 sm:p-8 bg-[#111] rounded-2xl border border-red-500/30 shadow-2xl relative overflow-hidden">
+          <div className="max-w-md w-full p-6 sm:p-8 bg-[#111] rounded-2xl border border-red-500/30 shadow-2xl relative overflow-hidden max-h-[90vh] overflow-y-auto">
             <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-red-500 to-yellow-500"></div>
             <i className="fas fa-exclamation-triangle text-5xl text-yellow-500 mb-4 animate-pulse"></i>
             <h2 className="text-xl sm:text-2xl font-bold mb-3 sm:mb-4">Fullscreen Required</h2>
