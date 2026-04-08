@@ -129,16 +129,16 @@ const TicTacToe: React.FC = () => {
 
   return (
     <div className="absolute inset-0 z-50 flex flex-col items-center justify-center bg-white/80 dark:bg-gray-900/90 backdrop-blur-md rounded-xl transition-all duration-300">
-      <h3 className="text-2xl font-bold text-gray-800 dark:text-white mb-4">
+      <h3 className="text-lg sm:text-2xl font-bold text-gray-800 dark:text-white mb-2 sm:mb-4">
         {winner ? (winner === 'X' ? 'You Won! 🎉' : 'AI Won! 🤖') : (isXNext ? 'Your Turn (X)' : 'AI Thinking...')}
       </h3>
-      <div className="grid grid-cols-3 gap-2 mb-6">
+      <div className="grid grid-cols-3 gap-1.5 sm:gap-2 mb-3 sm:mb-6">
         {board.map((cell, i) => (
           <button
             key={i}
             onClick={() => handleClick(i)}
             disabled={!!cell || !!winner || !isXNext}
-            className={`w-20 h-20 text-3xl font-bold flex items-center justify-center rounded-xl shadow-inner transition-all 
+            className={`w-14 h-14 sm:w-20 sm:h-20 text-xl sm:text-3xl font-bold flex items-center justify-center rounded-lg sm:rounded-xl shadow-inner transition-all 
               ${cell === 'X' ? 'bg-blue-100 text-blue-600 dark:bg-blue-900/50 dark:text-blue-400' :
                 cell === 'O' ? 'bg-red-100 text-red-600 dark:bg-red-900/50 dark:text-red-400' :
                   'bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700'}`}
@@ -148,11 +148,11 @@ const TicTacToe: React.FC = () => {
         ))}
       </div>
       {winner ? (
-        <button onClick={() => { setBoard(Array(9).fill(null)); setIsXNext(true); setWinner(null); }} className="bg-primary hover:bg-primary-dark text-white px-6 py-2 rounded-lg font-bold shadow-lg transition-colors">
+        <button onClick={() => { setBoard(Array(9).fill(null)); setIsXNext(true); setWinner(null); }} className="bg-primary hover:bg-primary-dark text-white px-4 sm:px-6 py-2 rounded-lg font-bold shadow-lg transition-colors text-sm sm:text-base">
           Play Again
         </button>
       ) : (
-        <p className="text-gray-500 dark:text-gray-400 animate-pulse font-medium">Uploading... Play while you wait!</p>
+        <p className="text-gray-500 dark:text-gray-400 animate-pulse font-medium text-xs sm:text-base">Uploading... Play while you wait!</p>
       )}
     </div>
   );
@@ -1236,19 +1236,19 @@ const ActiveInterviewSession: React.FC<{
       {renderFullscreenOverlay()}
 
       {/* ── MAIN CONTENT: Camera (Left) + Question (Right) ── */}
-      <div className="flex-1 flex flex-col md:flex-row gap-3 p-3 overflow-hidden min-h-0">
+      <div className="flex-1 flex flex-col md:flex-row gap-2 md:gap-3 p-2 md:p-3 overflow-hidden min-h-0">
 
         {/* ═══ LEFT PANEL: Camera Feed ═══ */}
-        <div className="w-full md:w-5/12 flex flex-col gap-3 shrink-0 md:shrink md:min-h-0">
+        <div className="w-full md:w-5/12 flex flex-col gap-1.5 md:gap-3 shrink-0 md:shrink md:min-h-0">
           {/* Camera Card */}
-          <div className="relative flex-1 min-h-[240px] bg-gray-900 rounded-2xl overflow-hidden border border-gray-700/50 shadow-xl">
+          <div className="relative min-h-[140px] h-[30vh] md:h-auto md:flex-1 md:min-h-[240px] bg-gray-900 rounded-xl md:rounded-2xl overflow-hidden border border-gray-700/50 shadow-xl">
             <video ref={videoRef} autoPlay muted playsInline className="w-full h-full object-cover transform scale-x-[-1]" />
 
             {/* Countdown Overlay (scoped to camera) */}
             {countdown > 0 && (
-              <div className="absolute inset-0 bg-black/70 backdrop-blur-sm flex flex-col items-center justify-center z-20 rounded-2xl">
-                <p className="text-white/80 text-lg font-light mb-2 tracking-widest uppercase">Get Ready</p>
-                <span className="text-8xl font-black text-white animate-ping" style={{ animationDuration: '1s' }}>{countdown}</span>
+              <div className="absolute inset-0 bg-black/70 backdrop-blur-sm flex flex-col items-center justify-center z-20 rounded-xl md:rounded-2xl">
+                <p className="text-white/80 text-sm md:text-lg font-light mb-1 md:mb-2 tracking-widest uppercase">Get Ready</p>
+                <span className="text-5xl md:text-8xl font-black text-white animate-ping" style={{ animationDuration: '1s' }}>{countdown}</span>
               </div>
             )}
 
@@ -1260,30 +1260,31 @@ const ActiveInterviewSession: React.FC<{
           </div>
 
           {/* Status Bar Below Camera */}
-          <div className="flex items-center justify-between px-4 py-2.5 bg-white dark:bg-gray-800/60 rounded-xl border border-gray-200 dark:border-gray-700/50 shadow-sm">
-            <div className="flex items-center gap-3">
+          <div className="flex items-center justify-between px-2 md:px-4 py-1.5 md:py-2.5 bg-white dark:bg-gray-800/60 rounded-lg md:rounded-xl border border-gray-200 dark:border-gray-700/50 shadow-sm">
+            <div className="flex items-center gap-2 md:gap-3">
               {/* REC Indicator */}
               {isRecording ? (
-                <div className="flex items-center gap-1.5 bg-red-500/15 text-red-600 dark:text-red-400 px-2.5 py-1 rounded-lg text-[11px] font-bold uppercase tracking-wider animate-pulse">
-                  <div className="w-2 h-2 bg-red-500 rounded-full"></div>
+                <div className="flex items-center gap-1 md:gap-1.5 bg-red-500/15 text-red-600 dark:text-red-400 px-2 md:px-2.5 py-0.5 md:py-1 rounded-md md:rounded-lg text-[10px] md:text-[11px] font-bold uppercase tracking-wider animate-pulse">
+                  <div className="w-1.5 md:w-2 h-1.5 md:h-2 bg-red-500 rounded-full"></div>
                   REC
                 </div>
               ) : (
-                <div className="flex items-center gap-1.5 bg-gray-100 dark:bg-gray-700/50 text-gray-500 dark:text-gray-400 px-2.5 py-1 rounded-lg text-[11px] font-medium">
-                  <div className="w-2 h-2 bg-gray-400 rounded-full"></div>
+                <div className="flex items-center gap-1 md:gap-1.5 bg-gray-100 dark:bg-gray-700/50 text-gray-500 dark:text-gray-400 px-2 md:px-2.5 py-0.5 md:py-1 rounded-md md:rounded-lg text-[10px] md:text-[11px] font-medium">
+                  <div className="w-1.5 md:w-2 h-1.5 md:h-2 bg-gray-400 rounded-full"></div>
                   STANDBY
                 </div>
               )}
               {/* AI Status */}
-              <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-mono font-semibold ${faceApiReady ? 'bg-green-500/10 text-green-600 dark:text-green-400 border border-green-500/20' : 'bg-yellow-500/10 text-yellow-600 dark:text-yellow-400 border border-yellow-500/20'}`}>
+              <div className={`flex items-center gap-1 md:gap-1.5 px-2 md:px-2.5 py-0.5 md:py-1 rounded-md md:rounded-lg text-[10px] md:text-[11px] font-mono font-semibold ${faceApiReady ? 'bg-green-500/10 text-green-600 dark:text-green-400 border border-green-500/20' : 'bg-yellow-500/10 text-yellow-600 dark:text-yellow-400 border border-yellow-500/20'}`}>
                 <div className={`w-1.5 h-1.5 rounded-full ${faceApiReady ? 'bg-green-500 animate-pulse' : 'bg-yellow-500'}`}></div>
-                {faceApiReady ? 'AI ACTIVE' : 'LOADING...'}
+                <span className="hidden sm:inline">{faceApiReady ? 'AI ACTIVE' : 'LOADING...'}</span>
+                <span className="sm:hidden">{faceApiReady ? 'AI' : '...'}</span>
               </div>
             </div>
           </div>
 
-          {/* OpenCV Tracking Info */}
-          <div className="px-4 py-3 bg-white dark:bg-gray-800/60 rounded-xl border border-gray-200 dark:border-gray-700/50 shadow-sm">
+          {/* OpenCV Tracking Info — Hidden on mobile to save vertical space */}
+          <div className="hidden md:block px-4 py-3 bg-white dark:bg-gray-800/60 rounded-xl border border-gray-200 dark:border-gray-700/50 shadow-sm">
             <div className="flex items-center gap-2 mb-2">
               <div className="w-5 h-5 rounded-md bg-blue-500/15 flex items-center justify-center">
                 <i className="fas fa-eye text-blue-500 text-[10px]"></i>
@@ -1308,65 +1309,65 @@ const ActiveInterviewSession: React.FC<{
         </div>
 
         {/* ═══ RIGHT PANEL: Question + Controls ═══ */}
-        <div className="w-full md:w-7/12 flex flex-col gap-3 min-h-0">
+        <div className="w-full md:w-7/12 flex flex-col gap-2 md:gap-3 min-h-0 flex-1">
           {/* Question Card */}
-          <div className="flex-1 flex flex-col bg-white dark:bg-gray-800/60 rounded-2xl border border-gray-200 dark:border-gray-700/50 shadow-xl overflow-hidden min-h-0">
+          <div className="flex-1 flex flex-col bg-white dark:bg-gray-800/60 rounded-xl md:rounded-2xl border border-gray-200 dark:border-gray-700/50 shadow-xl overflow-hidden min-h-0">
 
             {/* Question Header: Counter + Timer */}
-            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 dark:border-gray-700/50 shrink-0">
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-lg bg-blue-500/10 dark:bg-blue-500/15 flex items-center justify-center">
-                  <i className="fas fa-list-ol text-blue-500 text-sm"></i>
+            <div className="flex items-center justify-between px-3 md:px-6 py-2.5 md:py-4 border-b border-gray-100 dark:border-gray-700/50 shrink-0">
+              <div className="flex items-center gap-2 md:gap-3">
+                <div className="w-6 h-6 md:w-8 md:h-8 rounded-md md:rounded-lg bg-blue-500/10 dark:bg-blue-500/15 flex items-center justify-center">
+                  <i className="fas fa-list-ol text-blue-500 text-xs md:text-sm"></i>
                 </div>
                 <div>
-                  <p className="text-[10px] text-gray-500 dark:text-gray-400 uppercase tracking-widest font-medium">Question</p>
-                  <p className="text-lg font-bold text-gray-800 dark:text-white">
-                    {state.currentQuestionIndex + 1} <span className="text-gray-400 dark:text-gray-500 text-sm font-normal">/ {state.questions.length}</span>
+                  <p className="text-[9px] md:text-[10px] text-gray-500 dark:text-gray-400 uppercase tracking-widest font-medium">Question</p>
+                  <p className="text-sm md:text-lg font-bold text-gray-800 dark:text-white">
+                    {state.currentQuestionIndex + 1} <span className="text-gray-400 dark:text-gray-500 text-xs md:text-sm font-normal">/ {state.questions.length}</span>
                   </p>
                 </div>
               </div>
               {/* Timer */}
-              <div className={`flex items-center gap-2 px-4 py-2 rounded-xl font-mono font-bold text-sm transition-colors ${timeLeft < 30
+              <div className={`flex items-center gap-1.5 md:gap-2 px-2.5 md:px-4 py-1.5 md:py-2 rounded-lg md:rounded-xl font-mono font-bold text-xs md:text-sm transition-colors ${timeLeft < 30
                 ? 'bg-red-50 text-red-600 border-red-200 dark:bg-red-900/30 dark:text-red-400 dark:border-red-800'
                 : 'bg-gray-50 text-gray-700 border-gray-200 dark:bg-gray-700/50 dark:text-white dark:border-gray-600'
                 } border shadow-sm`}>
-                <div className={`w-2 h-2 rounded-full ${isRecording ? 'bg-red-500 animate-pulse' : 'bg-gray-400 dark:bg-gray-500'}`}></div>
-                <i className="fas fa-clock text-xs opacity-60"></i>
+                <div className={`w-1.5 md:w-2 h-1.5 md:h-2 rounded-full ${isRecording ? 'bg-red-500 animate-pulse' : 'bg-gray-400 dark:bg-gray-500'}`}></div>
+                <i className="fas fa-clock text-[10px] md:text-xs opacity-60"></i>
                 {Math.floor(timeLeft / 60)}:{(timeLeft % 60).toString().padStart(2, '0')}
               </div>
             </div>
 
             {/* Question Body */}
-            <div className="flex-1 overflow-y-auto px-6 py-6 flex items-start">
+            <div className="flex-1 overflow-y-auto px-3 md:px-6 py-3 md:py-6 flex items-start">
               <div className="w-full">
-                <p className="text-xs text-blue-500 dark:text-blue-400 font-semibold uppercase tracking-widest mb-3">
+                <p className="text-[10px] md:text-xs text-blue-500 dark:text-blue-400 font-semibold uppercase tracking-widest mb-2 md:mb-3">
                   <i className="fas fa-microphone-alt mr-1"></i> Answer this question
                 </p>
-                <h2 className="text-lg md:text-2xl font-semibold leading-relaxed text-gray-800 dark:text-gray-100">
+                <h2 className="text-base md:text-2xl font-semibold leading-relaxed text-gray-800 dark:text-gray-100">
                   {currentQ}
                 </h2>
               </div>
             </div>
 
             {/* Action Buttons */}
-            <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-gray-100 dark:border-gray-700/50 bg-gray-50/50 dark:bg-gray-800/30 shrink-0">
+            <div className="flex items-center justify-end gap-2 md:gap-3 px-3 md:px-6 py-2.5 md:py-4 border-t border-gray-100 dark:border-gray-700/50 bg-gray-50/50 dark:bg-gray-800/30 shrink-0">
 
               {/* Next / Stop Button */}
               {isRecording ? (
                 <button
                   onClick={stopRecording}
-                  className="flex items-center gap-2 px-6 py-2.5 rounded-xl font-bold text-sm bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:from-blue-700 hover:to-indigo-700 shadow-lg shadow-blue-500/20 transform transition hover:scale-[1.02] active:scale-95"
+                  className="flex items-center gap-2 px-4 md:px-6 py-2 md:py-2.5 rounded-lg md:rounded-xl font-bold text-xs md:text-sm bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:from-blue-700 hover:to-indigo-700 shadow-lg shadow-blue-500/20 transform transition hover:scale-[1.02] active:scale-95"
                 >
                   Next
                   <i className="fas fa-arrow-right"></i>
                 </button>
               ) : processingVideo || isStopping ? (
-                <div className="flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-medium text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-600 animate-pulse">
+                <div className="flex items-center gap-2 px-4 md:px-6 py-2 md:py-2.5 rounded-lg md:rounded-xl text-xs md:text-sm font-medium text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-600 animate-pulse">
                   <i className="fas fa-circle-notch fa-spin"></i>
                   Processing...
                 </div>
               ) : (
-                <div className="flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-medium text-gray-400 dark:text-gray-500 bg-gray-100 dark:bg-gray-700/30 border border-gray-200 dark:border-gray-600">
+                <div className="flex items-center gap-2 px-4 md:px-6 py-2 md:py-2.5 rounded-lg md:rounded-xl text-xs md:text-sm font-medium text-gray-400 dark:text-gray-500 bg-gray-100 dark:bg-gray-700/30 border border-gray-200 dark:border-gray-600">
                   <i className="fas fa-hourglass-half"></i>
                   Waiting...
                 </div>
@@ -1377,38 +1378,38 @@ const ActiveInterviewSession: React.FC<{
       </div>
 
       {/* ── BOTTOM PANEL: AI Observations ── */}
-      <div className="shrink-0 px-3 pb-3 space-y-2">
+      <div className="shrink-0 px-2 md:px-3 pb-2 md:pb-3 space-y-1.5 md:space-y-2">
         {/* Tab-switch warning banner (red, real-time) */}
         {tabWarning && (
-          <div className="w-full px-5 py-3 bg-red-50 dark:bg-red-900/30 rounded-xl border border-red-200 dark:border-red-700/50 shadow-sm flex items-center gap-3 animate-pulse">
-            <div className="w-7 h-7 rounded-lg bg-red-500/15 flex items-center justify-center shrink-0">
-              <i className="fas fa-exclamation-triangle text-red-500 text-xs"></i>
+          <div className="w-full px-3 md:px-5 py-2 md:py-3 bg-red-50 dark:bg-red-900/30 rounded-lg md:rounded-xl border border-red-200 dark:border-red-700/50 shadow-sm flex items-center gap-2 md:gap-3 animate-pulse">
+            <div className="w-5 md:w-7 h-5 md:h-7 rounded-md md:rounded-lg bg-red-500/15 flex items-center justify-center shrink-0">
+              <i className="fas fa-exclamation-triangle text-red-500 text-[10px] md:text-xs"></i>
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-[10px] text-red-600 dark:text-red-400 uppercase tracking-widest font-bold mb-0.5">⚠ Security Alert</p>
-              <p className="text-sm text-red-700 dark:text-red-300 font-semibold">{tabWarning}</p>
+              <p className="text-[9px] md:text-[10px] text-red-600 dark:text-red-400 uppercase tracking-widest font-bold mb-0.5">⚠ Security Alert</p>
+              <p className="text-xs md:text-sm text-red-700 dark:text-red-300 font-semibold truncate">{tabWarning}</p>
             </div>
-            <div className="flex items-center gap-1.5 px-2 py-1 rounded-full bg-red-500/10 text-red-600 dark:text-red-400 text-[10px] font-mono font-bold shrink-0">
+            <div className="hidden sm:flex items-center gap-1.5 px-2 py-1 rounded-full bg-red-500/10 text-red-600 dark:text-red-400 text-[10px] font-mono font-bold shrink-0">
               <div className="w-1.5 h-1.5 bg-red-500 rounded-full animate-ping"></div>
               FLAGGED
             </div>
           </div>
         )}
         {/* Normal AI observation bar */}
-        <div className={`w-full px-5 py-3 rounded-xl border shadow-sm flex items-center gap-3 transition-colors duration-300 ${tabWarning
+        <div className={`w-full px-3 md:px-5 py-2 md:py-3 rounded-lg md:rounded-xl border shadow-sm flex items-center gap-2 md:gap-3 transition-colors duration-300 ${tabWarning
           ? 'bg-yellow-50 dark:bg-yellow-900/20 border-yellow-200 dark:border-yellow-700/50'
           : 'bg-white dark:bg-gray-800/60 border-gray-200 dark:border-gray-700/50'
           }`}>
-          <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${tabWarning ? 'bg-yellow-500/10 dark:bg-yellow-500/15' : 'bg-purple-500/10 dark:bg-purple-500/15'
+          <div className={`w-5 md:w-7 h-5 md:h-7 rounded-md md:rounded-lg flex items-center justify-center shrink-0 ${tabWarning ? 'bg-yellow-500/10 dark:bg-yellow-500/15' : 'bg-purple-500/10 dark:bg-purple-500/15'
             }`}>
-            <i className={`fas text-xs ${tabWarning ? 'fa-shield-alt text-yellow-500' : 'fa-robot text-purple-500'}`}></i>
+            <i className={`fas text-[10px] md:text-xs ${tabWarning ? 'fa-shield-alt text-yellow-500' : 'fa-robot text-purple-500'}`}></i>
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-[10px] text-gray-500 dark:text-gray-400 uppercase tracking-widest font-medium mb-0.5">AI Observation</p>
-            <p className="text-sm text-gray-700 dark:text-gray-300 truncate">{aiObservation}</p>
+            <p className="text-[9px] md:text-[10px] text-gray-500 dark:text-gray-400 uppercase tracking-widest font-medium mb-0.5">AI Observation</p>
+            <p className="text-xs md:text-sm text-gray-700 dark:text-gray-300 truncate">{aiObservation}</p>
           </div>
           {isRecording && (
-            <div className="flex items-center gap-1.5 px-2 py-1 rounded-full bg-green-500/10 text-green-600 dark:text-green-400 text-[10px] font-mono font-semibold shrink-0">
+            <div className="hidden sm:flex items-center gap-1.5 px-2 py-1 rounded-full bg-green-500/10 text-green-600 dark:text-green-400 text-[10px] font-mono font-semibold shrink-0">
               <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></div>
               LIVE
             </div>
