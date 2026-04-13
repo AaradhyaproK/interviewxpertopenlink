@@ -5,7 +5,7 @@ import NotificationCenter from './NotificationCenter';
 import { signOut } from 'firebase/auth';
 import { auth } from '../services/firebase';
 import { ThemeProvider, useTheme } from '../context/ThemeContext';
-import { Sun, Moon, Menu, X, Monitor, Mail, Bug } from 'lucide-react';
+import { Sun, Moon, Menu, X, Monitor, Mail, Bug, MessageSquare } from 'lucide-react';
 import ConnectionStatus from './ConnectionStatus';
 import Logo from './Logo';
 
@@ -259,6 +259,10 @@ const LayoutContent: React.FC<{ children: React.ReactNode }> = ({ children }) =>
                 <Link to="/report-bug" className="group flex items-center gap-2 px-4 py-2 rounded-full bg-white dark:bg-white/5 hover:bg-red-50 dark:hover:bg-red-900/20 text-xs font-medium text-gray-600 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400 transition-all border border-gray-200 dark:border-white/10 hover:border-red-200 dark:hover:border-red-800 shadow-sm hover:shadow-md">
                   <Bug size={14} className="group-hover:scale-110 transition-transform" />
                   <span>Report Bug</span>
+                </Link>
+                <Link to="/reviews" className="group flex items-center gap-2 px-4 py-2 rounded-full bg-white dark:bg-white/5 hover:bg-purple-50 dark:hover:bg-purple-900/20 text-xs font-medium text-gray-600 dark:text-gray-400 hover:text-purple-600 dark:hover:text-purple-400 transition-all border border-gray-200 dark:border-white/10 hover:border-purple-200 dark:hover:border-purple-800 shadow-sm hover:shadow-md">
+                  <MessageSquare size={14} className="group-hover:scale-110 transition-transform" />
+                  <span>Reviews</span>
                 </Link>
               </div>
 

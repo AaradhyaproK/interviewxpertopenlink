@@ -1,17 +1,18 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { motion, useScroll, useMotionValueEvent, AnimatePresence } from 'framer-motion';
-import { Menu, X, Sun, Moon, FileText, Mic, CheckCircle, GraduationCap, Briefcase, Shuffle, Brain, FileSearch, MessageSquare, User, Bot, Code, Rocket, Video, Target, Mail, Bug } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { FileText, Mic, CheckCircle, GraduationCap, Briefcase, Shuffle, Brain, FileSearch, MessageSquare, User, Bot, Code, Rocket, Video, Target, Mail, Bug } from 'lucide-react';
 import { BentoGrid, BentoCard } from '../components/landing/BentoGrid';
 
 import { AnimatedBeam } from '../components/landing/AnimatedBeam';
 import OrbitingCircles from '../components/landing/OrbitingCircles';
-import { AnimatedList, AnimatedListItem } from '../components/landing/AnimatedList';
-import { ThemeProvider, useTheme } from '../context/ThemeContext';
+import { AnimatedList } from '../components/landing/AnimatedList';
+import { ThemeProvider } from '../context/ThemeContext';
 
 import { Marquee } from '../components/landing/Marquee';
 import Logo from '../components/Logo';
 import LandingJobs from '../components/LandingJobs';
+import Navbar from '../components/landing/Navbar';
 
 // --- Components ---
 
@@ -47,22 +48,6 @@ const SEO: React.FC = () => {
   }, []);
 
   return null;
-};
-
-// Magnet Button UI Component
-const MagnetButton: React.FC<{ children: React.ReactNode; variant?: 'primary' | 'secondary'; className?: string }> = ({ children, variant = 'primary', className = '' }) => {
-  return (
-    <motion.button
-      whileHover={{ scale: 1.05 }}
-      whileTap={{ scale: 0.95 }}
-      className={`rounded-full font-medium transition-colors ${variant === 'primary'
-        ? 'bg-blue-600 text-white hover:bg-blue-700'
-        : 'bg-slate-100 text-slate-900 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-100 dark:hover:bg-slate-700'
-        } ${className}`}
-    >
-      {children}
-    </motion.button>
-  );
 };
 
 const NeuralBackground: React.FC = () => {
@@ -207,183 +192,6 @@ const NeuralBackground: React.FC = () => {
     </div>
   );
 };
-
-export const Navbar: React.FC = () => {
-  const [isScrolled, setIsScrolled] = useState(false);
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const { scrollY } = useScroll();
-  const { theme, toggleTheme, isDark } = useTheme();
-
-  useMotionValueEvent(scrollY, "change", (latest) => {
-    setIsScrolled(latest > 50);
-  });
-
-  const navLinks = [
-    { name: "Jobs", href: "/available-jobs", isRoute: true },
-    
-    { name: "Features", href: "#features" },
-    { name: "How it Works", href: "#process" },
-    { name: "Pricing", href: "#pricing" },
-    { name: "FAQ", href: "#faq" },
-    { name: "Blogs", href: "/blogs", isRoute: true },
-  ];
-
-  const handleScroll = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
-    e.preventDefault();
-    const targetId = href.replace('#', '');
-    const element = document.getElementById(targetId);
-    if (element) {
-      const offset = 80; // Navbar height adjustment
-      const elementPosition = element.getBoundingClientRect().top;
-      const offsetPosition = elementPosition + window.scrollY - offset;
-      window.scrollTo({ top: offsetPosition, behavior: 'smooth' });
-    }
-    setIsMobileMenuOpen(false);
-  };
-
-  return (
-    <>
-      <motion.nav
-        className={`fixed top-0 inset-x-0 z-50 flex justify-center pt-4 md:pt-6 px-4 transition-all duration-300`}
-        initial={{ y: -100, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ duration: 0.8 }}
-      >
-        <div
-          className={`
-            relative flex items-center justify-between px-6 py-3 rounded-full transition-all duration-300 border
-            ${isScrolled
-              ? isDark
-                ? 'w-full max-w-5xl bg-black/80 backdrop-blur-md border-white/10 shadow-2xl shadow-indigo-500/10'
-                : 'w-full max-w-5xl bg-white/80 backdrop-blur-md border-slate-200 shadow-xl shadow-slate-200/50'
-              : 'w-full max-w-7xl bg-transparent border-transparent'
-            }
-          `}
-        >
-          {/* Logo */}
-          <a href="#" className="flex items-center">
-            <Logo className="w-8 h-8 rounded-lg" isDark={isDark} />
-          </a>
-
-          {/* Desktop Links */}
-          <div className="hidden lg:flex items-center gap-6 absolute left-1/2 -translate-x-1/2">
-            {navLinks.map((link) => (
-              link.isRoute ? (
-                <Link
-                  key={link.name}
-                  to={link.href}
-                  className={`text-sm font-medium transition-colors ${isDark ? 'text-slate-300 hover:text-white' : 'text-slate-600 hover:text-slate-900'}`}
-                >
-                  {link.name}
-                </Link>
-              ) : (
-                <a
-                  key={link.name}
-                  href={link.href}
-                  onClick={(e) => handleScroll(e, link.href)}
-                  className={`text-sm font-medium transition-colors ${isDark ? 'text-slate-300 hover:text-white' : 'text-slate-600 hover:text-slate-900'}`}
-                >
-                  {link.name}
-                </a>
-              )
-            ))}
-          </div>
-
-          {/* CTAs */}
-          <div className="hidden lg:flex items-center gap-4">
-            {/* Theme Toggle */}
-            <button
-              onClick={toggleTheme}
-              className={`p-2 rounded-full transition-all duration-300 ${isDark
-                ? 'bg-slate-800 hover:bg-slate-700 text-yellow-400'
-                : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
-                }`}
-              aria-label="Toggle theme"
-            >
-              <motion.div
-                initial={false}
-                animate={{ rotate: isDark ? 0 : 180, scale: [1, 0.8, 1] }}
-                transition={{ duration: 0.3 }}
-              >
-                {isDark ? <Sun size={18} /> : <Moon size={18} />}
-              </motion.div>
-            </button>
-            <Link to="/auth" className={`text-sm font-medium ${isDark ? 'text-slate-300 hover:text-white' : 'text-slate-600 hover:text-slate-900'}`}>Log in</Link>
-            <Link to="/auth">
-              <MagnetButton variant="primary" className="!px-4 !py-2 !text-sm">
-                Get Started
-              </MagnetButton>
-            </Link>
-          </div>
-
-          {/* Mobile Menu Toggle */}
-          <div className="lg:hidden flex items-center gap-2">
-            {/* Mobile Theme Toggle */}
-            <button
-              onClick={toggleTheme}
-              className={`p-2 rounded-full transition-all duration-300 ${isDark
-                ? 'bg-slate-800 hover:bg-slate-700 text-yellow-400'
-                : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
-                }`}
-              aria-label="Toggle theme"
-            >
-              {isDark ? <Sun size={18} /> : <Moon size={18} />}
-            </button>
-            <button
-              className={`p-1 ${isDark ? 'text-white' : 'text-slate-900'}`}
-              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            >
-              {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
-            </button>
-          </div>
-        </div>
-      </motion.nav>
-
-      {/* Mobile Menu Overlay */}
-      {isMobileMenuOpen && (
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -20 }}
-          className={`fixed inset-0 z-40 pt-24 px-6 lg:hidden ${isDark ? 'bg-slate-950/95' : 'bg-white/95 backdrop-blur-md'}`}
-        >
-          <div className="flex flex-col gap-6">
-            {navLinks.map((link) => (
-              link.isRoute ? (
-                <Link
-                  key={link.name}
-                  to={link.href}
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  className={`text-2xl font-display font-semibold ${isDark ? 'text-slate-200' : 'text-slate-800'}`}
-                >
-                  {link.name}
-                </Link>
-              ) : (
-                <a
-                  key={link.name}
-                  href={link.href}
-                  onClick={(e) => handleScroll(e, link.href)}
-                  className={`text-2xl font-display font-semibold ${isDark ? 'text-slate-200' : 'text-slate-800'}`}
-                >
-                  {link.name}
-                </a>
-              )
-            ))}
-            <div className={`h-px my-4 ${isDark ? 'bg-slate-800' : 'bg-slate-200'}`} />
-            <Link to="/auth" className={`text-xl font-medium ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>Log in</Link>
-            <Link to="/auth">
-              <MagnetButton variant="primary" className="w-full justify-center py-3">
-                Get Started
-              </MagnetButton>
-            </Link>
-          </div>
-        </motion.div>
-      )}
-    </>
-  );
-};
-
-
 
 const Hero: React.FC = () => {
   const [isVideoOpen, setIsVideoOpen] = useState(false);
@@ -1219,6 +1027,7 @@ const Footer: React.FC = () => (
           <ul className="space-y-2 text-sm text-slate-600 dark:text-slate-400">
             <li><a href="#jobs" className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors">Jobs</a></li>
             <li><a href="#testimonials" className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors">Success Stories</a></li>
+            <li><Link to="/reviews" className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors">Reviews</Link></li>
             <li><a href="#faq" className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors">FAQ</a></li>
             <li><Link to="/privacy-policy" className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors">Privacy Policy</Link></li>
             <li><Link to="/terms-of-service" className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors">Terms of Service</Link></li>

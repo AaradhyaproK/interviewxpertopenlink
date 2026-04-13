@@ -3,9 +3,10 @@ import { collection, getDocs } from 'firebase/firestore';
 import { db } from '../services/firebase';
 import { useNavigate } from 'react-router-dom';
 import { Search, Briefcase, MapPin, Building, ChevronRight, Lock } from 'lucide-react';
-import { Navbar } from './Home';
+import Navbar from '../components/landing/Navbar';
+import { ThemeProvider } from '../context/ThemeContext';
 
-const AvailableJobs = () => {
+const AvailableJobsContent: React.FC = () => {
     const [jobs, setJobs] = useState<any[]>([]);
     const [searchTerm, setSearchTerm] = useState('');
     const [loading, setLoading] = useState(true);
@@ -111,6 +112,14 @@ const AvailableJobs = () => {
                 )}
             </main>
         </div>
+    );
+};
+
+const AvailableJobs: React.FC = () => {
+    return (
+        <ThemeProvider>
+            <AvailableJobsContent />
+        </ThemeProvider>
     );
 };
 

@@ -7,7 +7,7 @@ import { getAuth, createUserWithEmailAndPassword, signOut } from 'firebase/auth'
 import { db, auth } from '../services/firebase';
 import { RevenueAreaChart, UserPieChart, JobBarChart } from '../components/AdminCharts';
 import { GShapeAnimation } from '../components/AdminAnimations';
-import { Users, FileText, DollarSign, UserPlus, Briefcase, CheckCircle, XCircle, Trash2, Bell, Sun, Moon, Monitor, Video, Menu, X, Search, ShieldCheck, ShieldX, BookOpen, MessageSquare as MessageSquareIcon, Bug } from 'lucide-react';
+import { Users, FileText, DollarSign, UserPlus, Briefcase, CheckCircle, XCircle, Trash2, Bell, Sun, Moon, Monitor, Video, Menu, X, Search, ShieldCheck, ShieldX, BookOpen, MessageSquare as MessageSquareIcon, Bug, Star } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
 import { useMessageBox } from '../components/MessageBox';
 import Logo from '../components/Logo';
@@ -21,11 +21,12 @@ const AdminDashboard: React.FC = () => {
   const [interviews, setInterviews] = useState<any[]>([]);
   const [contactSubmissions, setContactSubmissions] = useState<any[]>([]);
   const [bugReports, setBugReports] = useState<any[]>([]);
+  const [allReviews, setAllReviews] = useState<any[]>([]);
   const [adminData, setAdminData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
   // UI State
-  const [activeTab, setActiveTab] = useState<'overview' | 'requests' | 'users' | 'jobs' | 'transactions' | 'submissions'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'requests' | 'users' | 'jobs' | 'transactions' | 'submissions' | 'reviews'>('overview');
   const [processingId, setProcessingId] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [userFilter, setUserFilter] = useState<'all' | 'candidate' | 'recruiter'>('all');
@@ -99,6 +100,12 @@ const AdminDashboard: React.FC = () => {
       setBugReports(snap.docs.map(d => ({ id: d.id, ...d.data() })));
     });
 
+    // 9. All Reviews
+    const qReviews = query(collection(db, 'reviews'), orderBy('createdAt', 'desc'));
+    const unsubReviews = onSnapshot(qReviews, (snap) => {
+      setAllReviews(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+    });
+
     return () => {
       unsubRequests();
       unsubUsers();
@@ -108,6 +115,7 @@ const AdminDashboard: React.FC = () => {
       unsubAdmin();
       unsubContact();
       unsubBugs();
+      unsubReviews();
     };
   }, []);
 
@@ -260,6 +268,28 @@ const AdminDashboard: React.FC = () => {
     }
   };
 
+  const handleApproveReview = async (reviewId: string, currentStatus: boolean) => {
+    try {
+      await updateDoc(doc(db, 'reviews', reviewId), { approved: !currentStatus });
+      messageBox.showSuccess(`Review status updated to ${!currentStatus ? 'Approved' : 'Pending'}.`);
+    } catch (error) {
+      console.error("Error updating review status:", error);
+      messageBox.showError("Failed to update review status.");
+    }
+  };
+
+  const handleDeleteReview = (reviewId: string) => {
+    messageBox.showConfirm("Are you sure you want to delete this review permanently?", async () => {
+      try {
+        await deleteDoc(doc(db, 'reviews', reviewId));
+        messageBox.showSuccess("Review deleted.");
+      } catch (error) {
+        console.error("Error deleting review:", error);
+        messageBox.showError("Failed to delete review.");
+      }
+    });
+  };
+
   // --- Derived Data for Charts ---
 
   // Revenue Data (Grouped by Date)
@@ -375,6 +405,8 @@ const AdminDashboard: React.FC = () => {
         const filteredContacts = contactSubmissions.filter(c => c.status !== 'read' && (c.name?.toLowerCase().includes(term) || c.email?.toLowerCase().includes(term) || c.subject?.toLowerCase().includes(term)));
         const filteredBugs = bugReports.filter(b => b.status !== 'fixed' && (b.name?.toLowerCase().includes(term) || b.email?.toLowerCase().includes(term) || b.feature?.toLowerCase().includes(term)));
         return { contacts: filteredContacts, bugs: filteredBugs };
+      case 'reviews':
+        return allReviews.filter(r => r.name?.toLowerCase().includes(term) || r.email?.toLowerCase().includes(term) || r.review?.toLowerCase().includes(term));
       default: return [];
     }
   };
@@ -516,12 +548,13 @@ const AdminDashboard: React.FC = () => {
               { id: 'users', label: 'Users', icon: Users, count: users.length },
               { id: 'jobs', label: 'Jobs', icon: FileText, count: jobs.length },
               { id: 'transactions', label: 'Transactions', icon: DollarSign },
+              { id: 'reviews', label: 'Reviews', icon: Star, count: allReviews.filter(r => !r.approved).length },
               { id: 'submissions', label: 'Inbox', icon: MessageSquareIcon, count: contactSubmissions.length + bugReports.length },
               { id: 'blogs', label: 'Manage Blogs', icon: BookOpen }
             ].map(item => (
               <button
                 key={item.id}
-                onClick={() => { 
+                onClick={() => {
                   if (item.id === 'blogs') navigate('/admin/blogs');
                   else setActiveTab(item.id as any); 
                   setIsMobileSidebarOpen(false); 
@@ -553,12 +586,13 @@ const AdminDashboard: React.FC = () => {
             { id: 'users', label: 'Users', icon: Users, count: users.length },
             { id: 'jobs', label: 'Jobs', icon: FileText, count: jobs.length },
             { id: 'transactions', label: 'Transactions', icon: DollarSign },
+            { id: 'reviews', label: 'Reviews', icon: Star, count: allReviews.filter(r => !r.approved).length },
             { id: 'submissions', label: 'Inbox', icon: MessageSquareIcon, count: contactSubmissions.length + bugReports.length },
             { id: 'blogs', label: 'Manage Blogs', icon: BookOpen }
           ].map(item => (
             <button
               key={item.id}
-              onClick={() => {
+              onClick={() => { 
                 if (item.id === 'blogs') navigate('/admin/blogs');
                 else setActiveTab(item.id as any);
               }}
@@ -874,6 +908,48 @@ const AdminDashboard: React.FC = () => {
                     </div>
                   ))}
                 </div>
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'reviews' && (
+            <div className="space-y-4 sm:space-y-6">
+              <div className="animated-item flex flex-col gap-3">
+                <h2 className="text-xl sm:text-2xl font-bold">Review Management</h2>
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                  <input
+                    type="text"
+                    placeholder="Search by name, email, or content..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-zinc-900 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+                  />
+                </div>
+              </div>
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                {filteredData().length === 0 ? <p className="text-gray-500 lg:col-span-2 text-center py-10">No reviews found.</p> : filteredData().map((review) => (
+                  <div key={review.id} className="animated-item p-5 rounded-xl bg-white dark:bg-zinc-900 border border-gray-200 dark:border-white/5 shadow-sm">
+                    <div className="flex justify-between items-start mb-3">
+                      <div>
+                        <h4 className="font-bold">{review.name}</h4>
+                        <p className="text-xs text-gray-500">{review.email} {review.contact && `• ${review.contact}`}</p>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        {[...Array(5)].map((_, i) => (
+                          <Star key={i} size={16} className={i < review.rating ? 'text-yellow-400' : 'text-gray-300 dark:text-gray-600'} fill={i < review.rating ? 'currentColor' : 'none'} />
+                        ))}
+                      </div>
+                    </div>
+                    <p className="text-sm text-gray-600 dark:text-gray-300 italic bg-gray-50 dark:bg-black/20 p-3 rounded-lg border border-gray-100 dark:border-white/5">"{review.review}"</p>
+                    <div className="flex justify-between items-center mt-4 pt-4 border-t border-gray-100 dark:border-white/5">
+                      <span className={`px-2 py-1 rounded-full text-xs font-bold ${review.approved ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' : 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400'}`}>
+                        {review.approved ? 'Approved' : 'Pending'}
+                      </span>
+                      <div className="flex gap-2"><button onClick={() => handleApproveReview(review.id, review.approved)} className="px-3 py-1.5 text-sm font-medium rounded-lg bg-blue-500/10 text-blue-600 hover:bg-blue-500/20 transition-colors">{review.approved ? 'Unapprove' : 'Approve'}</button><button onClick={() => handleDeleteReview(review.id)} className="p-2 text-red-500 hover:bg-red-500/10 rounded-lg transition-colors"><Trash2 size={16} /></button></div>
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
           )}
