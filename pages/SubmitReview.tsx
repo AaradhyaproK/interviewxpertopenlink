@@ -50,11 +50,11 @@ const SubmitReviewContent: React.FC = () => {
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-[#0B0C10] text-slate-900 dark:text-white font-sans relative overflow-hidden flex flex-col transition-colors duration-300">
       <Navbar />
-      
-      {/* Background Effects */}
-      <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-b from-blue-100/50 to-slate-50 dark:from-blue-900/20 dark:to-[#0B0C10] pointer-events-none transition-colors duration-300"></div>
-      <div className="absolute top-1/4 left-0 w-96 h-96 bg-blue-400/20 dark:bg-blue-600/10 rounded-full blur-[120px] pointer-events-none transition-colors duration-300"></div>
-      <div className="absolute bottom-1/4 right-0 w-96 h-96 bg-purple-400/20 dark:bg-purple-600/10 rounded-full blur-[120px] pointer-events-none transition-colors duration-300"></div>
+
+      {/* Background Effects - Optimized for performance */}
+      <div className="absolute inset-0 -z-10 h-full w-full bg-white bg-[linear-gradient(to_right,#f0f0f0_1px,transparent_1px),linear-gradient(to_bottom,#f0f0f0_1px,transparent_1px)] bg-[size:6rem_4rem] dark:bg-[#0B0C10] dark:bg-[linear-gradient(to_right,rgba(255,255,255,0.05)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.05)_1px,transparent_1px)]"></div>
+      <div className="hidden lg:block absolute -top-1/4 left-0 w-96 h-96 bg-purple-400/20 dark:bg-purple-600/10 rounded-full blur-[150px] pointer-events-none animate-blob"></div>
+      <div className="hidden lg:block absolute -bottom-1/4 right-0 w-96 h-96 bg-blue-400/20 dark:bg-blue-600/10 rounded-full blur-[150px] pointer-events-none animate-blob animation-delay-2000"></div>
 
       <main className="flex-1 w-full flex items-center justify-center px-4 relative z-10 pt-24 pb-12">
         <div className="w-full max-w-2xl mx-auto animate-in fade-in slide-in-from-bottom-5 duration-700">

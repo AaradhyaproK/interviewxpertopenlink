@@ -5,9 +5,10 @@ import { db } from '../services/firebase';
 import { uploadToCloudinary, generateInterviewQuestions, requestTranscription, fetchTranscriptText, generateFeedback } from '../services/api';
 import { speak } from '../lib/tts';
 import { Interview, InterviewState } from '../types';
-import { createPortal } from 'react-dom';
+import { createPortal, useMemo } from 'react-dom';
 import { LanguageSelector } from './LanguageSelector';
 import { useAuth } from '../context/AuthContext';
+import { useTheme } from '../context/ThemeContext';
 
 // --- Types ---
 type WizardStep = 'validating' | 'collect-info' | 'instructions' | 'setup' | 'interview' | 'processing' | 'finish';
@@ -170,8 +171,8 @@ const CandidateInfoForm: React.FC<{
   const [email, setEmail] = useState(user?.email || '');
   const [phone, setPhone] = useState(userProfile?.phone || '');
   const [resumeFile, setResumeFile] = useState<File | null>(null);
-  const [cloudinaryUrl, setCloudinaryUrl] = useState<string | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(initialError);
+  const { isDark } = useTheme();
   const [language, setLanguage] = useState('en');
 
   // Pre-interview questionnaire states
@@ -197,38 +198,6 @@ const CandidateInfoForm: React.FC<{
       setErrorMsg(initialError);
   }, [initialError]);
 
-  useEffect(() => {
-    if (!(window as any).cloudinary) {
-      const script = document.createElement('script');
-      script.src = 'https://upload-widget.cloudinary.com/global/all.js';
-      script.async = true;
-      document.body.appendChild(script);
-    }
-  }, []);
-
-  const openCloudinaryWidget = () => {
-    const cloudinary = (window as any).cloudinary;
-    if (cloudinary) {
-      cloudinary.createUploadWidget(
-        {
-          cloudName: "dzj2wcui1",
-          uploadPreset: "RESUME-PDF",
-          sources: ['local', 'url'],
-          multiple: false,
-          clientAllowedFormats: ['pdf']
-        },
-        (error: any, result: any) => {
-          if (!error && result && result.event === "success") {
-            setCloudinaryUrl(result.info.secure_url);
-            setResumeFile(null); // Clear any locally selected file just in case
-          }
-        }
-      ).open();
-    } else {
-      setErrorMsg("Cloudinary widget is still loading, please try again in a moment.");
-    }
-  };
-
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!name || !email) {
@@ -239,7 +208,7 @@ const CandidateInfoForm: React.FC<{
       setErrorMsg("Please provide your contact number.");
       return;
     }
-    if (!resumeFile && !existingResumeUrl && !userProfile && !cloudinaryUrl) {
+    if (!resumeFile && !existingResumeUrl && !userProfile) {
       setErrorMsg("Please upload your resume.");
       return;
     }
@@ -278,7 +247,7 @@ const CandidateInfoForm: React.FC<{
       resumeUpdated, experienceType, graduationYear, workStatus, currentCompany, pastCompany, leaveDate,
       currentLocation, readyToRelocate, relocateReason, currentSalary, expectedSalary, hasSalaryProof,
       totalExperienceYears, totalExperienceMonths
-    }, resumeFile, existingResumeUrl, cloudinaryUrl || undefined);
+    }, resumeFile, existingResumeUrl, undefined);
   };
 
   return (
@@ -368,13 +337,19 @@ const CandidateInfoForm: React.FC<{
             
             {/* Experience Type */}
             <div className="grid grid-cols-2 md:grid-cols-2 gap-2 mt-2">
-               <button type="button" onClick={() => setExperienceType('fresher')} className={`p-2 rounded-lg text-sm font-bold border transition-colors ${experienceType === 'fresher' ? 'bg-blue-100 border-blue-500 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300' : 'bg-white border-gray-200 text-gray-500 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400'}`}>Fresher</button>
-               <button type="button" onClick={() => setExperienceType('experienced')} className={`p-2 rounded-lg text-sm font-bold border transition-colors ${experienceType === 'experienced' ? 'bg-blue-100 border-blue-500 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300' : 'bg-white border-gray-200 text-gray-500 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400'}`}>Experienced</button>
+                <label className={`p-2 rounded-lg text-sm font-bold border transition-colors text-center cursor-pointer ${experienceType === 'fresher' ? 'bg-blue-100 border-blue-500 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300 ring-1 ring-blue-500' : 'bg-white border-gray-200 text-gray-500 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400'}`}>
+                    <input type="radio" name="experienceType" value="fresher" className="sr-only" checked={experienceType === 'fresher'} onChange={() => setExperienceType('fresher')} />
+                    Fresher
+                </label>
+                <label className={`p-2 rounded-lg text-sm font-bold border transition-colors text-center cursor-pointer ${experienceType === 'experienced' ? 'bg-blue-100 border-blue-500 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300 ring-1 ring-blue-500' : 'bg-white border-gray-200 text-gray-500 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400'}`}>
+                    <input type="radio" name="experienceType" value="experienced" className="sr-only" checked={experienceType === 'experienced'} onChange={() => setExperienceType('experienced')} />
+                    Experienced
+                </label>
             </div>
             
             {/* Conditional Logic */}
             {experienceType === 'fresher' && (
-              <div className="animate-in fade-in slide-in-from-top-2 duration-300 grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                  <div>
                    <label className="text-xs font-bold text-gray-500 block mb-1 mt-2">Graduation Year <span className="text-red-500">*</span></label>
                    <input type="text" placeholder="e.g. 2024" required value={graduationYear} onChange={e => setGraduationYear(e.target.value)} className="w-full p-2.5 border border-gray-200 rounded-lg dark:bg-gray-700/50 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 outline-none text-sm" />
@@ -383,7 +358,7 @@ const CandidateInfoForm: React.FC<{
             )}
             
             {experienceType === 'experienced' && (
-              <div className="space-y-4 border-l-2 border-blue-500/50 pl-4 mt-4 animate-in fade-in slide-in-from-left-2 duration-300">
+              <div className="space-y-4 border-l-2 border-blue-500/50 pl-4 mt-4">
                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                    <div>
                       <label className="text-xs font-bold text-gray-500 block mb-1">Total Experience <span className="text-red-500">*</span></label>
@@ -436,7 +411,7 @@ const CandidateInfoForm: React.FC<{
                </div>
             </div>
             {readyToRelocate === 'yes' && (
-              <div className="mt-2 animate-in fade-in slide-in-from-top-2 duration-300">
+              <div className="mt-2">
                  <label className="text-xs font-bold text-gray-500 block mb-1">Reason for Relocation</label>
                  <input type="text" placeholder="e.g. Seeking better opportunities, family reasons" value={relocateReason} onChange={e => setRelocateReason(e.target.value)} className="w-full p-2.5 border border-gray-200 rounded-lg dark:bg-gray-700/50 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 outline-none text-sm" />
               </div>
@@ -466,27 +441,27 @@ const CandidateInfoForm: React.FC<{
           {/* Hide Resume Upload entirely if the user is signed in (we use their Profile Box instead) */}
           {!userProfile && (
             <div className="bg-gray-50 dark:bg-gray-900/30 p-4 rounded-xl border border-gray-100 dark:border-gray-700">
-              <label className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 block">Resume Data</label>
-              
-              <div className="flex flex-col items-center gap-3">
-                <button
-                  type="button"
-                  onClick={openCloudinaryWidget}
-                  className="w-full bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 font-bold py-2.5 px-4 rounded-xl hover:bg-blue-200 dark:hover:bg-blue-800/60 transition-colors flex items-center justify-center gap-2 border border-blue-200 dark:border-blue-800"
-                >
-                  <i className="fas fa-cloud-upload-alt"></i> 
-                  {cloudinaryUrl ? 'Change Uploaded Resume' : 'Upload Resume PDF via Cloudinary'}
-                </button>
-                
-                {cloudinaryUrl && (
-                  <div className="text-sm text-green-600 dark:text-green-400 font-medium flex items-center justify-center gap-2 p-2 bg-green-50 dark:bg-green-900/20 rounded-lg w-full border border-green-200 dark:border-green-800/50">
-                    <i className="fas fa-check-circle"></i> Resume Uploaded Successfully
-                  </div>
-                )}
-                
-              </div>
+              <label htmlFor="resume-upload-input" className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 block">Resume Data</label>
+              <label
+                htmlFor="resume-upload-input"
+                className="w-full bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 font-bold py-2.5 px-4 rounded-xl hover:bg-blue-200 dark:hover:bg-blue-800/60 transition-colors flex items-center justify-center gap-2 border border-blue-200 dark:border-blue-800 cursor-pointer"
+              >
+                <i className="fas fa-cloud-upload-alt"></i>
+                <span>{resumeFile ? resumeFile.name : 'Upload Resume PDF'}</span>
+              </label>
+              <input
+                id="resume-upload-input"
+                type="file"
+                accept=".pdf"
+                className="hidden"
+                onChange={(e) => {
+                  if (e.target.files && e.target.files[0]) {
+                    setResumeFile(e.target.files[0]);
+                  }
+                }}
+              />
               <p className="text-xs text-gray-400 mt-3 text-center">Required for AI generated questions.</p>
-            </div>
+              </div>
           )}
 
           {/* The label is now inside the LanguageSelector component */}

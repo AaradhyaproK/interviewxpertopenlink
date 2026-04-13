@@ -209,14 +209,14 @@ const Hero: React.FC = () => {
             Our fully automated AI platform prepares you for your dream job.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center px-4 sm:px-0">
-            <Link to="/auth" className="px-8 py-4 bg-primary text-white rounded-full font-bold text-lg hover:bg-primary-dark transition-all shadow-lg shadow-blue-500/30 hover:shadow-blue-500/50 hover:-translate-y-1 flex items-center justify-center gap-2">
-              <i className="fa-solid fa-rocket"></i> Start Practicing Free
+            <Link to="/auth" className="px-8 py-4 bg-primary text-white rounded-full font-bold text-lg hover:bg-primary-dark transition-all shadow-lg shadow-blue-500/30 hover:shadow-blue-500/50 hover:-translate-y-1 flex items-center justify-center gap-3">
+              <Rocket size={20} /> Start Practicing Free
             </Link>
-            <button 
-              onClick={() => setIsVideoOpen(true)} 
+            <button
+              onClick={() => setIsVideoOpen(true)}
               className="px-8 py-4 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 rounded-full font-bold text-lg hover:bg-slate-50 dark:hover:bg-slate-700 transition-all hover:shadow-lg hover:-translate-y-1 flex items-center justify-center gap-2"
             >
-              <i className="fa-solid fa-chart-line"></i> View Demo
+              <Video size={20} /> View Demo
             </button>
           </div>
 

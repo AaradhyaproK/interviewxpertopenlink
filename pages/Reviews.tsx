@@ -66,11 +66,12 @@ const ReviewsPageContent: React.FC = () => {
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-[#0B0C10] text-slate-900 dark:text-white font-sans relative overflow-hidden flex flex-col transition-colors duration-300">
       <Navbar />
-      
-      {/* Background Effects */}
-      <div className="absolute top-0 left-0 w-full h-[500px] bg-gradient-to-b from-blue-100/50 to-slate-50 dark:from-blue-900/20 dark:to-[#0B0C10] pointer-events-none transition-colors duration-300"></div>
-      <div className="absolute top-1/4 left-0 w-96 h-96 bg-blue-400/20 dark:bg-blue-600/10 rounded-full blur-[120px] pointer-events-none transition-colors duration-300"></div>
-      <div className="absolute bottom-1/4 right-0 w-96 h-96 bg-purple-400/20 dark:bg-purple-600/10 rounded-full blur-[120px] pointer-events-none transition-colors duration-300"></div>
+
+      {/* Background Effects - Optimized for larger screens */}
+      <div className="absolute inset-0 -z-10 h-full w-full bg-white bg-[linear-gradient(to_right,#f0f0f0_1px,transparent_1px),linear-gradient(to_bottom,#f0f0f0_1px,transparent_1px)] bg-[size:6rem_4rem] dark:bg-[#0B0C10] dark:bg-[linear-gradient(to_right,rgba(255,255,255,0.05)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.05)_1px,transparent_1px)]"></div>
+      <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-b from-blue-100/20 via-transparent to-transparent dark:from-blue-900/10 dark:via-[#0B0C10] dark:to-[#0B0C10] pointer-events-none"></div>
+      <div className="hidden lg:block absolute -top-1/4 left-0 w-96 h-96 bg-purple-400/20 dark:bg-purple-600/10 rounded-full blur-[150px] pointer-events-none animate-blob"></div>
+      <div className="hidden lg:block absolute -bottom-1/4 right-0 w-96 h-96 bg-blue-400/20 dark:bg-blue-600/10 rounded-full blur-[150px] pointer-events-none animate-blob animation-delay-2000"></div>
 
       <main className="flex-1 max-w-6xl w-full mx-auto px-6 relative z-10 pt-32 pb-20">
         <div className="text-center mb-16 animate-in fade-in slide-in-from-bottom-5 duration-700">
@@ -80,21 +81,21 @@ const ReviewsPageContent: React.FC = () => {
           <p className="text-slate-600 dark:text-gray-400 max-w-2xl mx-auto text-lg transition-colors duration-300">
             See what others are saying about their experience with InterviewXpert.
           </p>
-          <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-4">
-            <Link to="/" className="inline-flex items-center gap-2 px-6 py-3 border border-gray-200 dark:border-white/10 text-base font-bold rounded-full text-gray-700 dark:text-gray-300 bg-white dark:bg-white/5 hover:bg-gray-50 dark:hover:bg-white/10 shadow-sm transition-all transform hover:-translate-y-0.5">
+          <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4">
+            <Link to="/" className="inline-flex items-center gap-2 px-6 py-3 border border-gray-200 dark:border-white/10 text-base font-bold rounded-full text-gray-700 dark:text-gray-300 bg-white dark:bg-white/5 hover:bg-gray-50 dark:hover:bg-white/10 shadow-sm transition-all transform hover:-translate-y-0.5 w-full sm:w-auto justify-center">
               <ArrowLeft size={20} /> Back to Home
             </Link>
-            <Link to="/submit-review" className="inline-flex items-center gap-2 px-8 py-3 border border-transparent text-base font-bold rounded-full text-white bg-primary hover:bg-primary-dark shadow-lg shadow-primary/30 transition-all transform hover:-translate-y-0.5">
+            <Link to="/submit-review" className="inline-flex items-center gap-2 px-8 py-3 border border-transparent text-base font-bold rounded-full text-white bg-primary hover:bg-primary-dark shadow-lg shadow-primary/30 transition-all transform hover:-translate-y-0.5 w-full sm:w-auto justify-center">
               <MessageSquare size={20} /> Leave Your Own Review
             </Link>
           </div>
         </div>
 
         {/* Filter Buttons */}
-        <div className="flex justify-center items-center gap-2 mb-12 p-1.5 bg-gray-100 dark:bg-white/5 rounded-full border border-gray-200 dark:border-white/10 animate-in fade-in slide-in-from-bottom-6 duration-700 delay-100">
-          <button onClick={() => setFilter('all')} className={`px-4 py-2 text-sm font-bold rounded-full transition-all ${filter === 'all' ? 'bg-white dark:bg-white/10 text-primary shadow-md' : 'text-gray-500 dark:text-gray-400 hover:text-primary'}`}>All Reviews</button>
-          <button onClick={() => setFilter('student')} className={`px-4 py-2 text-sm font-bold rounded-full transition-all flex items-center gap-2 ${filter === 'student' ? 'bg-white dark:bg-white/10 text-primary shadow-md' : 'text-gray-500 dark:text-gray-400 hover:text-primary'}`}><User size={14}/> Students</button>
-          <button onClick={() => setFilter('recruiter')} className={`px-4 py-2 text-sm font-bold rounded-full transition-all flex items-center gap-2 ${filter === 'recruiter' ? 'bg-white dark:bg-white/10 text-primary shadow-md' : 'text-gray-500 dark:text-gray-400 hover:text-primary'}`}><Briefcase size={14}/> Recruiters</button>
+        <div className="flex justify-center items-center gap-2 mb-12 p-1.5 bg-gray-100 dark:bg-white/5 rounded-full border border-gray-200 dark:border-white/10 animate-in fade-in slide-in-from-bottom-6 duration-700 delay-100 w-full max-w-md mx-auto">
+          <button onClick={() => setFilter('all')} className={`flex-1 px-4 py-2 text-sm font-bold rounded-full transition-all ${filter === 'all' ? 'bg-white dark:bg-white/10 text-primary shadow-md' : 'text-gray-500 dark:text-gray-400 hover:text-primary'}`}>All</button>
+          <button onClick={() => setFilter('student')} className={`flex-1 px-4 py-2 text-sm font-bold rounded-full transition-all flex items-center justify-center gap-2 ${filter === 'student' ? 'bg-white dark:bg-white/10 text-primary shadow-md' : 'text-gray-500 dark:text-gray-400 hover:text-primary'}`}><User size={14}/> Students</button>
+          <button onClick={() => setFilter('recruiter')} className={`flex-1 px-4 py-2 text-sm font-bold rounded-full transition-all flex items-center justify-center gap-2 ${filter === 'recruiter' ? 'bg-white dark:bg-white/10 text-primary shadow-md' : 'text-gray-500 dark:text-gray-400 hover:text-primary'}`}><Briefcase size={14}/> Recruiters</button>
         </div>
 
         {loading ? (
@@ -104,7 +105,7 @@ const ReviewsPageContent: React.FC = () => {
         ) : (
           <div className="grid gap-8 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
             {filteredReviews.map((review, idx) => (
-              <div key={review.id} className="bg-white/80 dark:bg-white/5 backdrop-blur-sm border border-slate-200 dark:border-white/10 rounded-3xl p-8 flex flex-col transition-all duration-300 hover:shadow-2xl hover:shadow-blue-500/10 hover:-translate-y-2 hover:scale-[1.02] hover:border-blue-400 dark:hover:border-blue-500/50 group animate-in fade-in slide-in-from-bottom-4" style={{ animationDelay: `${(idx % 10) * 100}ms` }}>
+              <div key={review.id} className="bg-white/80 dark:bg-white/5 backdrop-blur-sm border border-slate-200 dark:border-white/10 rounded-3xl p-8 flex flex-col transition-all duration-300 hover:shadow-2xl hover:shadow-blue-500/10 hover:-translate-y-2 hover:scale-[1.02] hover:border-blue-400 dark:hover:border-blue-500/50 group animate-in fade-in slide-in-from-bottom-4" style={{ animationDelay: `${(idx % 10) * 50}ms` }}>
                 <div className="flex-1 mb-8 relative">
                   <Quote className="absolute -top-5 -left-5 w-16 h-16 text-gray-100 dark:text-white/5 transition-colors duration-300" />
                   <StarDisplay rating={review.rating} />
