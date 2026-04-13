@@ -14,7 +14,7 @@ const SubmitReviewContent: React.FC = () => {
   const [review, setReview] = useState('');
   const [rating, setRating] = useState(0);
   const [hoverRating, setHoverRating] = useState(0);
-  const [userType, setUserType] = useState<'student' | 'recruiter'>('student');
+  const [userType, setUserType] = useState<'candidate' | 'recruiter'>('candidate');
   const [loading, setLoading] = useState(false);
   const messageBox = useMessageBox();
   const navigate = useNavigate();
@@ -72,8 +72,8 @@ const SubmitReviewContent: React.FC = () => {
               <div className="space-y-3">
                 <label className="text-sm font-medium text-gray-700 dark:text-gray-300">I am a...</label>
                 <div className="grid grid-cols-2 gap-3">
-                    <button type="button" onClick={() => setUserType('student')} className={`px-4 py-3 rounded-xl text-sm font-medium transition-all border ${userType === 'student' ? 'bg-primary/10 border-primary text-primary ring-1 ring-primary' : 'bg-gray-50 dark:bg-[#1a1a1a] border-gray-200 dark:border-white/10 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-white/5'}`}>
-                        Student / Candidate
+                    <button type="button" onClick={() => setUserType('candidate')} className={`px-4 py-3 rounded-xl text-sm font-medium transition-all border ${userType === 'candidate' ? 'bg-primary/10 border-primary text-primary ring-1 ring-primary' : 'bg-gray-50 dark:bg-[#1a1a1a] border-gray-200 dark:border-white/10 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-white/5'}`}>
+                        Candidate
                     </button>
                     <button type="button" onClick={() => setUserType('recruiter')} className={`px-4 py-3 rounded-xl text-sm font-medium transition-all border ${userType === 'recruiter' ? 'bg-primary/10 border-primary text-primary ring-1 ring-primary' : 'bg-gray-50 dark:bg-[#1a1a1a] border-gray-200 dark:border-white/10 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-white/5'}`}>
                         Recruiter / Professional

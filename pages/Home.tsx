@@ -13,6 +13,8 @@ import { Marquee } from '../components/landing/Marquee';
 import Logo from '../components/Logo';
 import LandingJobs from '../components/LandingJobs';
 import Navbar from '../components/landing/Navbar';
+import { collection, getDocs, query, where, orderBy, limit } from 'firebase/firestore';
+import { db } from '../services/firebase';
 
 // --- Components ---
 
@@ -839,63 +841,105 @@ const StarRating: React.FC<{ rating: number }> = ({ rating }) => (
   </div>
 );
 
-const TestimonialCard: React.FC<{ testimonial: typeof testimonials[0] }> = ({ testimonial }) => (
-  <div className="flex-shrink-0 w-[320px] sm:w-[360px] md:w-[400px] p-6 bg-white dark:bg-black/80 backdrop-blur-sm rounded-2xl border border-slate-200 dark:border-slate-800 shadow-lg">
-    <div className="flex items-start gap-4 mb-4">
+const TestimonialCard: React.FC<{ testimonial: any }> = ({ testimonial }) => (
+  <div className="flex-shrink-0 w-[320px] sm:w-[360px] md:w-[400px] p-6 sm:p-8 bg-white/70 dark:bg-[#121216]/80 backdrop-blur-xl rounded-3xl border border-white/50 dark:border-white/5 shadow-xl hover:shadow-2xl hover:border-blue-500/30 dark:hover:border-blue-500/30 transition-all duration-300 transform hover:-translate-y-1 relative group overflow-hidden">
+    <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-blue-500/10 to-transparent rounded-bl-full -mr-8 -mt-8 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+    <div className="flex items-start gap-4 mb-5 relative z-10">
       {/* Initial Avatar */}
-      <div className={`w-14 h-14 rounded-full flex items-center justify-center text-white font-bold text-lg shadow-lg ${getAvatarColor(testimonial.name)}`}>
+      <div className={`w-14 h-14 rounded-2xl flex items-center justify-center text-white font-bold text-xl shadow-lg border border-white/20 ${getAvatarColor(testimonial.name)}`}>
         {getInitials(testimonial.name)}
       </div>
       <div className="flex-1">
-        <h4 className="font-bold text-slate-900 dark:text-white">{testimonial.name}</h4>
-        <p className="text-sm text-slate-500 dark:text-slate-400">{testimonial.role}</p>
+        <h4 className="font-bold text-slate-900 dark:text-white text-lg tracking-tight group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">{testimonial.name}</h4>
+        <p className="text-sm font-medium text-slate-500 dark:text-slate-400 mb-1">{testimonial.role}</p>
         <StarRating rating={testimonial.rating} />
       </div>
     </div>
-    <p className="text-slate-600 dark:text-slate-300 text-sm leading-relaxed italic">
+    <p className="text-slate-700 dark:text-slate-300 text-sm md:text-base leading-relaxed relative z-10">
       "{testimonial.quote}"
     </p>
   </div>
 );
 
 const Testimonials: React.FC = () => {
+  const [reviews, setReviews] = useState<any[]>(testimonials);
+
+  useEffect(() => {
+    const fetchReviews = async () => {
+      try {
+        const q = query(
+          collection(db, 'reviews'),
+          where('approved', '==', true),
+          orderBy('createdAt', 'desc'),
+          limit(15)
+        );
+        const snapshot = await getDocs(q);
+        if (!snapshot.empty) {
+          const fetchedReviews = snapshot.docs.map((doc, idx) => ({
+            id: doc.id,
+            name: doc.data().name,
+            role: (doc.data().userType === 'student' || doc.data().userType === 'candidate') 
+              ? 'Candidate' 
+              : (doc.data().userType === 'recruiter' ? 'Recruiter' : 'Candidate'),
+            quote: doc.data().review,
+            rating: doc.data().rating || 5
+          }));
+          
+          let reviewList = [...fetchedReviews];
+          
+          // Duplicate real reviews to ensure we have enough for both rows to scroll seamlessly
+          while (reviewList.length > 0 && reviewList.length < 10) {
+            reviewList = [...reviewList, ...fetchedReviews];
+          }
+          
+          // Cap it at an appropriate amount to prevent massive DOM nodes if they fetch a lot
+          setReviews(reviewList.slice(0, 20));
+        }
+      } catch (err) {
+        console.error('Error fetching reviews:', err);
+      }
+    };
+    fetchReviews();
+  }, []);
+
   // Split testimonials into two rows for visual variety
-  const firstRow = testimonials.slice(0, 3);
-  const secondRow = testimonials.slice(3);
+  const half = Math.ceil(reviews.length / 2);
+  const firstRow = reviews.slice(0, half);
+  const secondRow = reviews.slice(half);
 
   return (
-    <section id="testimonials" className="py-16 md:py-24 overflow-hidden">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-12">
-          <h2 className="text-primary font-bold tracking-wide uppercase text-sm mb-2">Success Stories</h2>
-          <p className="text-3xl md:text-4xl font-extrabold text-slate-900 dark:text-white">
+    <section id="testimonials" className="py-16 md:py-24 overflow-hidden relative">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+        <div className="text-center mb-16">
+          <h2 className="text-blue-600 dark:text-blue-400 font-bold tracking-widest uppercase text-xs md:text-sm mb-3">Community Reviews</h2>
+          <p className="text-3xl md:text-5xl font-extrabold text-slate-900 dark:text-white tracking-tight">
             What Our Users Say
           </p>
-          <p className="mt-4 text-slate-600 dark:text-slate-400 max-w-2xl mx-auto">
-            Join thousands of candidates who landed their dream jobs with InterviewXpert
+          <p className="mt-5 text-slate-600 dark:text-slate-400 max-w-2xl mx-auto text-lg">
+            Join thousands of candidates leveraging InterviewXpert to land their dream roles.
           </p>
         </div>
       </div>
 
       {/* Marquee Container */}
-      <div className="relative">
+      <div className="relative z-10">
         {/* First Row - Left to Right */}
-        <Marquee pauseOnHover className="[--duration:35s] [--gap:1.5rem]">
-          {firstRow.map((testimonial) => (
-            <TestimonialCard key={testimonial.id} testimonial={testimonial} />
+        <Marquee pauseOnHover className="[--duration:40s] [--gap:1.5rem] py-4">
+          {firstRow.map((testimonial, idx) => (
+            <TestimonialCard key={`row1-${testimonial.id || idx}`} testimonial={testimonial} />
           ))}
         </Marquee>
 
         {/* Second Row - Right to Left */}
-        <Marquee reverse pauseOnHover className="[--duration:35s] [--gap:1.5rem] mt-6">
-          {secondRow.map((testimonial) => (
-            <TestimonialCard key={testimonial.id} testimonial={testimonial} />
+        <Marquee reverse pauseOnHover className="[--duration:45s] [--gap:1.5rem] mt-4 py-4">
+          {secondRow.map((testimonial, idx) => (
+            <TestimonialCard key={`row2-${testimonial.id || idx}`} testimonial={testimonial} />
           ))}
         </Marquee>
 
         {/* Gradient Overlays for Visual Effect */}
-        <div className="pointer-events-none absolute inset-y-0 left-0 w-20 md:w-32 bg-gradient-to-r from-slate-50 dark:from-slate-950 to-transparent z-10" />
-        <div className="pointer-events-none absolute inset-y-0 right-0 w-20 md:w-32 bg-gradient-to-l from-slate-50 dark:from-slate-950 to-transparent z-10" />
+        <div className="pointer-events-none absolute inset-y-0 left-0 w-24 md:w-48 bg-gradient-to-r from-slate-50 dark:from-transparent to-transparent z-20" />
+        <div className="pointer-events-none absolute inset-y-0 right-0 w-24 md:w-48 bg-gradient-to-l from-slate-50 dark:from-transparent to-transparent z-20" />
       </div>
     </section>
   );
@@ -999,7 +1043,7 @@ const FinalCTA: React.FC = () => (
 );
 
 const Footer: React.FC = () => (
-  <footer className="bg-white dark:bg-slate-950 text-slate-900 dark:text-white py-8 md:py-12 border-t border-slate-200 dark:border-slate-800 transition-colors duration-300">
+  <footer className="bg-white dark:bg-transparent text-slate-900 dark:text-white py-8 md:py-12 border-t border-slate-200 dark:border-slate-800 transition-colors duration-300">
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-12 border-b border-slate-200 dark:border-slate-800 pb-12">
         <div className="col-span-2 md:col-span-1">
@@ -1168,7 +1212,7 @@ const Home: React.FC = () => {
 
   return (
     <ThemeProvider>
-      <div className="min-h-screen bg-slate-50 dark:bg-slate-950 font-sans text-slate-900 dark:text-slate-100 selection:bg-blue-500/30 selection:text-blue-900 dark:selection:text-blue-200 transition-colors duration-300 overflow-x-hidden">
+      <div className="min-h-screen bg-slate-50 dark:bg-transparent font-sans text-slate-900 dark:text-slate-100 selection:bg-blue-500/30 selection:text-blue-900 dark:selection:text-blue-200 transition-colors duration-300 overflow-x-hidden">
         <SEO />
         <Navbar />
         <main>

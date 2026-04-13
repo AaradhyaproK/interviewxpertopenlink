@@ -12,7 +12,7 @@ interface Review {
   review: string;
   rating: number;
   createdAt: any;
-  userType?: 'student' | 'recruiter';
+  userType?: 'student' | 'candidate' | 'recruiter';
 }
 
 const StarDisplay: React.FC<{ rating: number }> = ({ rating }) => (
@@ -31,7 +31,7 @@ const StarDisplay: React.FC<{ rating: number }> = ({ rating }) => (
 const ReviewsPageContent: React.FC = () => {
   const [reviews, setReviews] = useState<Review[]>([]);
   const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState<'all' | 'student' | 'recruiter'>('all');
+  const [filter, setFilter] = useState<'all' | 'candidate' | 'recruiter'>('all');
 
   useEffect(() => {
     document.title = "User Reviews | InterviewXpert";
@@ -60,6 +60,7 @@ const ReviewsPageContent: React.FC = () => {
 
   const filteredReviews = reviews.filter(review => {
     if (filter === 'all') return true;
+    if (filter === 'candidate') return review.userType === 'candidate' || review.userType === 'student';
     return review.userType === filter;
   });
 
@@ -94,7 +95,7 @@ const ReviewsPageContent: React.FC = () => {
         {/* Filter Buttons */}
         <div className="flex justify-center items-center gap-2 mb-12 p-1.5 bg-gray-100 dark:bg-white/5 rounded-full border border-gray-200 dark:border-white/10 animate-in fade-in slide-in-from-bottom-6 duration-700 delay-100 w-full max-w-md mx-auto">
           <button onClick={() => setFilter('all')} className={`flex-1 px-4 py-2 text-sm font-bold rounded-full transition-all ${filter === 'all' ? 'bg-white dark:bg-white/10 text-primary shadow-md' : 'text-gray-500 dark:text-gray-400 hover:text-primary'}`}>All</button>
-          <button onClick={() => setFilter('student')} className={`flex-1 px-4 py-2 text-sm font-bold rounded-full transition-all flex items-center justify-center gap-2 ${filter === 'student' ? 'bg-white dark:bg-white/10 text-primary shadow-md' : 'text-gray-500 dark:text-gray-400 hover:text-primary'}`}><User size={14}/> Students</button>
+          <button onClick={() => setFilter('candidate')} className={`flex-1 px-4 py-2 text-sm font-bold rounded-full transition-all flex items-center justify-center gap-2 ${filter === 'candidate' ? 'bg-white dark:bg-white/10 text-primary shadow-md' : 'text-gray-500 dark:text-gray-400 hover:text-primary'}`}><User size={14}/> Candidates</button>
           <button onClick={() => setFilter('recruiter')} className={`flex-1 px-4 py-2 text-sm font-bold rounded-full transition-all flex items-center justify-center gap-2 ${filter === 'recruiter' ? 'bg-white dark:bg-white/10 text-primary shadow-md' : 'text-gray-500 dark:text-gray-400 hover:text-primary'}`}><Briefcase size={14}/> Recruiters</button>
         </div>
 
@@ -126,7 +127,7 @@ const ReviewsPageContent: React.FC = () => {
                               ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300' 
                               : 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300'
                           }`}>
-                              {review.userType.charAt(0).toUpperCase() + review.userType.slice(1)}
+                              {review.userType === 'student' || review.userType === 'candidate' ? 'Candidate' : review.userType.charAt(0).toUpperCase() + review.userType.slice(1)}
                           </span>
                       )}
                       <p className="text-xs text-gray-500 dark:text-gray-400">

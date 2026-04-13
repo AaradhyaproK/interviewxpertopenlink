@@ -731,6 +731,12 @@ const TakeTest: React.FC = () => {
                       Explore Platform for Free
                     </button>
                     <button 
+                      onClick={() => navigate('/submit-review')}
+                      className="w-full py-3.5 bg-gradient-to-r from-pink-500 to-orange-400 hover:from-pink-600 hover:to-orange-500 text-white rounded-xl font-bold shadow-lg transform transition-all hover:-translate-y-0.5 flex justify-center items-center gap-2"
+                    >
+                      <i className="fa-solid fa-star text-yellow-300 drop-shadow-md"></i> Give Review
+                    </button>
+                    <button 
                       onClick={() => setShowPromoPopup(false)}
                       className="w-full py-3 bg-gray-100 hover:bg-gray-200 dark:bg-[#1a1a1a] dark:hover:bg-[#222] text-gray-700 dark:text-gray-300 rounded-xl font-bold transition-colors"
                     >
