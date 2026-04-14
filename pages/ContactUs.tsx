@@ -10,7 +10,7 @@ import { useMessageBox } from '../components/MessageBox';
 
 const ContactUsContent: React.FC = () => {
     const { toggleTheme, isDark } = useTheme();
-    const [formData, setFormData] = useState({ name: '', email: '', subject: '', message: '' });
+    const [formData, setFormData] = useState({ name: '', email: '', phone: '', subject: '', message: '' });
     const [loading, setLoading] = useState(false);
     const messageBox = useMessageBox();
 
@@ -28,7 +28,7 @@ const ContactUsContent: React.FC = () => {
                 status: 'new'
             });
             messageBox.showSuccess("Your message has been sent successfully!");
-            setFormData({ name: '', email: '', subject: '', message: '' });
+            setFormData({ name: '', email: '', phone: '', subject: '', message: '' });
         } catch (error) {
             console.error("Error sending message:", error);
             messageBox.showError("Failed to send message. Please try again later.");
@@ -106,15 +106,27 @@ const ContactUsContent: React.FC = () => {
                                 />
                             </div>
                         </div>
-                        <div className="space-y-2">
-                            <label className={`text-sm font-semibold ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>Subject</label>
-                            <input 
-                                type="text" 
-                                value={formData.subject} 
-                                onChange={e => setFormData({ ...formData, subject: e.target.value })} 
-                                className={`w-full px-4 py-3 rounded-xl border outline-none transition-all ${isDark ? 'bg-black/20 border-white/10 focus:border-blue-500/50 text-white' : 'bg-gray-50 border-gray-200 focus:border-blue-500/50 text-gray-900'}`}
-                                placeholder="How can we help?"
-                            />
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div className="space-y-2">
+                                <label className={`text-sm font-semibold ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>Contact Number</label>
+                                <input 
+                                    type="tel" 
+                                    value={formData.phone} 
+                                    onChange={e => setFormData({ ...formData, phone: e.target.value })} 
+                                    className={`w-full px-4 py-3 rounded-xl border outline-none transition-all ${isDark ? 'bg-black/20 border-white/10 focus:border-blue-500/50 text-white' : 'bg-gray-50 border-gray-200 focus:border-blue-500/50 text-gray-900'}`}
+                                    placeholder="+91 9876543210"
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <label className={`text-sm font-semibold ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>Subject</label>
+                                <input 
+                                    type="text" 
+                                    value={formData.subject} 
+                                    onChange={e => setFormData({ ...formData, subject: e.target.value })} 
+                                    className={`w-full px-4 py-3 rounded-xl border outline-none transition-all ${isDark ? 'bg-black/20 border-white/10 focus:border-blue-500/50 text-white' : 'bg-gray-50 border-gray-200 focus:border-blue-500/50 text-gray-900'}`}
+                                    placeholder="How can we help?"
+                                />
+                            </div>
                         </div>
                         <div className="space-y-2">
                             <label className={`text-sm font-semibold ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>Message</label>

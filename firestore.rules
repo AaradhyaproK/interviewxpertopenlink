@@ -210,7 +210,7 @@ service cloud.firestore {
               && request.resource.data.review.size() > 0
               && request.resource.data.rating is number
               && request.resource.data.rating >= 1 && request.resource.data.rating <= 5
-              && request.resource.data.userType in ['student', 'recruiter']
+              && request.resource.data.userType in ['student', 'candidate', 'recruiter']
               && request.resource.data.approved == false;
       // Public can read approved reviews. Admins can read all reviews.
       allow read: if resource.data.approved == true ||

@@ -402,7 +402,7 @@ const AdminDashboard: React.FC = () => {
       case 'jobs': return jobs.filter(j => j.title?.toLowerCase().includes(term) || j.companyName?.toLowerCase().includes(term));
       case 'transactions': return transactions.filter(t => t.userName?.toLowerCase().includes(term) || t.paymentId?.toLowerCase().includes(term));
       case 'submissions':
-        const filteredContacts = contactSubmissions.filter(c => c.status !== 'read' && (c.name?.toLowerCase().includes(term) || c.email?.toLowerCase().includes(term) || c.subject?.toLowerCase().includes(term)));
+        const filteredContacts = contactSubmissions.filter(c => c.status !== 'read' && (c.name?.toLowerCase().includes(term) || c.email?.toLowerCase().includes(term) || c.subject?.toLowerCase().includes(term) || c.phone?.includes(term)));
         const filteredBugs = bugReports.filter(b => b.status !== 'fixed' && (b.name?.toLowerCase().includes(term) || b.email?.toLowerCase().includes(term) || b.feature?.toLowerCase().includes(term)));
         return { contacts: filteredContacts, bugs: filteredBugs };
       case 'reviews':
@@ -839,7 +839,7 @@ const AdminDashboard: React.FC = () => {
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                 <input
                   type="text"
-                  placeholder="Search submissions by name, email, or subject..."
+                  placeholder="Search submissions by name, email, phone, or subject..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-zinc-900 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
@@ -855,7 +855,7 @@ const AdminDashboard: React.FC = () => {
                       <div className="flex justify-between items-start">
                         <div>
                           <h4 className="font-bold">{c.subject || 'No Subject'}</h4>
-                          <p className="text-sm text-gray-500">{c.name} ({c.email})</p>
+                          <p className="text-sm text-gray-500">{c.name} ({c.email}) {c.phone && `• ${c.phone}`}</p>
                         </div>
                         <div className="flex flex-col items-end gap-2">
                           <span className="text-xs text-gray-400">{c.createdAt?.toDate().toLocaleDateString()}</span>

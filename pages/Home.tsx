@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
+import { Sparkles } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FileText, Mic, CheckCircle, GraduationCap, Briefcase, Shuffle, Brain, FileSearch, MessageSquare, User, Bot, Code, Rocket, Video, Target, Mail, Bug } from 'lucide-react';
 import { BentoGrid, BentoCard } from '../components/landing/BentoGrid';
@@ -211,7 +212,7 @@ const Hero: React.FC = () => {
             From building a perfect resume to mastering the interview. <br className="hidden md:block" />
             Our fully automated AI platform prepares you for your dream job.
           </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center px-4 sm:px-0">
+          <div className="flex flex-col sm:flex-row flex-wrap gap-4 justify-center px-4 sm:px-0">
             <Link to="/auth" className="px-8 py-4 bg-primary text-white rounded-full font-bold text-lg hover:bg-primary-dark transition-all shadow-lg shadow-blue-500/30 hover:shadow-blue-500/50 hover:-translate-y-1 flex items-center justify-center gap-3">
               <Rocket size={20} /> Start Practicing Free
             </Link>
@@ -221,6 +222,9 @@ const Hero: React.FC = () => {
             >
               <Video size={20} /> View Demo
             </button>
+            <Link to="/our-journey" className="px-8 py-4 bg-gradient-to-r from-purple-600/10 to-blue-600/10 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-500/30 rounded-full font-bold text-lg hover:bg-purple-500/20 transition-all hover:shadow-lg hover:shadow-purple-500/20 hover:-translate-y-1 flex items-center justify-center gap-2 backdrop-blur-sm">
+              <Sparkles size={20} /> Our Journey
+            </Link>
           </div>
 
           <div className="mt-12 md:mt-16 pt-8 border-t border-slate-200/60 dark:border-slate-700/60">
@@ -1063,6 +1067,7 @@ const Footer: React.FC = () => (
             <li><a href="#features" className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors">Features</a></li>
             <li><a href="#process" className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors">How it Works</a></li>
             <li><a href="#pricing" className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors">Pricing</a></li>
+            <li><Link to="/our-journey" className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors">Our Journey</Link></li>
             <li><Link to="/blogs" className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors">Blog</Link></li>
           </ul>
         </div>

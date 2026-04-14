@@ -45,6 +45,7 @@ import TermsOfService from './pages/TermsOfService';
 import AvailableJobs from './pages/AvailableJobs';
 import SubmitReview from './pages/SubmitReview';
 import ReviewsPage from './pages/Reviews';
+import OurJourney from './pages/OurJourney';
 
 const ProtectedRoute: React.FC<{ children: React.ReactNode; role?: 'recruiter' | 'candidate' | 'admin' }> = ({ children, role }) => {
   const { user, userProfile, loading } = useAuth();
@@ -122,6 +123,11 @@ const App: React.FC = () => {
             <Route path="submit-review" element={
               <ThemeProvider>
                 <SubmitReview />
+              </ThemeProvider>
+            } />
+            <Route path="our-journey" element={
+              <ThemeProvider>
+                <OurJourney />
               </ThemeProvider>
             } />
 
