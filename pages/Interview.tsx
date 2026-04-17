@@ -1105,12 +1105,19 @@ const ActiveInterviewSession: React.FC<{
 
   const startRecording = () => {
     if (!streamRef.current) return;
+    
+    let options: any = { videoBitsPerSecond: 250000 };
+    if (MediaRecorder.isTypeSupported('video/webm;codecs=vp8,opus')) {
+        options.mimeType = 'video/webm;codecs=vp8,opus';
+    } else if (MediaRecorder.isTypeSupported('video/mp4')) {
+        options.mimeType = 'video/mp4';
+    }
 
-    const recorder = new MediaRecorder(streamRef.current, { videoBitsPerSecond: 250000 });
+    const recorder = new MediaRecorder(streamRef.current, options);
     recorder.ondataavailable = (e) => { if (e.data.size > 0) chunksRef.current.push(e.data); };
     recorder.onstop = async () => {
       setProcessingVideo(true);
-      const blob = new Blob(chunksRef.current, { type: 'video/webm' });
+      const blob = new Blob(chunksRef.current, { type: recorder.mimeType || 'video/webm' });
       chunksRef.current = [];
       let videoUrl: string | null = null;
       let transcriptId: string | null = null;
@@ -1479,6 +1486,7 @@ const InterviewSubmission: React.FC<{
         setStatus("Saving Report...");
         const attemptData = {
             ...state,
+            candidateResumeBase64: null, // Do not bloat Firebase storage
             transcriptTexts, 
             feedback: feedbackRaw,
             score: parseScore(/Overall Score:\s*(\d{1,3})/i),

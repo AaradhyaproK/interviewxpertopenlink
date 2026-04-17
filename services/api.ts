@@ -58,20 +58,31 @@ Instructions:
 IMPORTANT: You MUST generate the questions strictly in the **${targetLanguage}** language. For Hindi and Marathi, you MUST use the native Devanagari script. DO NOT output English letters for Hindi or Marathi questions.`;
 
   try {
-    const response = await ai.models.generateContent({
-      model: 'gemini-2.5-flash',
-      contents: {
-        parts: [
-          { text: prompt },
-          {
-            inlineData: {
-              mimeType: mimeType,
-              data: base64Resume
-            }
+    const fallbackModels = ["gemini-2.5-flash", "gemini-2.0-flash", "gemini-1.5-flash", "gemini-2.5-pro", "gemini-1.5-pro"];
+    let response: any = null;
+    let lastError: any = null;
+
+    for (const model of fallbackModels) {
+      try {
+        response = await ai.models.generateContent({
+          model: model,
+          contents: {
+            parts: [
+              { text: prompt },
+              {
+                inlineData: { mimeType: mimeType, data: base64Resume }
+              }
+            ]
           }
-        ]
+        });
+        if (response) break;
+      } catch (err: any) {
+        console.warn(`Fallback: ${model} failed for questions.`, err.message || err);
+        lastError = err;
       }
-    });
+    }
+
+    if (!response) throw lastError || new Error("All AI models are unavailable for question generation.");
 
     const text = response.candidates?.[0]?.content?.parts?.[0]?.text || "";
     const cleanText = text.replace(/^\s*[\d\.\-\*\+]+\s*/gm, '').replace(/\*\*/g, '').trim();
@@ -132,20 +143,32 @@ Q&A Score: [Score]/100
 Overall Score: [Score]/100`;
 
   try {
-    const response = await ai.models.generateContent({
-      model: 'gemini-2.5-flash',
-      contents: {
-        parts: [
-          { text: feedbackPrompt },
-          {
-            inlineData: {
-              mimeType: mimeType,
-              data: base64Resume
-            }
+    const fallbackModels = ["gemini-2.5-flash", "gemini-2.0-flash", "gemini-1.5-flash", "gemini-2.5-pro", "gemini-1.5-pro"];
+    let response: any = null;
+    let lastError: any = null;
+
+    for (const model of fallbackModels) {
+      try {
+        response = await ai.models.generateContent({
+          model: model,
+          contents: {
+            parts: [
+              { text: feedbackPrompt },
+              {
+                inlineData: { mimeType: mimeType, data: base64Resume }
+              }
+            ]
           }
-        ]
+        });
+        if (response) break;
+      } catch (err: any) {
+        console.warn(`Fallback: ${model} failed for feedback.`, err.message || err);
+        lastError = err;
       }
-    });
+    }
+
+    if (!response) throw lastError || new Error("All AI models are unavailable for feedback generation.");
+    
     return response.candidates?.[0]?.content?.parts?.[0]?.text || "AI feedback generation failed.";
   } catch (error: any) {
     console.error("Gemini Feedback Error:", error);
