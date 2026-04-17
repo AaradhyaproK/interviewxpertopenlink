@@ -6,15 +6,15 @@ interface ServiceStatus {
   description: string;
   status: 'operational' | 'degraded' | 'down' | 'checking';
   responseTime?: number;
-  icon: string;
+  iconUrl: string;
 }
 
 const INITIAL_SERVICES: ServiceStatus[] = [
-  { name: 'Brevo API', description: 'Email delivery & candidate invitations', status: 'checking', icon: '📧' },
-  { name: 'Sarvam API', description: 'AI-powered speech & language services', status: 'checking', icon: '🗣️' },
-  { name: 'Firebase API', description: 'Authentication, database & storage', status: 'checking', icon: '🔥' },
-  { name: 'Cloudinary API', description: 'Media uploads & asset management', status: 'checking', icon: '☁️' },
-  { name: 'Gemini API', description: 'AI interview question generation & evaluation', status: 'checking', icon: '✨' },
+  { name: 'Brevo API', description: 'Email delivery & candidate invitations', status: 'checking', iconUrl: 'https://www.google.com/s2/favicons?domain=brevo.com&sz=128' },
+  { name: 'Sarvam API', description: 'AI-powered speech & language services', status: 'checking', iconUrl: 'https://www.google.com/s2/favicons?domain=sarvam.ai&sz=128' },
+  { name: 'Firebase API', description: 'Authentication, database & storage', status: 'checking', iconUrl: 'https://www.google.com/s2/favicons?domain=firebase.google.com&sz=128' },
+  { name: 'Cloudinary API', description: 'Media uploads & asset management', status: 'checking', iconUrl: 'https://www.google.com/s2/favicons?domain=cloudinary.com&sz=128' },
+  { name: 'Gemini API', description: 'AI interview question generation & evaluation', status: 'checking', iconUrl: 'https://www.google.com/s2/favicons?domain=gemini.google.com&sz=128' },
 ];
 
 // Timeout wrapper — aborts any check after 10 seconds
@@ -274,9 +274,9 @@ const StatusPage: React.FC = () => {
               className="flex items-center justify-between px-5 py-4 hover:bg-white/[0.02] transition-colors"
             >
               <div className="flex items-center gap-3.5 min-w-0">
-                <span className="text-lg flex-shrink-0" role="img" aria-label={service.name}>
-                  {service.icon}
-                </span>
+                <div className="flex-shrink-0 flex items-center justify-center w-8 h-8 rounded-md bg-white/[0.05] border border-white/[0.1] p-1.5 shadow-sm">
+                  <img src={service.iconUrl} alt={`${service.name} logo`} className="w-full h-full object-contain drop-shadow-sm" />
+                </div>
                 <div className="min-w-0">
                   <p className="text-sm font-medium text-white truncate">{service.name}</p>
                   <p className="text-xs text-slate-500 truncate">{service.description}</p>
