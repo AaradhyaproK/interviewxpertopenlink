@@ -20,6 +20,11 @@ type CandidateInfo = {
   resumeUpdated: string;
   experienceType: string;
   graduationYear?: string;
+  collegeName?: string;
+  degree?: string;
+  fieldOfStudy?: string;
+  specialization?: string;
+  branchSpecialization?: string;
   workStatus?: string;
   currentCompany?: string;
   pastCompany?: string;
@@ -32,6 +37,7 @@ type CandidateInfo = {
   hasSalaryProof: string;
   totalExperienceYears: string;
   totalExperienceMonths: string;
+  highlightedSkillsForJob?: string;
 };
 
 // --- Helper: Load Face API ---
@@ -179,6 +185,13 @@ const CandidateInfoForm: React.FC<{
   const [resumeUpdated, setResumeUpdated] = useState('yes');
   const [experienceType, setExperienceType] = useState('fresher'); 
   const [graduationYear, setGraduationYear] = useState('');
+  const [collegeName, setCollegeName] = useState('');
+  const [degree, setDegree] = useState('');
+  const [degreeOther, setDegreeOther] = useState('');
+  const [fieldOfStudy, setFieldOfStudy] = useState('');
+  const [fieldOfStudyOther, setFieldOfStudyOther] = useState('');
+  const [specialization, setSpecialization] = useState('');
+  const [specializationOther, setSpecializationOther] = useState('');
   const [workStatus, setWorkStatus] = useState('working'); 
   const [currentCompany, setCurrentCompany] = useState('');
   const [pastCompany, setPastCompany] = useState('');
@@ -191,6 +204,7 @@ const CandidateInfoForm: React.FC<{
   const [hasSalaryProof, setHasSalaryProof] = useState('yes');
   const [totalExperienceYears, setTotalExperienceYears] = useState('');
   const [totalExperienceMonths, setTotalExperienceMonths] = useState('');
+  const [highlightedSkillsForJob, setHighlightedSkillsForJob] = useState('');
 
   const existingResumeUrl = userProfile?.resumeURL || userProfile?.resumeUrl;
 
@@ -214,9 +228,19 @@ const CandidateInfoForm: React.FC<{
     }
 
     // Questionnaire Validations
-    if (experienceType === 'fresher' && !graduationYear) {
-      setErrorMsg("Please provide your graduation year.");
-      return;
+    if (experienceType === 'fresher') {
+      const selectedDegree = degree === 'Other' ? degreeOther.trim() : degree;
+      const selectedFieldOfStudy = fieldOfStudy === 'Other' ? fieldOfStudyOther.trim() : fieldOfStudy;
+      const selectedSpecialization = specialization === 'Other' ? specializationOther.trim() : specialization;
+
+      if (!graduationYear) {
+        setErrorMsg("Please provide your graduation year.");
+        return;
+      }
+      if (!collegeName || !selectedDegree || !selectedFieldOfStudy || !selectedSpecialization) {
+        setErrorMsg("Please provide your college, degree, field of study, and specialization details.");
+        return;
+      }
     }
     if (experienceType === 'experienced') {
       if (workStatus === 'working' && !currentCompany) {
@@ -232,21 +256,27 @@ const CandidateInfoForm: React.FC<{
         return;
       }
     }
-    if (!currentLocation) {
-        setErrorMsg("Please provide your current job location.");
-        return;
-    }
-    if (!currentSalary || !expectedSalary) {
-        setErrorMsg("Please provide your current and expected salary.");
-        return;
+    if (experienceType === 'experienced') {
+      if (!currentLocation) {
+          setErrorMsg("Please provide your current job location.");
+          return;
+      }
+      if (!currentSalary || !expectedSalary) {
+          setErrorMsg("Please provide your current and expected salary.");
+          return;
+      }
     }
 
     setErrorMsg(null);
+    const selectedDegree = degree === 'Other' ? degreeOther.trim() : degree;
+    const selectedFieldOfStudy = fieldOfStudy === 'Other' ? fieldOfStudyOther.trim() : fieldOfStudy;
+    const selectedSpecialization = specialization === 'Other' ? specializationOther.trim() : specialization;
+
     onSubmit({ 
       name, email, phone, language,
-      resumeUpdated, experienceType, graduationYear, workStatus, currentCompany, pastCompany, leaveDate,
+      resumeUpdated, experienceType, graduationYear, collegeName, degree: selectedDegree, fieldOfStudy: selectedFieldOfStudy, specialization: selectedSpecialization, branchSpecialization: selectedSpecialization, workStatus, currentCompany, pastCompany, leaveDate,
       currentLocation, readyToRelocate, relocateReason, currentSalary, expectedSalary, hasSalaryProof,
-      totalExperienceYears, totalExperienceMonths
+      totalExperienceYears, totalExperienceMonths, highlightedSkillsForJob
     }, resumeFile, existingResumeUrl, undefined);
   };
 
@@ -354,6 +384,86 @@ const CandidateInfoForm: React.FC<{
                    <label className="text-xs font-bold text-gray-500 block mb-1 mt-2">Graduation Year <span className="text-red-500">*</span></label>
                    <input type="text" placeholder="e.g. 2024" required value={graduationYear} onChange={e => setGraduationYear(e.target.value)} className="w-full p-2.5 border border-gray-200 rounded-lg dark:bg-gray-700/50 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 outline-none text-sm" />
                  </div>
+                 <div>
+                   <label className="text-xs font-bold text-gray-500 block mb-1 mt-2">College Name <span className="text-red-500">*</span></label>
+                   <input type="text" placeholder="e.g. ABC Institute of Technology" required value={collegeName} onChange={e => setCollegeName(e.target.value)} className="w-full p-2.5 border border-gray-200 rounded-lg dark:bg-gray-700/50 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 outline-none text-sm" />
+                 </div>
+                 <div>
+                   <label className="text-xs font-bold text-gray-500 block mb-1">Degree <span className="text-red-500">*</span></label>
+                  <select required value={degree} onChange={e => setDegree(e.target.value)} className="w-full p-2.5 border border-gray-200 rounded-lg dark:bg-gray-700/50 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 outline-none text-sm transition-all duration-200">
+                     <option value="" disabled>Select degree</option>
+                    <option value="B.Tech / B.E">B.Tech / B.E</option>
+                    <option value="B.Sc">B.Sc</option>
+                    <option value="B.Com">B.Com</option>
+                    <option value="BBA">BBA</option>
+                    <option value="BA">BA</option>
+                    <option value="Diploma">Diploma</option>
+                     <option value="Other">Other</option>
+                   </select>
+                 </div>
+                {degree === 'Other' && (
+                  <div>
+                    <label className="text-xs font-bold text-gray-500 block mb-1">Degree (Other) <span className="text-red-500">*</span></label>
+                    <input type="text" required value={degreeOther} onChange={e => setDegreeOther(e.target.value)} placeholder="Type your degree" className="w-full p-2.5 border border-gray-200 rounded-lg dark:bg-gray-700/50 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 outline-none text-sm" />
+                  </div>
+                )}
+                 <div>
+                  <label className="text-xs font-bold text-gray-500 block mb-1">Field of Study <span className="text-red-500">*</span></label>
+                  <select required value={fieldOfStudy} onChange={e => setFieldOfStudy(e.target.value)} className="w-full p-2.5 border border-gray-200 rounded-lg dark:bg-gray-700/50 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 outline-none text-sm transition-all duration-200">
+                    <option value="" disabled>Select field of study</option>
+                    <option value="Technology / Engineering">Technology / Engineering</option>
+                    <option value="Science">Science</option>
+                    <option value="Commerce">Commerce</option>
+                    <option value="Business / Management">Business / Management</option>
+                    <option value="Arts / Humanities">Arts / Humanities</option>
+                     <option value="Other">Other</option>
+                   </select>
+                 </div>
+                {fieldOfStudy === 'Other' && (
+                  <div>
+                    <label className="text-xs font-bold text-gray-500 block mb-1">Field of Study (Other) <span className="text-red-500">*</span></label>
+                    <input type="text" required value={fieldOfStudyOther} onChange={e => setFieldOfStudyOther(e.target.value)} placeholder="Type your field of study" className="w-full p-2.5 border border-gray-200 rounded-lg dark:bg-gray-700/50 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 outline-none text-sm" />
+                  </div>
+                )}
+                <div>
+                  <label className="text-xs font-bold text-gray-500 block mb-1">Specialization <span className="text-red-500">*</span></label>
+                  <select required value={specialization} onChange={e => setSpecialization(e.target.value)} className="w-full p-2.5 border border-gray-200 rounded-lg dark:bg-gray-700/50 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 outline-none text-sm transition-all duration-200">
+                    <option value="" disabled>Select specialization</option>
+                    <option value="Computer Science">Computer Science</option>
+                    <option value="Information Technology">Information Technology</option>
+                    <option value="Artificial Intelligence / Machine Learning">Artificial Intelligence / Machine Learning</option>
+                    <option value="Data Science">Data Science</option>
+                    <option value="Electronics & Communication">Electronics & Communication</option>
+                    <option value="Mechanical Engineering">Mechanical Engineering</option>
+                    <option value="Civil Engineering">Civil Engineering</option>
+                    <option value="Physics">Physics</option>
+                    <option value="Chemistry">Chemistry</option>
+                    <option value="Mathematics">Mathematics</option>
+                    <option value="Biology">Biology</option>
+                    <option value="Biotechnology">Biotechnology</option>
+                    <option value="Accounting">Accounting</option>
+                    <option value="Finance">Finance</option>
+                    <option value="Banking">Banking</option>
+                    <option value="Taxation">Taxation</option>
+                    <option value="Economics">Economics</option>
+                    <option value="Marketing">Marketing</option>
+                    <option value="Human Resources (HR)">Human Resources (HR)</option>
+                    <option value="Operations">Operations</option>
+                    <option value="International Business">International Business</option>
+                    <option value="Psychology">Psychology</option>
+                    <option value="Political Science">Political Science</option>
+                    <option value="Sociology">Sociology</option>
+                    <option value="History">History</option>
+                    <option value="English Literature">English Literature</option>
+                    <option value="Other">Other</option>
+                  </select>
+                </div>
+                {specialization === 'Other' && (
+                  <div>
+                    <label className="text-xs font-bold text-gray-500 block mb-1">Specialization (Other) <span className="text-red-500">*</span></label>
+                    <input type="text" required value={specializationOther} onChange={e => setSpecializationOther(e.target.value)} placeholder="Type your specialization" className="w-full p-2.5 border border-gray-200 rounded-lg dark:bg-gray-700/50 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 outline-none text-sm" />
+                  </div>
+                )}
               </div>
             )}
             
@@ -392,50 +502,64 @@ const CandidateInfoForm: React.FC<{
                      </div>
                    </div>
                  )}
-              </div>
-            )}
-            
-            {/* Location */}
-            <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
-               <div>
-                 <label className="text-xs font-bold text-gray-500 block mb-1">Current Job Location (City, State) <span className="text-red-500">*</span></label>
-                 <input type="text" required value={currentLocation} onChange={e => setCurrentLocation(e.target.value)} placeholder="e.g. Mumbai, Maharashtra" className="w-full p-2.5 border border-gray-200 rounded-lg dark:bg-gray-700/50 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 outline-none text-sm" />
-               </div>
-               <div>
-                 <div className="flex gap-2 items-start h-full md:mt-6 text-sm text-gray-700 dark:text-gray-300">
-                    <input type="checkbox" id="ready_relocate" checked={readyToRelocate === 'yes'} onChange={e => setReadyToRelocate(e.target.checked ? 'yes' : 'no')} className="mt-1 w-4 h-4 rounded text-blue-600 border-gray-300 focus:ring-blue-500 dark:border-gray-600" />
-                    <div>
-                       <label htmlFor="ready_relocate" className="font-medium cursor-pointer">I am ready to relocate if required</label>
-                    </div>
+                 <div>
+                   <label className="text-xs font-bold text-gray-500 block mb-1">Highlight skills as per job requirements (Optional)</label>
+                   <textarea
+                     value={highlightedSkillsForJob}
+                     onChange={e => setHighlightedSkillsForJob(e.target.value)}
+                     placeholder="e.g. React, Node.js, team leadership, client communication"
+                     rows={3}
+                     className="w-full p-2.5 border border-gray-200 rounded-lg dark:bg-gray-700/50 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 outline-none text-sm resize-y"
+                   />
                  </div>
-               </div>
-            </div>
-            {readyToRelocate === 'yes' && (
-              <div className="mt-2">
-                 <label className="text-xs font-bold text-gray-500 block mb-1">Reason for Relocation</label>
-                 <input type="text" placeholder="e.g. Seeking better opportunities, family reasons" value={relocateReason} onChange={e => setRelocateReason(e.target.value)} className="w-full p-2.5 border border-gray-200 rounded-lg dark:bg-gray-700/50 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 outline-none text-sm" />
               </div>
             )}
             
-            {/* Salary */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
-               <div>
-                 <label className="text-xs font-bold text-gray-500 block mb-1">Current Salary (LPA) <span className="text-red-500">*</span></label>
-                 <input type="text" placeholder="e.g. 6.5" required value={currentSalary} onChange={e => setCurrentSalary(e.target.value)} className="w-full p-2.5 border border-gray-200 rounded-lg dark:bg-gray-700/50 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 outline-none text-sm" />
-               </div>
-               <div>
-                 <label className="text-xs font-bold text-gray-500 block mb-1">Expected Salary (LPA) <span className="text-red-500">*</span></label>
-                 <input type="text" placeholder="e.g. 10.0" required value={expectedSalary} onChange={e => setExpectedSalary(e.target.value)} className="w-full p-2.5 border border-gray-200 rounded-lg dark:bg-gray-700/50 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 outline-none text-sm" />
-               </div>
-            </div>
-            
-            <div className="flex flex-col sm:flex-row justify-between sm:items-center bg-white dark:bg-gray-800/80 p-3 rounded-lg border border-gray-200 dark:border-gray-600 mt-4 gap-2">
-               <span className="text-xs font-bold text-gray-600 dark:text-gray-400">Do you have salary slips/bank statements to support your current salary?</span>
-               <div className="flex gap-2">
-                 <button type="button" onClick={() => setHasSalaryProof('yes')} className={`flex-1 sm:flex-none px-4 py-1.5 rounded-md text-xs font-bold transition-colors ${hasSalaryProof === 'yes' ? 'bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-400 border border-green-200 dark:border-green-800' : 'bg-gray-100 text-gray-500 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-400'}`}>Yes</button>
-                 <button type="button" onClick={() => setHasSalaryProof('no')} className={`flex-1 sm:flex-none px-4 py-1.5 rounded-md text-xs font-bold transition-colors ${hasSalaryProof === 'no' ? 'bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-400 border border-red-200 dark:border-red-800' : 'bg-gray-100 text-gray-500 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-400'}`}>No</button>
-               </div>
-            </div>
+            {experienceType === 'experienced' && (
+              <>
+                {/* Location */}
+                <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+                   <div>
+                     <label className="text-xs font-bold text-gray-500 block mb-1">Current Job Location (City, State) <span className="text-red-500">*</span></label>
+                     <input type="text" required value={currentLocation} onChange={e => setCurrentLocation(e.target.value)} placeholder="e.g. Mumbai, Maharashtra" className="w-full p-2.5 border border-gray-200 rounded-lg dark:bg-gray-700/50 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 outline-none text-sm" />
+                   </div>
+                   <div>
+                     <div className="flex gap-2 items-start h-full md:mt-6 text-sm text-gray-700 dark:text-gray-300">
+                        <input type="checkbox" id="ready_relocate" checked={readyToRelocate === 'yes'} onChange={e => setReadyToRelocate(e.target.checked ? 'yes' : 'no')} className="mt-1 w-4 h-4 rounded text-blue-600 border-gray-300 focus:ring-blue-500 dark:border-gray-600" />
+                        <div>
+                           <label htmlFor="ready_relocate" className="font-medium cursor-pointer">I am ready to relocate if required</label>
+                        </div>
+                     </div>
+                   </div>
+                </div>
+                {readyToRelocate === 'yes' && (
+                  <div className="mt-2">
+                     <label className="text-xs font-bold text-gray-500 block mb-1">Reason for Relocation</label>
+                     <input type="text" placeholder="e.g. Seeking better opportunities, family reasons" value={relocateReason} onChange={e => setRelocateReason(e.target.value)} className="w-full p-2.5 border border-gray-200 rounded-lg dark:bg-gray-700/50 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 outline-none text-sm" />
+                  </div>
+                )}
+                
+                {/* Salary */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
+                   <div>
+                     <label className="text-xs font-bold text-gray-500 block mb-1">Current Salary (LPA) <span className="text-red-500">*</span></label>
+                     <input type="text" placeholder="e.g. 6.5" required value={currentSalary} onChange={e => setCurrentSalary(e.target.value)} className="w-full p-2.5 border border-gray-200 rounded-lg dark:bg-gray-700/50 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 outline-none text-sm" />
+                   </div>
+                   <div>
+                     <label className="text-xs font-bold text-gray-500 block mb-1">Expected Salary (LPA) <span className="text-red-500">*</span></label>
+                     <input type="text" placeholder="e.g. 10.0" required value={expectedSalary} onChange={e => setExpectedSalary(e.target.value)} className="w-full p-2.5 border border-gray-200 rounded-lg dark:bg-gray-700/50 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 outline-none text-sm" />
+                   </div>
+                </div>
+                
+                <div className="flex flex-col sm:flex-row justify-between sm:items-center bg-white dark:bg-gray-800/80 p-3 rounded-lg border border-gray-200 dark:border-gray-600 mt-4 gap-2">
+                   <span className="text-xs font-bold text-gray-600 dark:text-gray-400">Do you have salary slips/bank statements to support your current salary?</span>
+                   <div className="flex gap-2">
+                     <button type="button" onClick={() => setHasSalaryProof('yes')} className={`flex-1 sm:flex-none px-4 py-1.5 rounded-md text-xs font-bold transition-colors ${hasSalaryProof === 'yes' ? 'bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-400 border border-green-200 dark:border-green-800' : 'bg-gray-100 text-gray-500 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-400'}`}>Yes</button>
+                     <button type="button" onClick={() => setHasSalaryProof('no')} className={`flex-1 sm:flex-none px-4 py-1.5 rounded-md text-xs font-bold transition-colors ${hasSalaryProof === 'no' ? 'bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-400 border border-red-200 dark:border-red-800' : 'bg-gray-100 text-gray-500 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-400'}`}>No</button>
+                   </div>
+                </div>
+              </>
+            )}
           </div>
           
           {/* Hide Resume Upload entirely if the user is signed in (we use their Profile Box instead) */}
