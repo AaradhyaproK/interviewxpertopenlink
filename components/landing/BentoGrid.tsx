@@ -1,4 +1,4 @@
-import { ReactNode } from "react";
+import React, { ReactNode } from "react";
 import { ArrowRightIcon } from "lucide-react";
 import { cn } from "../../lib/utils";
 
@@ -21,16 +21,7 @@ const BentoGrid = ({
     );
 };
 
-const BentoCard = ({
-    name,
-    className,
-    background,
-    Icon,
-    description,
-    href,
-    cta,
-    iconClassName,
-}: {
+interface BentoCardProps {
     name: string;
     className: string;
     background: ReactNode;
@@ -39,9 +30,19 @@ const BentoCard = ({
     href: string;
     cta: string;
     iconClassName?: string;
+}
+
+const BentoCard: React.FC<BentoCardProps> = ({
+    name,
+    className,
+    background,
+    Icon,
+    description,
+    href,
+    cta,
+    iconClassName,
 }) => (
     <div
-        key={name}
         className={cn(
             "group relative col-span-3 flex flex-col justify-between overflow-hidden rounded-xl",
             // light styles

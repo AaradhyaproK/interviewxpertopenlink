@@ -1050,6 +1050,7 @@ const FinalCTA: React.FC = () => (
   </section>
 );
 
+
 const Footer: React.FC = () => (
   <footer className="bg-white dark:bg-transparent text-slate-900 dark:text-white py-8 md:py-12 border-t border-slate-200 dark:border-slate-800 transition-colors duration-300">
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -1072,6 +1073,7 @@ const Footer: React.FC = () => (
             <li><a href="#pricing" className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors">Pricing</a></li>
             <li><Link to="/our-journey" className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors">Our Journey</Link></li>
             <li><Link to="/blogs" className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors">Blog</Link></li>
+            <li><Link to="/status" className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors">System Status</Link></li>
           </ul>
         </div>
 
