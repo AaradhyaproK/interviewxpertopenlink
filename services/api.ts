@@ -7,6 +7,7 @@ const CLOUDINARY_UPLOAD_PRESET = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET;
 
 const VIDEO_CLOUDINARY_UPLOAD_URL = `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/video/upload`;
 const RESUME_CLOUDINARY_UPLOAD_URL = `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`;
+const AUTO_CLOUDINARY_UPLOAD_URL = `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/auto/upload`;
 const ASSEMBLYAI_TRANSCRIPT_ENDPOINT = 'https://api.assemblyai.com/v2/transcript';
 
 // --- Gemini API ---
@@ -153,9 +154,9 @@ Overall Score: [Score]/100`;
 };
 
 // --- Cloudinary ---
-export const uploadToCloudinary = async (blob: Blob, resourceType: 'video' | 'image') => {
+export const uploadToCloudinary = async (blob: Blob, resourceType: 'video' | 'image' | 'auto' = 'auto') => {
   const isVideo = resourceType === 'video';
-  const uploadUrl = isVideo ? VIDEO_CLOUDINARY_UPLOAD_URL : RESUME_CLOUDINARY_UPLOAD_URL;
+  const uploadUrl = resourceType === 'auto' ? AUTO_CLOUDINARY_UPLOAD_URL : (isVideo ? VIDEO_CLOUDINARY_UPLOAD_URL : RESUME_CLOUDINARY_UPLOAD_URL);
   const formData = new FormData();
   formData.append('file', blob);
   formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);

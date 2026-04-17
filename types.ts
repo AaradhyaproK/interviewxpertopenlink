@@ -136,6 +136,7 @@ export interface Interview {
     transcriptTexts?: string[];
     candidateResumeURL: string | null;
     candidateResumeMimeType: string | null;
+    candidateResumeBase64?: string | null;
     language: string;
     currentQuestionIndex: number;
     isMock?: boolean;

@@ -611,7 +611,13 @@ const CandidateInterviewFlow: React.FC = () => {
         const { base64, url } = await getFileAsBase64(submittedFile);
         base64String = base64;
         resumeMimeType = submittedFile.type;
-        resumeUrlToSave = url;
+        try {
+          const cloudinaryResumeUrl = await uploadToCloudinary(submittedFile, 'auto');
+          resumeUrlToSave = cloudinaryResumeUrl;
+        } catch (e) {
+          console.error("Resume cloudinary upload failed:", e);
+          resumeUrlToSave = url;
+        }
       } else if (userProfile) {
         setLoadingMsg("Synthesizing your profile data for AI...");
         const profileText = `[Candidate Profile Data]\nName: ${submittedInfo.name}\nEmail: ${submittedInfo.email}\nExperience: ${userProfile.experience || 0} Years\nSkills: ${(userProfile.skills || []).join(', ')}`;
@@ -641,6 +647,7 @@ const CandidateInterviewFlow: React.FC = () => {
         questions,
         candidateResumeURL: resumeUrlToSave,
         candidateResumeMimeType: resumeMimeType,
+        candidateResumeBase64: base64String,
         language: submittedInfo.language,
         answers: Array(questions.length).fill(null),
         videoURLs: Array(questions.length).fill(null),
@@ -1106,11 +1113,12 @@ const ActiveInterviewSession: React.FC<{
       const blob = new Blob(chunksRef.current, { type: 'video/webm' });
       chunksRef.current = [];
       let videoUrl: string | null = null;
-      let transcriptText: string | null = null;
+      let transcriptId: string | null = null;
       try {
         videoUrl = await uploadToCloudinary(blob, 'video');
-        // Use Sarvam AI for transcription directly with the audio blob
-        transcriptText = await transcribeWithSarvam(blob, state.language);
+        if (videoUrl) {
+          transcriptId = await requestTranscription(videoUrl, state.language);
+        }
       } catch (err) { console.error("Upload error", err); }
 
       const idx = state.currentQuestionIndex;
@@ -1118,8 +1126,8 @@ const ActiveInterviewSession: React.FC<{
 
       setState(prev => {
         const newVids = [...prev.videoURLs]; newVids[idx] = videoUrl;
-        const newTrans = [...prev.transcriptIds]; newTrans[idx] = null; // No ID from Sarvam
-        const newTexts = [...prev.transcriptTexts]; newTexts[idx] = transcriptText;
+        const newTrans = [...prev.transcriptIds]; newTrans[idx] = transcriptId;
+        const newTexts = [...prev.transcriptTexts]; newTexts[idx] = null;
         const newAns = [...prev.answers]; newAns[idx] = "Answered";
         return { ...prev, videoURLs: newVids, transcriptIds: newTrans, transcriptTexts: newTexts, answers: newAns, currentQuestionIndex: isLast ? idx : idx + 1 };
       });
@@ -1428,42 +1436,67 @@ const InterviewSubmission: React.FC<{
 
     const finalize = async () => {
       try {
-        // Transcripts are now directly available in the state, no fetching needed.
-        const transcriptTexts = state.transcriptTexts;
-        setStatus("AI Analyzing performance...");
-        const resp = await fetch(state.candidateResumeURL!);
-        const blob = await resp.blob();
-        const reader = new FileReader();
-        reader.readAsDataURL(blob);
-        reader.onloadend = async () => {
-          const base64Resume = (reader.result as string).split(',')[1];
-          const feedbackRaw = await generateFeedback(
-            state.jobTitle, state.jobDescription, `0 years`, base64Resume, state.candidateResumeMimeType!, state.questions, transcriptTexts
-          );
-          const parseScore = (regex: RegExp) => (feedbackRaw.match(regex) ? feedbackRaw.match(regex)![1] + "/100" : "N/A");
-
-          setStatus("Saving Report...");
-          const attemptData = {
-              ...state,
-              transcriptTexts, 
-              feedback: feedbackRaw,
-              score: parseScore(/Overall Score:\s*(\d{1,3})/i),
-              resumeScore: parseScore(/Resume Score:\s*(\d{1,3})/i),
-              qnaScore: parseScore(/Q&A Score:\s*(\d{1,3})/i),
-              candidateInfo,
-              status: cvStats?.terminated ? 'Terminated' : 'Completed', 
-              submittedAt: serverTimestamp(), 
-              candidateUID: user?.uid || null,
-              interviewId: interviewId,
-              jobId: interviewId,
-              isMock: state.isMock || false,
-              meta: { tabSwitchCount: tabSwitches, cvStats }
+        setStatus("Finalizing transcripts...");
+        const transcriptTexts = [...state.transcriptTexts];
+        
+        for (let i = 0; i < state.transcriptIds.length; i++) {
+          const tId = state.transcriptIds[i];
+          if (tId && !transcriptTexts[i]) {
+            let fetchStatus = 'processing';
+            let fetchedText = null;
+            let attempts = 0;
+            while ((fetchStatus === 'processing' || fetchStatus === 'queued') && attempts < 20) {
+              await new Promise(r => setTimeout(r, 3000));
+              const res = await fetchTranscriptText(tId);
+              fetchStatus = res.status;
+              if (res.status === 'completed' || res.status === 'error') {
+                fetchedText = res.text;
+              }
+              attempts++;
+            }
+            transcriptTexts[i] = fetchedText || '(Transcription timeout)';
           }
-          const docRef = await addDoc(collection(db, 'interviews', interviewId, 'attempts'), attemptData);
-          setReportUrl(`/report/${interviewId}/${docRef.id}`);
-          setShowCompletionPopup(true);
-          setStatus('Successfully Submitted!');
-        };
+        }
+        
+        setStatus("AI Analyzing performance...");
+        let base64Resume = state.candidateResumeBase64;
+        
+        if (!base64Resume) {
+          const resp = await fetch(state.candidateResumeURL!);
+          const blob = await resp.blob();
+          base64Resume = await new Promise<string>((resolve) => {
+            const reader = new FileReader();
+            reader.readAsDataURL(blob);
+            reader.onloadend = () => resolve((reader.result as string).split(',')[1]);
+          });
+        }
+
+        const feedbackRaw = await generateFeedback(
+          state.jobTitle, state.jobDescription, `0 years`, base64Resume!, state.candidateResumeMimeType!, state.questions, transcriptTexts
+        );
+        const parseScore = (regex: RegExp) => (feedbackRaw.match(regex) ? feedbackRaw.match(regex)![1] + "/100" : "N/A");
+
+        setStatus("Saving Report...");
+        const attemptData = {
+            ...state,
+            transcriptTexts, 
+            feedback: feedbackRaw,
+            score: parseScore(/Overall Score:\s*(\d{1,3})/i),
+            resumeScore: parseScore(/Resume Score:\s*(\d{1,3})/i),
+            qnaScore: parseScore(/Q&A Score:\s*(\d{1,3})/i),
+            candidateInfo,
+            status: cvStats?.terminated ? 'Terminated' : 'Completed', 
+            submittedAt: serverTimestamp(), 
+            candidateUID: user?.uid || null,
+            interviewId: interviewId,
+            jobId: interviewId,
+            isMock: state.isMock || false,
+            meta: { tabSwitchCount: tabSwitches, cvStats }
+        }
+        const docRef = await addDoc(collection(db, 'interviews', interviewId, 'attempts'), attemptData);
+        setReportUrl(`/report/${interviewId}/${docRef.id}`);
+        setShowCompletionPopup(true);
+        setStatus('Successfully Submitted!');
       } catch (err) { 
           console.error("Finalization error:", err);
           setStatus("An error occurred while saving your report. Please contact support."); 
