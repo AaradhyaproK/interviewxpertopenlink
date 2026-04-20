@@ -7,6 +7,7 @@ interface ServiceStatus {
   status: 'operational' | 'degraded' | 'down' | 'checking';
   responseTime?: number;
   iconUrl: string;
+  modelStatus?: string;
 }
 
 const INITIAL_SERVICES: ServiceStatus[] = [
@@ -14,7 +15,7 @@ const INITIAL_SERVICES: ServiceStatus[] = [
   { name: 'Sarvam API', description: 'AI-powered speech & language services', status: 'checking', iconUrl: 'https://www.google.com/s2/favicons?domain=sarvam.ai&sz=128' },
   { name: 'Firebase API', description: 'Authentication, database & storage', status: 'checking', iconUrl: 'https://www.google.com/s2/favicons?domain=firebase.google.com&sz=128' },
   { name: 'Cloudinary API', description: 'Media uploads & asset management', status: 'checking', iconUrl: 'https://www.google.com/s2/favicons?domain=cloudinary.com&sz=128' },
-  { name: 'Gemini API', description: 'AI interview question generation & evaluation', status: 'checking', iconUrl: 'https://www.google.com/s2/favicons?domain=gemini.google.com&sz=128' },
+  { name: 'Gemini API', description: 'AI interview question generation & evaluation', status: 'checking', iconUrl: 'https://www.google.com/s2/favicons?domain=gemini.google.com&sz=128', modelStatus: '...' },
 ];
 
 // Timeout wrapper — aborts any check after 10 seconds
@@ -94,19 +95,54 @@ const checkCloudinary = async (): Promise<{ ok: boolean; ms: number }> => {
   }
 };
 
-const checkGemini = async (): Promise<{ ok: boolean; ms: number }> => {
+// SECURITY WARNING: This check uses an API key on the client-side.
+// Ensure the key is restricted to your domain (HTTP referrers) in the Google Cloud Console
+// to prevent unauthorized use.
+const checkGemini = async (): Promise<{ ok: boolean; ms: number; modelStatus: string }> => {
   const start = performance.now();
+  const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
+
+  if (!apiKey) {
+    return { ok: false, ms: 0, modelStatus: 'API Key Missing' };
+  }
+
+  // List of models to check, from most to least preferred/likely
+  const modelsToCheck = [
+    "gemini-2.5-flash",
+    "gemini-1.5-flash",
+    "gemini-1.5-pro",
+  ];
+
   try {
-    // no-cors HEAD — no API key sent, just proves Google AI servers are reachable
-    await withTimeout(
-      fetch('https://generativelanguage.googleapis.com/v1beta/models', {
-        method: 'HEAD',
-        mode: 'no-cors',
-      })
-    );
-    return { ok: true, ms: Math.round(performance.now() - start) };
-  } catch {
-    return { ok: false, ms: Math.round(performance.now() - start) };
+    for (const model of modelsToCheck) {
+      // Using a simple generateContent call to check model health
+      const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+      const response = await withTimeout(
+        fetch(url, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contents: [{ parts: [{ text: "hello" }] }],
+          }),
+        }),
+        5000 // 5 second timeout for this specific check
+      );
+
+      if (response.ok) {
+        // If we get a successful response from any model, the service is operational.
+        return {
+          ok: true,
+          ms: Math.round(performance.now() - start),
+          modelStatus: `${model} is responding`,
+        };
+      }
+    }
+    // If all models fail with a valid response but not 'ok' (e.g., 4xx errors)
+    return { ok: false, ms: Math.round(performance.now() - start), modelStatus: 'Models unresponsive' };
+
+  } catch (error: any) {
+    // This catches network errors, timeouts, etc.
+    return { ok: false, ms: Math.round(performance.now() - start), modelStatus: 'API unreachable' };
   }
 };
 
@@ -128,13 +164,16 @@ const StatusPage: React.FC = () => {
       prev.map((service, i) => {
         const result = results[i];
         if (result.status === 'fulfilled') {
+          const { ok, ms, modelStatus } = result.value as any; // Cast to handle optional modelStatus
           return {
             ...service,
-            status: result.value.ok ? 'operational' : 'down',
-            responseTime: result.value.ms,
+            status: ok ? 'operational' : 'down',
+            responseTime: ms,
+            modelStatus: modelStatus || service.modelStatus, // Keep old if new is undefined
           };
         }
-        return { ...service, status: 'down' as const, responseTime: 0 };
+        // If the promise was rejected (e.g., by timeout)
+        return { ...service, status: 'down' as const, responseTime: 0, modelStatus: 'Check failed' };
       })
     );
     setLastChecked(new Date());
@@ -280,6 +319,9 @@ const StatusPage: React.FC = () => {
                 <div className="min-w-0">
                   <p className="text-sm sm:text-base font-medium text-white">{service.name}</p>
                   <p className="text-[11px] sm:text-xs text-slate-500 leading-snug sm:truncate max-w-[280px]">{service.description}</p>
+                  {service.modelStatus && (
+                    <p className="text-[11px] text-blue-400 mt-1 font-mono">{service.modelStatus}</p>
+                  )}
                 </div>
               </div>
               <div className="flex items-center gap-4 sm:ml-4 sm:flex-shrink-0 self-start sm:self-auto ml-[46px] sm:ml-0">
