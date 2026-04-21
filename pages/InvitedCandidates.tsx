@@ -457,7 +457,7 @@ const InvitedCandidates: React.FC = () => {
                                             </td>
                                             <td className="px-6 py-4 text-center">
                                                 {candidate.hasSubmitted ? (
-                                                    <span className="font-bold text-gray-900 dark:text-white">{candidate.score?.toFixed(0)}<span className="text-[10px] text-gray-400 ml-0.5">/100</span></span>
+                                                    <span className="font-bold text-gray-900 dark:text-white">{candidate.score?.toFixed(0)}<span className="text-[10px] text-gray-400 ml-0.5">/10</span></span>
                                                 ) : <span className="text-gray-400">-</span>}
                                             </td>
                                             <td className="px-6 py-4 text-right">

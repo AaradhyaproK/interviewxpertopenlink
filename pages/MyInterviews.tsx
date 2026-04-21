@@ -219,13 +219,14 @@ const MyInterviews: React.FC = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredInterviews.map(interview => {
             // Common logic for score parsing
-            const score = parseInt(interview.score as string) || 0;
-            const resumeScore = parseInt((interview as any).resumeScore) || 0;
-            const qaScore = parseInt((interview as any).qaScore) ||
-              parseInt((interview as any).qnaScore) ||
-              parseInt((interview as any).qaQuality) ||
-              parseInt((interview as any).technicalScore) ||
-              parseInt((interview as any).communicationScore) || 0;
+            const rawScore = String(interview.score || '0');
+            const score = parseInt(rawScore.split('/')[0]) || 0;
+            const scoreDenom = rawScore.includes('/') ? rawScore.split('/')[1] : '10';
+            const scorePct = parseInt(scoreDenom) > 0 ? (score / parseInt(scoreDenom)) * 100 : 0;
+            const rawResume = String((interview as any).resumeScore || '0');
+            const resumeScore = rawResume.includes('/') ? rawResume : `${parseInt(rawResume) || 0}/10`;
+            const rawQa = String((interview as any).qnaScore || (interview as any).qaScore || '0');
+            const qaScore = rawQa.includes('/') ? rawQa : `${parseInt(rawQa) || 0}/10`;
 
             // --- RENDER ASSESSMENT CARD ---
             if (activeTab === 'assessment') {
@@ -249,7 +250,7 @@ const MyInterviews: React.FC = () => {
                       </h3>
                     </div>
                     <div className="flex flex-col items-end">
-                      <div className={`text-2xl font-black ${score >= 70 ? 'text-green-600 dark:text-green-400' : score >= 40 ? 'text-yellow-600 dark:text-yellow-400' : 'text-red-500'}`}>
+                      <div className={`text-2xl font-black ${scorePct >= 70 ? 'text-green-600 dark:text-green-400' : scorePct >= 40 ? 'text-yellow-600 dark:text-yellow-400' : 'text-red-500'}`}>
                         {score}%
                       </div>
                       <span className="text-[10px] text-gray-400 uppercase font-bold">Score</span>
@@ -305,11 +306,11 @@ const MyInterviews: React.FC = () => {
                   </div>
 
                   <div className="flex flex-col items-end">
-                    <div className={`text-2xl font-black ${score >= 70 ? 'text-green-600 dark:text-green-400' :
-                      score >= 40 ? 'text-yellow-600 dark:text-yellow-400' :
+                    <div className={`text-2xl font-black ${scorePct >= 70 ? 'text-green-600 dark:text-green-400' :
+                      scorePct >= 40 ? 'text-yellow-600 dark:text-yellow-400' :
                         'text-red-500'
                       }`}>
-                      {score}
+                      {score}/{scoreDenom}
                     </div>
                     <span className="text-[10px] text-gray-400 uppercase font-bold">Score</span>
                   </div>
@@ -324,11 +325,11 @@ const MyInterviews: React.FC = () => {
                   <div className="flex gap-2 mt-3">
                     <div className="flex-1 bg-gray-50 dark:bg-slate-800/50 rounded-lg p-2 text-center border border-gray-100 dark:border-white/5">
                       <div className="text-xs text-gray-500 dark:text-gray-400">Resume</div>
-                      <div className="font-bold text-gray-800 dark:text-white">{resumeScore}%</div>
+                      <div className="font-bold text-gray-800 dark:text-white">{resumeScore}</div>
                     </div>
                     <div className="flex-1 bg-gray-50 dark:bg-slate-800/50 rounded-lg p-2 text-center border border-gray-100 dark:border-white/5">
                       <div className="text-xs text-gray-500 dark:text-gray-400">Q&A</div>
-                      <div className="font-bold text-gray-800 dark:text-white">{qaScore}%</div>
+                      <div className="font-bold text-gray-800 dark:text-white">{qaScore}</div>
                     </div>
                   </div>
                 </div>

@@ -58,27 +58,52 @@ export const generateInterviewQuestions = async (
   languageCode: string = 'en',
   numQuestions: number = 5
 ) => {
-  const lang = languageCode === 'mr' ? 'Marathi (Devanagari script only)'
-             : languageCode === 'hi' ? 'Hindi (Devanagari script only)'
-             : 'English';
+  // Language-specific instructions for easy, natural language
+  let langInstruction = '';
+  if (languageCode === 'mr') {
+    langInstruction = `Language: Marathi (Devanagari script).
+IMPORTANT: Use simple, everyday Marathi that common people speak. Do NOT use heavy/literary Marathi words. If any word is difficult or technical (like "quality management", "KPI", "compliance", "production planning" etc.), keep that word in English and write the rest in easy Marathi. The question should feel natural like a normal conversation, not like a textbook.`;
+  } else if (languageCode === 'hi') {
+    langInstruction = `Language: Hindi (Devanagari script).
+IMPORTANT: Use simple, everyday Hindi that common people speak. Do NOT use heavy/Shudh Hindi words. If any word is difficult or technical (like "quality management", "KPI", "compliance", "production planning" etc.), keep that word in English and write the rest in easy Hindi. The question should feel natural like a normal conversation, not like a textbook.`;
+  } else {
+    langInstruction = 'Language: English.';
+  }
 
   // Truncate to save input tokens
   const jd  = truncate(jobDescription, JD_MAX_CHARS);
   const exp = truncate(candidateExp, 150);
 
-  // Compact prompt — same intent, ~40% fewer tokens than before
+  const sys = `You are a polite, professional HR interviewer. Your tone is gentle, respectful, and conversational.
+Rules:
+- Ask short, clear, straight-to-the-point questions.
+- No difficult or fancy language.
+- One question per line. No numbering, bullets, preamble, or closing text.
+- Output ONLY the questions, nothing else.`;
+
   const prompt =
-`Generate exactly ${numQuestions} interview questions for role: "${jobTitle}".
+`Role: "${jobTitle}"
 JD: ${jd}
 Experience: ${exp}
-Rules: one question per line, no numbering/bullets/preamble/closing text.
-Language: ${lang}.`;
+${langInstruction}
+
+Generate exactly ${numQuestions} verification questions. Your goal is to VERIFY whether this candidate genuinely has the skills, experience, and project knowledge they claim on their resume.
+
+How to generate questions:
+1. Read the candidate's resume carefully — look at their skills, projects, past roles, tools, and achievements.
+2. Cross-check these claims against the JD requirements.
+3. Ask practical, real-world questions that only someone who has actually done that work would be able to answer confidently. For example:
+   - If resume says "managed quality audits" → ask "Walk me through how you conducted a quality audit at your last company. What was the outcome?"
+   - If resume says "React.js" → ask "In your project [X], how did you handle state management and why did you choose that approach?"
+   - If resume says "3 years experience in production planning" → ask "Tell me about a time when your production plan failed. What went wrong and how did you fix it?"
+4. Do NOT ask generic textbook questions. Every question must reference something specific from the resume or JD.
+5. Mix questions across: skills verification, project deep-dives, situational/behavioral, and JD-specific requirements.
+6. The candidate should feel like you have actually read their resume.`;
 
   try {
-    const sys = "You are an AI interviewer. Output only the requested questions, nothing else.";
     const text = await grokGenerateWithResume(sys, prompt, base64Resume, mimeType, 0.5, BUDGET.QUESTIONS);
     const clean = text.replace(/^\s*[\d\.\-\*\+]+\s*/gm, '').replace(/\*\*/g, '').trim();
-    return clean.split('\n').map(q => q.trim()).filter(q => q && q.length > 10).slice(0, numQuestions);
+    return clean.split('\n').map(q => q.trim()).filter(q => q && q.length > 5).slice(0, numQuestions);
   } catch (error: any) {
     console.error("Grok Generate Questions Error:", error);
     throw new Error(error.message || "Failed to generate questions");
@@ -100,31 +125,44 @@ export const generateFeedback = async (
 
   // Build Q&A block — each transcript is capped to save tokens
   const qaBlock = questions.map((q, i) => {
-    const ans = truncate(transcripts[i] || '(unavailable)', TRANSCRIPT_MAX_CHARS);
+    const ans = truncate(transcripts[i] || '(no answer given)', TRANSCRIPT_MAX_CHARS);
     return `Q${i + 1}: ${q}\nA${i + 1}: ${ans}`;
-  }).join('\n---\n');
+  }).join('\n');
 
-  // Compact feedback prompt — output capped to 1-2 lines per section as requested
+  const sys = `You are a strict but fair hiring evaluator. Analyze precisely. Follow output format exactly. Be concise but accurate.`;
+
   const feedbackPrompt =
-`Evaluate candidate for "${jobTitle}".
-JD: ${jd}
-Experience: ${exp}
+`Evaluate this candidate for "${jobTitle}".
 
-Q&A:
+<JD>${jd}</JD>
+<Experience>${exp}</Experience>
+<QA>
 ${qaBlock}
+</QA>
 
-Output EXACTLY this format (2 lines max per section):
-**Resume Analysis:** [2 lines max on resume-job fit]
-**Answer Quality:** [2 lines max on communication/relevance]
-**Overall Evaluation:** [1 sentence summary]
+Scoring rubric (out of 10):
+- Resume Score: How well does the resume match the JD requirements? Consider skills, experience, education relevance. 1=no match, 5=partial, 8=strong, 10=perfect fit.
+- Q&A Score: How well did the candidate answer? Consider: relevance to question, depth of knowledge, clarity, practical understanding. If candidate gave no answer or irrelevant answer, score low. If answer shows real understanding even if brief, score fairly.
+- Overall Score: Weighted average considering both resume fit (40%) and answer quality (60%).
+
+IMPORTANT scoring rules:
+- Be honest. Do not inflate scores.
+- If candidate could not answer or gave vague answers, Q&A score should be 1-3.
+- If candidate showed partial knowledge, Q&A score should be 4-6.
+- If candidate answered well with practical examples, Q&A score should be 7-10.
+- If transcript says "no answer given" or is empty, that question scores 0.
+
+Output EXACTLY this format (no extra text):
+**Resume Analysis:** [1-2 lines on how resume matches JD]
+**Answer Quality:** [1-2 lines on how candidate performed in Q&A]
+**Overall Evaluation:** [1 sentence final verdict]
 **Scores:**
-Resume Score: [0-100]/100
-Q&A Score: [0-100]/100
-Overall Score: [0-100]/100`;
+Resume Score: X/10
+Q&A Score: X/10
+Overall Score: X/10`;
 
   try {
-    const sys = "You are a hiring evaluator. Follow the output format exactly. Be concise.";
-    const result = await grokGenerateWithResume(sys, feedbackPrompt, base64Resume, mimeType, 0.3, BUDGET.FEEDBACK);
+    const result = await grokGenerateWithResume(sys, feedbackPrompt, base64Resume, mimeType, 0.2, BUDGET.FEEDBACK);
     return result || "AI feedback generation failed.";
   } catch (error: any) {
     console.error("Grok Feedback Error:", error);

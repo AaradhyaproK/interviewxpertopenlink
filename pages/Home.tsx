@@ -605,7 +605,7 @@ const HowItWorks: React.FC = () => (
             <div className="space-y-4">
               <div className="flex justify-between items-center">
                 <span className="text-slate-600 dark:text-slate-300">Overall Score</span>
-                <span className="text-green-600 dark:text-green-400 font-bold text-xl">92/100</span>
+                <span className="text-green-600 dark:text-green-400 font-bold text-xl">9.2/10</span>
               </div>
               <div className="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-2">
                 <div className="bg-green-500 h-2 rounded-full" style={{ width: '92%' }}></div>

@@ -43,6 +43,11 @@ const InterviewResponses: React.FC = () => {
     return 0;
   };
 
+  const getScoreDenom = (score: unknown): string => {
+    if (typeof score === 'string' && score.includes('/')) return score.split('/')[1];
+    return '10';
+  };
+
   const filteredAndSortedSubmissions = useMemo(() => {
     return submissions
       .filter(s => 
@@ -157,7 +162,7 @@ const InterviewResponses: React.FC = () => {
                                 <p className="text-sm text-gray-500">Submitted: {submission.submittedAt?.toDate ? submission.submittedAt.toDate().toLocaleString('en-GB') : 'N/A'}</p>
                             </div>
                             <div className="text-right">
-                              <div className="text-3xl font-bold text-primary">{getScoreValue(submission.score).toFixed(0)}<span className="text-lg text-gray-400">/100</span></div>
+                              <div className="text-3xl font-bold text-primary">{getScoreValue(submission.score).toFixed(0)}<span className="text-lg text-gray-400">/{getScoreDenom(submission.score)}</span></div>
                               <span className="text-sm text-gray-500">Overall Score</span>
                             </div>
                         </div>
@@ -180,11 +185,11 @@ const InterviewResponses: React.FC = () => {
                             )}
                             <div className="bg-gray-50 dark:bg-gray-800/50 p-4 rounded-lg text-center">
                                 <i className="fas fa-user-tie text-2xl text-green-500 mb-2"></i>
-                                <p className="font-semibold text-sm">Resume Score: {getScoreValue(submission.resumeScore).toFixed(0)}%</p>
+                                <p className="font-semibold text-sm">Resume Score: {getScoreValue(submission.resumeScore).toFixed(0)}/{getScoreDenom(submission.resumeScore)}</p>
                             </div>
                             <div className="bg-gray-50 dark:bg-gray-800/50 p-4 rounded-lg text-center">
                                 <i className="fas fa-microphone-alt text-2xl text-purple-500 mb-2"></i>
-                                <p className="font-semibold text-sm">Q&A Score: {getScoreValue(submission.qnaScore).toFixed(0)}%</p>
+                                <p className="font-semibold text-sm">Q&A Score: {getScoreValue(submission.qnaScore).toFixed(0)}/{getScoreDenom(submission.qnaScore)}</p>
                             </div>
                           </div>
 

@@ -38,10 +38,24 @@ const InterviewReport: React.FC = () => {
     doc.text(`Job: ${interview.jobTitle}`, 20, 35);
     doc.text(`Date: ${interview.submittedAt?.toDate().toLocaleDateString()}`, 20, 45);
     
+    const getScore = (s: any) => {
+      if (typeof s === 'string' && s.includes('/')) return s.split('/')[0];
+      return s || '0';
+    };
+    const getDenom = (s: any) => {
+      if (typeof s === 'string' && s.includes('/')) return s.split('/')[1];
+      return '10';
+    };
+    const getPct = (s: any) => {
+      const val = Number(getScore(s));
+      const den = Number(getDenom(s));
+      return den > 0 ? (val / den) * 100 : 0;
+    };
+
     doc.setFontSize(14);
-    doc.text(`Overall Score: ${interview.score}%`, 20, 60);
-    doc.text(`Resume Match: ${interview.resumeScore}%`, 20, 70);
-    doc.text(`Q&A Score: ${interview.qnaScore}%`, 20, 80);
+    doc.text(`Overall Score: ${interview.score}`, 20, 60);
+    doc.text(`Resume Match: ${interview.resumeScore}`, 20, 70);
+    doc.text(`Q&A Score: ${interview.qnaScore}`, 20, 80);
     
     doc.save(`report-${interview.jobTitle.replace(/\s+/g, '-').toLowerCase()}.pdf`);
   };
@@ -82,12 +96,12 @@ const InterviewReport: React.FC = () => {
           <div className="relative w-32 h-32 flex items-center justify-center">
             <svg className="w-full h-full transform -rotate-90">
               <circle cx="64" cy="64" r="56" stroke="currentColor" strokeWidth="12" fill="transparent" className="text-gray-100 dark:text-slate-800" />
-              <circle cx="64" cy="64" r="56" stroke="currentColor" strokeWidth="12" fill="transparent" strokeDasharray={`${(parseInt(interview.score) / 100) * 351} 351`} className="text-blue-500" strokeLinecap="round" />
+              <circle cx="64" cy="64" r="56" stroke="currentColor" strokeWidth="12" fill="transparent" strokeDasharray={`${(parseInt(getScore(interview.score)) / parseInt(getDenom(interview.score))) * 351} 351`} className="text-blue-500" strokeLinecap="round" />
             </svg>
-            <span className="absolute text-3xl font-bold text-gray-900 dark:text-white">{interview.score}%</span>
+            <span className="absolute text-3xl font-bold text-gray-900 dark:text-white">{getScore(interview.score)}/{getDenom(interview.score)}</span>
           </div>
           <div className="mt-4 px-3 py-1 rounded-full bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 text-xs font-bold">
-            {parseInt(interview.score) >= 70 ? 'Excellent' : parseInt(interview.score) >= 40 ? 'Good' : 'Needs Improvement'}
+            {getPct(interview.score) >= 70 ? 'Excellent' : getPct(interview.score) >= 40 ? 'Good' : 'Needs Improvement'}
           </div>
         </div>
 
@@ -97,9 +111,9 @@ const InterviewReport: React.FC = () => {
             <i className="fas fa-file-alt text-8xl text-purple-500"></i>
           </div>
           <h3 className="text-gray-500 dark:text-slate-400 font-medium uppercase tracking-wider text-sm mb-2">Resume Match</h3>
-          <div className="text-4xl font-bold text-gray-900 dark:text-white mb-4">{interview.resumeScore}%</div>
+          <div className="text-4xl font-bold text-gray-900 dark:text-white mb-4">{getScore(interview.resumeScore)}/{getDenom(interview.resumeScore)}</div>
           <div className="w-full bg-gray-100 dark:bg-slate-800 rounded-full h-3 mb-2">
-            <div className="bg-purple-500 h-3 rounded-full transition-all duration-1000" style={{ width: `${interview.resumeScore}%` }}></div>
+            <div className="bg-purple-500 h-3 rounded-full transition-all duration-1000" style={{ width: `${getPct(interview.resumeScore)}%` }}></div>
           </div>
           <p className="text-sm text-gray-500 dark:text-slate-400">ATS Compatibility Score</p>
         </div>
@@ -110,9 +124,9 @@ const InterviewReport: React.FC = () => {
             <i className="fas fa-comments text-8xl text-orange-500"></i>
           </div>
           <h3 className="text-gray-500 dark:text-slate-400 font-medium uppercase tracking-wider text-sm mb-2">Q&A Performance</h3>
-          <div className="text-4xl font-bold text-gray-900 dark:text-white mb-4">{interview.qnaScore}%</div>
+          <div className="text-4xl font-bold text-gray-900 dark:text-white mb-4">{getScore(interview.qnaScore)}/{getDenom(interview.qnaScore)}</div>
           <div className="w-full bg-gray-100 dark:bg-slate-800 rounded-full h-3 mb-2">
-            <div className="bg-orange-500 h-3 rounded-full transition-all duration-1000" style={{ width: `${interview.qnaScore}%` }}></div>
+            <div className="bg-orange-500 h-3 rounded-full transition-all duration-1000" style={{ width: `${getPct(interview.qnaScore)}%` }}></div>
           </div>
           <p className="text-sm text-gray-500 dark:text-slate-400">Technical & Behavioral</p>
         </div>

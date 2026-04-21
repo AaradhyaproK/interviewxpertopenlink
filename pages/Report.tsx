@@ -72,6 +72,11 @@ const InterviewReport: React.FC = () => {
     return 'N/A';
   };
 
+  const getScoreDenom = (score: unknown): string => {
+    if (typeof score === 'string' && score.includes('/')) return score.split('/')[1];
+    return '10';
+  };
+
   const handleShare = () => {
     const url = window.location.href;
     navigator.clipboard.writeText(url).then(() => {
@@ -145,9 +150,11 @@ const InterviewReport: React.FC = () => {
     };
   };
 
-  const scoreColor = (score: number) => {
-    if (score >= 70) return 'text-green-500';
-    if (score >= 40) return 'text-yellow-500';
+  const scoreColor = (score: number, denom?: string) => {
+    const d = Number(denom || '10');
+    const pct = d > 0 ? (score / d) * 100 : 0;
+    if (pct >= 70) return 'text-green-500';
+    if (pct >= 40) return 'text-yellow-500';
     return 'text-red-500';
   };
 
@@ -234,7 +241,7 @@ const InterviewReport: React.FC = () => {
                     <div className="absolute top-0 right-0 w-24 h-24 bg-blue-500/10 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2 group-hover:scale-150 transition-transform"></div>
                     <div className="relative z-10">
                         <p className="text-sm font-semibold text-gray-500 dark:text-gray-400 mb-1">Resume Score</p>
-                        <p className="text-4xl font-bold text-gray-900 dark:text-white">{getScoreValue(submission.resumeScore)}<span className="text-xl text-gray-400">/100</span></p>
+                        <p className="text-4xl font-bold text-gray-900 dark:text-white">{getScoreValue(submission.resumeScore)}<span className="text-xl text-gray-400">/{getScoreDenom(submission.resumeScore)}</span></p>
                     </div>
                     <div className="relative z-10 p-4 bg-blue-50 dark:bg-blue-900/20 text-blue-500 rounded-xl"><FileText size={28} /></div>
                 </div>
@@ -242,15 +249,15 @@ const InterviewReport: React.FC = () => {
                      <div className="absolute top-0 right-0 w-24 h-24 bg-purple-500/10 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2 group-hover:scale-150 transition-transform"></div>
                     <div className="relative z-10">
                         <p className="text-sm font-semibold text-gray-500 dark:text-gray-400 mb-1">Q&A Score</p>
-                        <p className="text-4xl font-bold text-gray-900 dark:text-white">{getScoreValue(submission.qnaScore)}<span className="text-xl text-gray-400">/100</span></p>
+                        <p className="text-4xl font-bold text-gray-900 dark:text-white">{getScoreValue(submission.qnaScore)}<span className="text-xl text-gray-400">/{getScoreDenom(submission.qnaScore)}</span></p>
                     </div>
                     <div className="relative z-10 p-4 bg-purple-50 dark:bg-purple-900/20 text-purple-500 rounded-xl"><MessageSquare size={28} /></div>
                 </div>
                 <div className="bg-white dark:bg-white/5 rounded-2xl p-6 border border-gray-200 dark:border-white/10 shadow-sm flex justify-between items-center relative overflow-hidden group">
-                    <div className={`absolute top-0 right-0 w-24 h-24 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2 group-hover:scale-150 transition-transform ${Number(getScoreValue(submission.score)) >= 70 ? 'bg-green-500/10' : 'bg-yellow-500/10'}`}></div>
+                    <div className={`absolute top-0 right-0 w-24 h-24 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2 group-hover:scale-150 transition-transform ${(Number(getScoreValue(submission.score)) / Number(getScoreDenom(submission.score))) >= 0.7 ? 'bg-green-500/10' : 'bg-yellow-500/10'}`}></div>
                     <div className="relative z-10">
                         <p className="text-sm font-semibold text-gray-500 dark:text-gray-400 mb-1">Overall Score</p>
-                        <p className={`text-4xl font-bold ${scoreColor(Number(getScoreValue(submission.score)))}`}>{getScoreValue(submission.score)}<span className="text-xl text-gray-400">/100</span></p>
+                        <p className={`text-4xl font-bold ${scoreColor(Number(getScoreValue(submission.score)), getScoreDenom(submission.score))}`}>{getScoreValue(submission.score)}<span className="text-xl text-gray-400">/{getScoreDenom(submission.score)}</span></p>
                     </div>
                     <div className="relative z-10 p-4 bg-green-50 dark:bg-green-900/20 text-green-500 rounded-xl"><CheckCircle size={28} /></div>
                 </div>

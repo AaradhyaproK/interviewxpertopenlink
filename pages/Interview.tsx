@@ -1643,7 +1643,11 @@ const InterviewSubmission: React.FC<{
         const feedbackRaw = await generateFeedback(
           state.jobTitle, state.jobDescription, `0 years`, base64Resume!, state.candidateResumeMimeType!, state.questions, transcriptTexts
         );
-        const parseScore = (regex: RegExp) => (feedbackRaw.match(regex) ? feedbackRaw.match(regex)![1] + "/100" : "N/A");
+        const parseScore = (regex: RegExp) => {
+          const match = feedbackRaw.match(regex);
+          if (match) return match[1] + "/" + (match[2] || "10");
+          return "N/A";
+        };
 
         setStatus("Saving Report...");
         const attemptData = {
@@ -1651,9 +1655,9 @@ const InterviewSubmission: React.FC<{
             candidateResumeBase64: null, // Do not bloat Firebase storage
             transcriptTexts, 
             feedback: feedbackRaw,
-            score: parseScore(/Overall Score:\s*(\d{1,3})/i),
-            resumeScore: parseScore(/Resume Score:\s*(\d{1,3})/i),
-            qnaScore: parseScore(/Q&A Score:\s*(\d{1,3})/i),
+            score: parseScore(/Overall Score:\s*(\d{1,3})\s*\/\s*(\d+)/i),
+            resumeScore: parseScore(/Resume Score:\s*(\d{1,3})\s*\/\s*(\d+)/i),
+            qnaScore: parseScore(/Q&A Score:\s*(\d{1,3})\s*\/\s*(\d+)/i),
             candidateInfo,
             status: cvStats?.terminated ? 'Terminated' : 'Completed', 
             submittedAt: serverTimestamp(), 

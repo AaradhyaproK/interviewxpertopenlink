@@ -183,22 +183,32 @@ const CandidateInterviews: React.FC = () => {
               <div className="my-6 flex items-center gap-5">
                 <div className="relative w-20 h-20 flex-shrink-0">
                     {/* Circular Progress Mockup */}
-                    <svg className="w-full h-full transform -rotate-90">
-                        <circle cx="40" cy="40" r="36" stroke="currentColor" strokeWidth="6" fill="transparent" className="text-gray-100 dark:text-slate-800" />
-                        <circle cx="40" cy="40" r="36" stroke="currentColor" strokeWidth="6" fill="transparent" strokeDasharray={`${(parseInt(interview.score) / 100) * 226} 226`} className="text-primary" strokeLinecap="round" />
-                    </svg>
-                    <div className="absolute inset-0 flex items-center justify-center flex-col">
-                        <span className="text-xl font-bold text-gray-900 dark:text-white">{interview.score}</span>
-                    </div>
+                    {(() => {
+                      const scoreStr = String(interview.score || '0');
+                      const val = parseInt(scoreStr.split('/')[0]) || 0;
+                      const den = parseInt(scoreStr.split('/')[1]) || 10;
+                      const pct = den > 0 ? (val / den) * 100 : 0;
+                      return (
+                        <>
+                          <svg className="w-full h-full transform -rotate-90">
+                            <circle cx="40" cy="40" r="36" stroke="currentColor" strokeWidth="6" fill="transparent" className="text-gray-100 dark:text-slate-800" />
+                            <circle cx="40" cy="40" r="36" stroke="currentColor" strokeWidth="6" fill="transparent" strokeDasharray={`${(pct / 100) * 226} 226`} className="text-primary" strokeLinecap="round" />
+                          </svg>
+                          <div className="absolute inset-0 flex items-center justify-center flex-col">
+                            <span className="text-xl font-bold text-gray-900 dark:text-white">{val}/{den}</span>
+                          </div>
+                        </>
+                      );
+                    })()}
                 </div>
                 <div className="flex-1 grid grid-cols-2 gap-3">
                     <div className="bg-gray-50 dark:bg-slate-800/50 p-2.5 rounded-xl border border-gray-100 dark:border-slate-800">
                         <p className="text-xs text-gray-500 dark:text-slate-400 mb-1">Resume</p>
-                        <p className="font-bold text-gray-900 dark:text-white">{interview.resumeScore}%</p>
+                        <p className="font-bold text-gray-900 dark:text-white">{interview.resumeScore}</p>
                     </div>
                     <div className="bg-gray-50 dark:bg-slate-800/50 p-2.5 rounded-xl border border-gray-100 dark:border-slate-800">
                         <p className="text-xs text-gray-500 dark:text-slate-400 mb-1">Q&A</p>
-                        <p className="font-bold text-gray-900 dark:text-white">{interview.qnaScore}%</p>
+                        <p className="font-bold text-gray-900 dark:text-white">{interview.qnaScore}</p>
                     </div>
                 </div>
               </div>
