@@ -87,49 +87,252 @@ const InterviewReport: React.FC = () => {
     });
   };
 
-  const handleDownloadPDF = async () => {
-    const reportElement = document.getElementById('report-content');
-    if (!reportElement) {
-      messageBox.showError("Could not find report content to download.");
+  const handleDownloadPDF = () => {
+    if (!submission) {
+      messageBox.showError("No report data found to download.");
       return;
     }
 
     messageBox.showInfo("Generating PDF... Please wait.");
 
     try {
-      // @ts-ignore
-      const html2canvas = (await import('https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/+esm')).default;
-      const canvas = await html2canvas(reportElement, {
-        scale: 2,
-        useCORS: true,
-        backgroundColor: '#ffffff',
+      const pdf = new jsPDF({ orientation: 'p', unit: 'mm', format: 'a4' });
+      const pageW = pdf.internal.pageSize.getWidth();
+      const pageH = pdf.internal.pageSize.getHeight();
+      const margin = 15;
+      const contentW = pageW - margin * 2;
+      let y = 0;
+
+      // ── helpers ──────────────────────────────────────────────────────────────
+      const checkPage = (needed: number) => {
+        if (y + needed > pageH - margin) { pdf.addPage(); y = margin; }
+      };
+
+
+
+
+      // ── HEADER BANNER ────────────────────────────────────────────────────────
+      pdf.setFillColor(37, 99, 235); // blue-600
+      pdf.rect(0, 0, pageW, 32, 'F');
+
+      pdf.setFont('helvetica', 'bold');
+      pdf.setFontSize(20);
+      pdf.setTextColor(255, 255, 255);
+      pdf.text('InterviewXpert', margin, 13);
+
+      pdf.setFontSize(10);
+      pdf.setFont('helvetica', 'normal');
+      pdf.text('AI-Powered Interview Report', margin, 21);
+
+      const dateStr = submission.submittedAt?.toDate
+        ? submission.submittedAt.toDate().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
+        : new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+      pdf.text(dateStr, pageW - margin - pdf.getTextWidth(dateStr), 21);
+      y = 40;
+
+      // ── CANDIDATE INFO ───────────────────────────────────────────────────────
+      pdf.setFillColor(239, 246, 255); // blue-50
+      pdf.roundedRect(margin, y, contentW, 28, 3, 3, 'F');
+      pdf.setDrawColor(191, 219, 254); // blue-200
+      pdf.roundedRect(margin, y, contentW, 28, 3, 3, 'S');
+
+      pdf.setFont('helvetica', 'bold');
+      pdf.setFontSize(15);
+      pdf.setTextColor(30, 58, 138); // blue-900
+      const candName = submission.candidateInfo?.name || 'Candidate';
+      pdf.text(`${candName}'s Interview Report`, margin + 5, y + 10);
+
+      pdf.setFont('helvetica', 'normal');
+      pdf.setFontSize(9);
+      pdf.setTextColor(71, 85, 105); // slate-600
+      pdf.text(`Email: ${submission.candidateInfo?.email || 'N/A'}`, margin + 5, y + 18);
+      pdf.text(`Date: ${dateStr}`, margin + contentW / 2, y + 18);
+      y += 34;
+
+      // ── SCORE CARDS ──────────────────────────────────────────────────────────
+      pdf.setFont('helvetica', 'bold');
+      pdf.setFontSize(11);
+      pdf.setTextColor(15, 23, 42); // slate-950
+      pdf.text('Performance Scores', margin, y);
+      y += 6;
+
+      const cardW = (contentW - 8) / 3;
+      const scores = [
+        { label: 'Resume Score', value: getScoreValue(submission.resumeScore), denom: getScoreDenom(submission.resumeScore), color: [59, 130, 246] as [number,number,number] },
+        { label: 'Q&A Score',    value: getScoreValue(submission.qnaScore),    denom: getScoreDenom(submission.qnaScore),    color: [168, 85, 247] as [number,number,number] },
+        { label: 'Overall Score',value: getScoreValue(submission.score),       denom: getScoreDenom(submission.score),       color: [16, 185, 129] as [number,number,number] },
+      ];
+
+      scores.forEach((s, i) => {
+        const cx = margin + i * (cardW + 4);
+        pdf.setFillColor(248, 250, 252);
+        pdf.roundedRect(cx, y, cardW, 22, 2, 2, 'F');
+        pdf.setDrawColor(226, 232, 240);
+        pdf.roundedRect(cx, y, cardW, 22, 2, 2, 'S');
+
+        pdf.setFillColor(...s.color);
+        pdf.roundedRect(cx + cardW - 8, y + 3, 5, 5, 1, 1, 'F');
+
+        pdf.setFont('helvetica', 'normal');
+        pdf.setFontSize(8);
+        pdf.setTextColor(100, 116, 139);
+        pdf.text(s.label, cx + 4, y + 8);
+
+        pdf.setFont('helvetica', 'bold');
+        pdf.setFontSize(18);
+        pdf.setTextColor(...s.color);
+        pdf.text(`${s.value}`, cx + 4, y + 18);
+        pdf.setFontSize(10);
+        pdf.setTextColor(148, 163, 184);
+        pdf.text(`/${s.denom}`, cx + 4 + pdf.getTextWidth(`${s.value}`) + 1, y + 18);
       });
-      
-      const imgData = canvas.toDataURL('image/png');
-      const pdf = new jsPDF({
-        orientation: 'p',
-        unit: 'mm',
-        format: 'a4'
+      y += 28;
+
+      // ── BEHAVIORAL METRICS ───────────────────────────────────────────────────
+      pdf.setFont('helvetica', 'bold');
+      pdf.setFontSize(11);
+      pdf.setTextColor(15, 23, 42);
+      pdf.text('Behavioral Analysis', margin, y);
+      y += 6;
+
+      pdf.setFillColor(248, 250, 252);
+      pdf.roundedRect(margin, y, contentW, 22, 2, 2, 'F');
+      pdf.setDrawColor(226, 232, 240);
+      pdf.roundedRect(margin, y, contentW, 22, 2, 2, 'S');
+
+      const bMetrics = [
+        { label: 'Eye Contact',     value: `${submission.meta?.cvStats?.eyeContactScore ?? 'N/A'}%` },
+        { label: 'Confidence',      value: `${submission.meta?.cvStats?.confidenceScore ?? 'N/A'}%` },
+        { label: 'Tab Switches',    value: `${submission.meta?.tabSwitchCount ?? 0}` },
+        { label: 'Faces Detected',  value: `${submission.meta?.cvStats?.facesDetected ?? 'N/A'}` },
+      ];
+      const bColW = contentW / 4;
+      bMetrics.forEach((m, i) => {
+        const bx = margin + i * bColW + 4;
+        pdf.setFont('helvetica', 'normal');
+        pdf.setFontSize(8);
+        pdf.setTextColor(100, 116, 139);
+        pdf.text(m.label, bx, y + 9);
+        pdf.setFont('helvetica', 'bold');
+        pdf.setFontSize(13);
+        pdf.setTextColor(15, 23, 42);
+        pdf.text(m.value, bx, y + 18);
+      });
+      y += 28;
+
+      // ── AI FEEDBACK ──────────────────────────────────────────────────────────
+      const { resumeAnalysis, answerQuality, overallEvaluation } = parseFeedback(submission.feedback);
+
+      const sections = [
+        { title: 'Resume Match Analysis', body: resumeAnalysis,       bg: [239, 246, 255] as [number,number,number], border: [191, 219, 254] as [number,number,number], titleColor: [30, 58, 138] as [number,number,number] },
+        { title: 'Answer Quality Analysis', body: answerQuality,      bg: [245, 243, 255] as [number,number,number], border: [221, 214, 254] as [number,number,number], titleColor: [88, 28, 135]  as [number,number,number] },
+        { title: 'Executive Summary',      body: overallEvaluation,   bg: [240, 253, 244] as [number,number,number], border: [187, 247, 208] as [number,number,number], titleColor: [20, 83, 45]   as [number,number,number] },
+      ];
+
+      pdf.setFont('helvetica', 'bold');
+      pdf.setFontSize(11);
+      pdf.setTextColor(15, 23, 42);
+      pdf.text('AI Evaluation', margin, y);
+      y += 6;
+
+      sections.forEach((sec) => {
+        pdf.setFont('helvetica', 'normal');
+        pdf.setFontSize(9);
+        const bodyLines = pdf.splitTextToSize(sec.body || 'N/A', contentW - 12);
+        const boxH = 8 + bodyLines.length * 5 + 4;
+        checkPage(boxH + 4);
+
+        pdf.setFillColor(...sec.bg);
+        pdf.roundedRect(margin, y, contentW, boxH, 2, 2, 'F');
+        pdf.setDrawColor(...sec.border);
+        pdf.roundedRect(margin, y, contentW, boxH, 2, 2, 'S');
+
+        pdf.setFont('helvetica', 'bold');
+        pdf.setFontSize(9);
+        pdf.setTextColor(...sec.titleColor);
+        pdf.text(sec.title, margin + 5, y + 6);
+
+        pdf.setFont('helvetica', 'normal');
+        pdf.setTextColor(51, 65, 85);
+        let textY = y + 11;
+        bodyLines.forEach((line: string) => {
+          pdf.text(line, margin + 5, textY);
+          textY += 5;
+        });
+        y += boxH + 5;
       });
 
-      const pdfWidth = pdf.internal.pageSize.getWidth();
-      const imgProps = pdf.getImageProperties(imgData);
-      const imgHeight = (imgProps.height * pdfWidth) / imgProps.width;
-      
-      let heightLeft = imgHeight;
-      let position = 0;
+      // ── Q&A TRANSCRIPTS ──────────────────────────────────────────────────────
+      if (submission.questions && submission.questions.length > 0) {
+        checkPage(14);
+        pdf.setFont('helvetica', 'bold');
+        pdf.setFontSize(11);
+        pdf.setTextColor(15, 23, 42);
+        pdf.text('Question & Answer Transcripts', margin, y);
+        y += 6;
 
-      pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, imgHeight);
-      heightLeft -= pdf.internal.pageSize.getHeight();
+        submission.questions.forEach((q, idx) => {
+          const transcript = submission.transcriptTexts?.[idx] || 'Transcript not available.';
+          const qLines   = pdf.splitTextToSize(`Q${idx + 1}: ${q}`, contentW - 12);
+          const tLines   = pdf.splitTextToSize(transcript, contentW - 12);
+          const blockH   = 6 + qLines.length * 5 + 4 + tLines.length * 4.5 + 6;
+          checkPage(blockH + 4);
 
-      while (heightLeft > 0) {
-        position = -heightLeft;
-        pdf.addPage();
-        pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, imgHeight);
-        heightLeft -= pdf.internal.pageSize.getHeight();
+          pdf.setFillColor(248, 250, 252);
+          pdf.roundedRect(margin, y, contentW, blockH, 2, 2, 'F');
+          pdf.setDrawColor(226, 232, 240);
+          pdf.roundedRect(margin, y, contentW, blockH, 2, 2, 'S');
+
+          // Q badge
+          pdf.setFillColor(37, 99, 235);
+          pdf.roundedRect(margin + 4, y + 4, 14, 6, 1, 1, 'F');
+          pdf.setFont('helvetica', 'bold');
+          pdf.setFontSize(7);
+          pdf.setTextColor(255, 255, 255);
+          pdf.text(`Q${idx + 1}`, margin + 6, y + 8.5);
+
+          // Question text
+          pdf.setFont('helvetica', 'bold');
+          pdf.setFontSize(9);
+          pdf.setTextColor(15, 23, 42);
+          let qy = y + 6;
+          qLines.forEach((line: string) => {
+            pdf.text(line, margin + 22, qy);
+            qy += 5;
+          });
+
+          // Transcript label
+          const tStartY = qy + 2;
+          pdf.setFont('helvetica', 'normal');
+          pdf.setFontSize(8);
+          pdf.setTextColor(100, 116, 139);
+          pdf.text('Transcript:', margin + 5, tStartY);
+
+          // Transcript body
+          pdf.setTextColor(51, 65, 85);
+          let ty = tStartY + 4.5;
+          tLines.forEach((line: string) => {
+            pdf.text(line, margin + 5, ty);
+            ty += 4.5;
+          });
+          y += blockH + 5;
+        });
       }
 
-      pdf.save(`InterviewReport_${submission?.candidateInfo?.name?.replace(/\s/g, '_') || 'report'}.pdf`);
+      // ── FOOTER ───────────────────────────────────────────────────────────────
+      const totalPages = (pdf as any).internal.getNumberOfPages();
+      for (let pg = 1; pg <= totalPages; pg++) {
+        pdf.setPage(pg);
+        pdf.setFillColor(248, 250, 252);
+        pdf.rect(0, pageH - 10, pageW, 10, 'F');
+        pdf.setFont('helvetica', 'normal');
+        pdf.setFontSize(7);
+        pdf.setTextColor(148, 163, 184);
+        pdf.text('Generated by InterviewXpert | AI-Powered Hiring Platform', margin, pageH - 3.5);
+        pdf.text(`Page ${pg} of ${totalPages}`, pageW - margin - 18, pageH - 3.5);
+      }
+
+      pdf.save(`InterviewReport_${candName.replace(/\s/g, '_')}.pdf`);
       messageBox.showSuccess("Report downloaded successfully!");
 
     } catch (error) {

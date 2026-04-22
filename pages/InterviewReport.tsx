@@ -27,37 +27,187 @@ const InterviewReport: React.FC = () => {
     fetchInterview();
   }, [interviewId]);
 
+  const getScore = (s: any) => {
+    if (typeof s === 'string' && s.includes('/')) return s.split('/')[0];
+    return String(s || '0');
+  };
+  const getDenom = (s: any) => {
+    if (typeof s === 'string' && s.includes('/')) return s.split('/')[1];
+    return '10';
+  };
+  const getPct = (s: any) => {
+    const val = Number(getScore(s));
+    const den = Number(getDenom(s));
+    return den > 0 ? (val / den) * 100 : 0;
+  };
+
   const downloadPDF = () => {
     if (!interview) return;
-    const doc = new jsPDF();
-    
-    doc.setFontSize(22);
-    doc.text('Interview Report', 20, 20);
-    
-    doc.setFontSize(16);
-    doc.text(`Job: ${interview.jobTitle}`, 20, 35);
-    doc.text(`Date: ${interview.submittedAt?.toDate().toLocaleDateString()}`, 20, 45);
-    
-    const getScore = (s: any) => {
-      if (typeof s === 'string' && s.includes('/')) return s.split('/')[0];
-      return s || '0';
-    };
-    const getDenom = (s: any) => {
-      if (typeof s === 'string' && s.includes('/')) return s.split('/')[1];
-      return '10';
-    };
-    const getPct = (s: any) => {
-      const val = Number(getScore(s));
-      const den = Number(getDenom(s));
-      return den > 0 ? (val / den) * 100 : 0;
+
+    const pdf = new jsPDF({ orientation: 'p', unit: 'mm', format: 'a4' });
+    const pageW = pdf.internal.pageSize.getWidth();
+    const pageH = pdf.internal.pageSize.getHeight();
+    const margin = 15;
+    const contentW = pageW - margin * 2;
+    let y = 0;
+
+    const checkPage = (needed: number) => {
+      if (y + needed > pageH - margin) { pdf.addPage(); y = margin; }
     };
 
-    doc.setFontSize(14);
-    doc.text(`Overall Score: ${interview.score}`, 20, 60);
-    doc.text(`Resume Match: ${interview.resumeScore}`, 20, 70);
-    doc.text(`Q&A Score: ${interview.qnaScore}`, 20, 80);
-    
-    doc.save(`report-${interview.jobTitle.replace(/\s+/g, '-').toLowerCase()}.pdf`);
+    // ── HEADER BANNER ────────────────────────────────────────────────────────
+    pdf.setFillColor(37, 99, 235);
+    pdf.rect(0, 0, pageW, 32, 'F');
+    pdf.setFont('helvetica', 'bold');
+    pdf.setFontSize(20);
+    pdf.setTextColor(255, 255, 255);
+    pdf.text('InterviewXpert', margin, 13);
+    pdf.setFontSize(10);
+    pdf.setFont('helvetica', 'normal');
+    pdf.text('AI-Powered Interview Report', margin, 21);
+    const dateStr = interview.submittedAt?.toDate
+      ? interview.submittedAt.toDate().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
+      : new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+    pdf.text(dateStr, pageW - margin - pdf.getTextWidth(dateStr), 21);
+    y = 40;
+
+    // ── JOB INFO CARD ────────────────────────────────────────────────────────
+    pdf.setFillColor(239, 246, 255);
+    pdf.roundedRect(margin, y, contentW, 24, 3, 3, 'F');
+    pdf.setDrawColor(191, 219, 254);
+    pdf.roundedRect(margin, y, contentW, 24, 3, 3, 'S');
+    pdf.setFont('helvetica', 'bold');
+    pdf.setFontSize(14);
+    pdf.setTextColor(30, 58, 138);
+    pdf.text(interview.jobTitle || 'Interview Report', margin + 5, y + 10);
+    pdf.setFont('helvetica', 'normal');
+    pdf.setFontSize(9);
+    pdf.setTextColor(71, 85, 105);
+    pdf.text(`Date: ${dateStr}`, margin + 5, y + 18);
+    y += 30;
+
+    // ── SCORE CARDS ──────────────────────────────────────────────────────────
+    pdf.setFont('helvetica', 'bold');
+    pdf.setFontSize(11);
+    pdf.setTextColor(15, 23, 42);
+    pdf.text('Performance Scores', margin, y);
+    y += 6;
+
+    const cardW = (contentW - 8) / 3;
+    const scores = [
+      { label: 'Overall Score', value: getScore(interview.score),       denom: getDenom(interview.score),       pct: getPct(interview.score),       color: [37, 99, 235]   as [number,number,number] },
+      { label: 'Resume Match',  value: getScore(interview.resumeScore), denom: getDenom(interview.resumeScore), pct: getPct(interview.resumeScore), color: [168, 85, 247]  as [number,number,number] },
+      { label: 'Q&A Score',     value: getScore(interview.qnaScore),    denom: getDenom(interview.qnaScore),    pct: getPct(interview.qnaScore),    color: [249, 115, 22]  as [number,number,number] },
+    ];
+    scores.forEach((s, i) => {
+      const cx = margin + i * (cardW + 4);
+      pdf.setFillColor(248, 250, 252);
+      pdf.roundedRect(cx, y, cardW, 24, 2, 2, 'F');
+      pdf.setDrawColor(226, 232, 240);
+      pdf.roundedRect(cx, y, cardW, 24, 2, 2, 'S');
+      pdf.setFont('helvetica', 'normal');
+      pdf.setFontSize(8);
+      pdf.setTextColor(100, 116, 139);
+      pdf.text(s.label, cx + 4, y + 8);
+      pdf.setFont('helvetica', 'bold');
+      pdf.setFontSize(18);
+      pdf.setTextColor(...s.color);
+      pdf.text(`${s.value}`, cx + 4, y + 19);
+      pdf.setFontSize(10);
+      pdf.setTextColor(148, 163, 184);
+      pdf.text(`/${s.denom}`, cx + 4 + pdf.getTextWidth(`${s.value}`) + 1, y + 19);
+    });
+    y += 30;
+
+    // ── STRENGTHS & WEAKNESSES ───────────────────────────────────────────────
+    const strengths: string[] = interview.strengths || ['Strong communication skills', 'Good technical foundation', 'Relevant project experience'];
+    const weaknesses: string[] = interview.weaknesses || ['Elaborate more on system design', 'Use more specific metrics', 'Improve pacing of speech'];
+
+    const colW2 = (contentW - 6) / 2;
+
+    // Strengths column
+    const sLines = strengths.flatMap(s => pdf.splitTextToSize(`• ${s}`, colW2 - 8));
+    const wLines = weaknesses.flatMap(w => pdf.splitTextToSize(`• ${w}`, colW2 - 8));
+    const maxLines = Math.max(sLines.length, wLines.length);
+    const boxH = 10 + maxLines * 5 + 6;
+    checkPage(boxH + 14);
+
+    pdf.setFont('helvetica', 'bold');
+    pdf.setFontSize(11);
+    pdf.setTextColor(15, 23, 42);
+    pdf.text('Strengths & Areas for Improvement', margin, y);
+    y += 6;
+
+    // Strengths box
+    pdf.setFillColor(240, 253, 244);
+    pdf.roundedRect(margin, y, colW2, boxH, 2, 2, 'F');
+    pdf.setDrawColor(187, 247, 208);
+    pdf.roundedRect(margin, y, colW2, boxH, 2, 2, 'S');
+    pdf.setFont('helvetica', 'bold');
+    pdf.setFontSize(9);
+    pdf.setTextColor(20, 83, 45);
+    pdf.text('Key Strengths', margin + 4, y + 7);
+    pdf.setFont('helvetica', 'normal');
+    pdf.setTextColor(51, 65, 85);
+    let sy = y + 13;
+    sLines.forEach((line: string) => { pdf.text(line, margin + 4, sy); sy += 5; });
+
+    // Weaknesses box
+    const wx = margin + colW2 + 6;
+    pdf.setFillColor(255, 247, 237);
+    pdf.roundedRect(wx, y, colW2, boxH, 2, 2, 'F');
+    pdf.setDrawColor(254, 215, 170);
+    pdf.roundedRect(wx, y, colW2, boxH, 2, 2, 'S');
+    pdf.setFont('helvetica', 'bold');
+    pdf.setFontSize(9);
+    pdf.setTextColor(124, 45, 18);
+    pdf.text('Areas for Improvement', wx + 4, y + 7);
+    pdf.setFont('helvetica', 'normal');
+    pdf.setTextColor(51, 65, 85);
+    let wy = y + 13;
+    wLines.forEach((line: string) => { pdf.text(line, wx + 4, wy); wy += 5; });
+    y += boxH + 8;
+
+    // ── AI FEEDBACK ──────────────────────────────────────────────────────────
+    const feedbackText = interview.feedback || 'No AI feedback available for this interview.';
+    const fbLines = pdf.splitTextToSize(feedbackText, contentW - 12);
+    const fbBoxH = 10 + fbLines.length * 5 + 6;
+    checkPage(fbBoxH + 14);
+
+    pdf.setFont('helvetica', 'bold');
+    pdf.setFontSize(11);
+    pdf.setTextColor(15, 23, 42);
+    pdf.text('AI Feedback Summary', margin, y);
+    y += 6;
+
+    pdf.setFillColor(239, 246, 255);
+    pdf.roundedRect(margin, y, contentW, fbBoxH, 2, 2, 'F');
+    pdf.setDrawColor(191, 219, 254);
+    pdf.roundedRect(margin, y, contentW, fbBoxH, 2, 2, 'S');
+    pdf.setFont('helvetica', 'bold');
+    pdf.setFontSize(9);
+    pdf.setTextColor(30, 58, 138);
+    pdf.text('AI Evaluation', margin + 5, y + 7);
+    pdf.setFont('helvetica', 'normal');
+    pdf.setTextColor(51, 65, 85);
+    let fby = y + 13;
+    fbLines.forEach((line: string) => { pdf.text(line, margin + 5, fby); fby += 5; });
+    y += fbBoxH + 8;
+
+    // ── FOOTER ───────────────────────────────────────────────────────────────
+    const totalPages = (pdf as any).internal.getNumberOfPages();
+    for (let pg = 1; pg <= totalPages; pg++) {
+      pdf.setPage(pg);
+      pdf.setFillColor(248, 250, 252);
+      pdf.rect(0, pageH - 10, pageW, 10, 'F');
+      pdf.setFont('helvetica', 'normal');
+      pdf.setFontSize(7);
+      pdf.setTextColor(148, 163, 184);
+      pdf.text('Generated by InterviewXpert | AI-Powered Hiring Platform', margin, pageH - 3.5);
+      pdf.text(`Page ${pg} of ${totalPages}`, pageW - margin - 18, pageH - 3.5);
+    }
+
+    pdf.save(`InterviewReport_${(interview.jobTitle || 'report').replace(/\s+/g, '-').toLowerCase()}.pdf`);
   };
 
   if (loading) return <div className="text-center py-20 dark:text-slate-400">Loading report...</div>;
