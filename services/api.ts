@@ -129,10 +129,10 @@ export const generateFeedback = async (
     return `Q${i + 1}: ${q}\nA${i + 1}: ${ans}`;
   }).join('\n');
 
-  const sys = `You are a perceptive, professional, and encouraging hiring evaluator. Your goal is to provide a dynamic, highly specific, and accurate report. Avoid generic boilerplate phrases. Be detailed and constructive.`;
+  const sys = `You are a professional hiring evaluator. Provide accurate, specific feedback.`;
 
   const feedbackPrompt =
-`Evaluate this candidate for "${jobTitle}".
+`Evaluate candidate for "${jobTitle}".
 
 <JD>${jd}</JD>
 <Experience>${exp}</Experience>
@@ -140,26 +140,19 @@ export const generateFeedback = async (
 ${qaBlock}
 </QA>
 
-Scoring rubric (out of 10):
-- Resume Score: Calculate an accurate match by directly cross-referencing the required skills/experience in the <JD> against the actual skills/experience listed in the candidate's <Experience> and [Resume]. Deduct points for missing core JD requirements, but reward them for exact matches. 1-3=poor match, 4-6=partial match, 7-8=good fit, 9-10=excellent match. Your score MUST be an accurate reflection of this JD-to-Resume comparison.
-- Q&A Score: How well did the candidate answer? If the candidate gives good, sensible, and practical answers, score them generously (7-10). If the answers are decent but lack depth, score 5-7. Only score low (1-4) if answers are completely irrelevant, fundamentally wrong, or empty.
-- Overall Score: Weighted average considering both resume fit (40%) and answer quality (60%).
+RESUME SCORE: Compare JD skills/exp with resume. Score 1-10:
+- 9-10: Most JD requirements in resume
+- 7-8: Good match
+- 5-6: Partial match
+- 1-4: Poor match
 
-IMPORTANT instructions for your analysis:
-- For the Resume Analysis, explicitly state which JD requirements the candidate meets and which they lack based on actual evidence. Give a highly accurate justification for the Resume Score.
-- Be dynamic and highly specific. Do NOT use generic phrases like "the resume indicates years of experience". Instead, mention specific projects, tools, or roles from the resume.
-- Base your Q&A analysis on the actual content of the transcripts. Highlight a specific good point the candidate made.
-- Do not be overly strict on Q&A. Recognize practical knowledge and effort.
-- Write in full, readable paragraphs (3-5 sentences per section).
+Q&A SCORE: 1-10 based on answer quality.
 
-Output EXACTLY this format (no extra text):
-**Resume Analysis:** [Specific paragraph analyzing how the candidate's actual projects/skills match the JD]
-**Answer Quality:** [Specific paragraph evaluating the candidate's answers with examples from the transcript]
-**Overall Evaluation:** [1-2 sentences final constructive verdict]
-**Scores:**
-Resume Score: X/10
-Q&A Score: X/10
-Overall Score: X/10`;
+OUTPUT (short paragraphs):
+**Resume Analysis:** [Skills/experience match analysis]
+**Answer Quality:** [Answer evaluation]
+**Overall:** [1 sentence verdict]
+Scores: Resume:X/10 Q&A:X/10 Overall:X/10`;
 
   try {
     const result = await grokGenerateWithResume(sys, feedbackPrompt, base64Resume, mimeType, 0.2, BUDGET.FEEDBACK);

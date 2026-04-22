@@ -11,11 +11,11 @@ const GROK_MODEL = "grok-4-1-fast-non-reasoning";
 // Questions: 5 template + AI-generated (~15 tokens each) → 280 safe headroom.
 // Feedback report: 3 short sections + 3 score lines (out of 10) → 300 sufficient.
 const MAX_TOKENS_QUESTIONS = 500;  // Increased for more robust questions
-const MAX_TOKENS_FEEDBACK   = 800;  // Increased to allow dynamic, detailed reports
+const MAX_TOKENS_FEEDBACK   = 1200;  // Increased for accurate resume scoring
 
 // Resume cap: Provide much more context so the AI can give a specific, dynamic analysis
 // without relying on generic placeholders.
-const RESUME_EMBED_MAX_CHARS = 3000;
+const RESUME_EMBED_MAX_CHARS = 5000;
 
 const getApiKey = (): string => {
   const key = import.meta.env.VITE_XAI_API_KEY;
