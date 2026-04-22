@@ -16,12 +16,12 @@ const ASSEMBLYAI_TRANSCRIPT_ENDPOINT = 'https://api.assemblyai.com/v2/transcript
 const truncate = (s: string, max: number) =>
   s && s.length > max ? s.slice(0, max) + '…' : (s || '');
 
-// Resume: 800 chars is enough to convey skills/titles. Full PDF text is wasteful.
-const RESUME_MAX_CHARS = 800;
-// JD: 600 chars keeps the role context without padding.
-const JD_MAX_CHARS = 600;
+// Resume: 3000 chars provides much better context for a complete analysis.
+const RESUME_MAX_CHARS = 3000;
+// JD: 2000 chars keeps the role context without padding.
+const JD_MAX_CHARS = 2000;
 // Transcript per answer: cap long rambling answers to save feedback input tokens.
-const TRANSCRIPT_MAX_CHARS = 300;
+const TRANSCRIPT_MAX_CHARS = 1000;
 
 // ── TTS ───────────────────────────────────────────────────────────────────────
 export const generateOpenAITTS = async (text: string) => {
@@ -129,7 +129,7 @@ export const generateFeedback = async (
     return `Q${i + 1}: ${q}\nA${i + 1}: ${ans}`;
   }).join('\n');
 
-  const sys = `You are a strict but fair hiring evaluator. Analyze precisely. Follow output format exactly. Be concise but accurate.`;
+  const sys = `You are a perceptive, professional, and encouraging hiring evaluator. Your goal is to provide a dynamic, highly specific, and accurate report. Avoid generic boilerplate phrases. Be detailed and constructive.`;
 
   const feedbackPrompt =
 `Evaluate this candidate for "${jobTitle}".
@@ -141,21 +141,20 @@ ${qaBlock}
 </QA>
 
 Scoring rubric (out of 10):
-- Resume Score: How well does the resume match the JD requirements? Consider skills, experience, education relevance. 1=no match, 5=partial, 8=strong, 10=perfect fit.
-- Q&A Score: How well did the candidate answer? Consider: relevance to question, depth of knowledge, clarity, practical understanding. If candidate gave no answer or irrelevant answer, score low. If answer shows real understanding even if brief, score fairly.
+- Resume Score: How well does the resume match the JD requirements? deeply analyze the provided resume. Look for specific skills, projects, and actual experience. 1-3=poor match, 4-6=partial match, 7-8=good fit, 9-10=excellent match. Give a fair, dynamic score based on actual evidence in the resume.
+- Q&A Score: How well did the candidate answer? If the candidate gives good, sensible, and practical answers, score them generously (7-10). If the answers are decent but lack depth, score 5-7. Only score low (1-4) if answers are completely irrelevant, fundamentally wrong, or empty.
 - Overall Score: Weighted average considering both resume fit (40%) and answer quality (60%).
 
-IMPORTANT scoring rules:
-- Be honest. Do not inflate scores.
-- If candidate could not answer or gave vague answers, Q&A score should be 1-3.
-- If candidate showed partial knowledge, Q&A score should be 4-6.
-- If candidate answered well with practical examples, Q&A score should be 7-10.
-- If transcript says "no answer given" or is empty, that question scores 0.
+IMPORTANT instructions for your analysis:
+- Be dynamic and highly specific. Do NOT use generic phrases like "the resume indicates years of experience". Instead, mention specific projects, tools, or roles from the resume.
+- Base your Q&A analysis on the actual content of the transcripts. Highlight a specific good point the candidate made.
+- Do not be overly strict. Recognize practical knowledge and effort.
+- Write in full, readable paragraphs (3-5 sentences per section).
 
 Output EXACTLY this format (no extra text):
-**Resume Analysis:** [1-2 lines on how resume matches JD]
-**Answer Quality:** [1-2 lines on how candidate performed in Q&A]
-**Overall Evaluation:** [1 sentence final verdict]
+**Resume Analysis:** [Specific paragraph analyzing how the candidate's actual projects/skills match the JD]
+**Answer Quality:** [Specific paragraph evaluating the candidate's answers with examples from the transcript]
+**Overall Evaluation:** [1-2 sentences final constructive verdict]
 **Scores:**
 Resume Score: X/10
 Q&A Score: X/10
