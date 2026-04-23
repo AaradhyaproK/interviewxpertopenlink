@@ -95,7 +95,7 @@ const checkCloudinary = async (): Promise<{ ok: boolean; ms: number }> => {
   }
 };
 
-// Checks the xAI Grok API by sending a minimal chat completion request.
+// Checks the xAI Grok API without consuming tokens by hitting the /v1/models endpoint.
 const checkGrok = async (): Promise<{ ok: boolean; ms: number; modelStatus: string }> => {
   const start = performance.now();
   const apiKey = import.meta.env.VITE_XAI_API_KEY;
@@ -106,20 +106,15 @@ const checkGrok = async (): Promise<{ ok: boolean; ms: number; modelStatus: stri
 
   try {
     const res = await withTimeout(
-      fetch('https://api.x.ai/v1/chat/completions', {
-        method: 'POST',
+      fetch('https://api.x.ai/v1/models', {
+        method: 'GET',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${apiKey}` },
-        body: JSON.stringify({
-          model: 'grok-4-1-fast-non-reasoning',
-          messages: [{ role: 'user', content: 'ping' }],
-          max_tokens: 1,
-        }),
       }),
       5000
     );
 
     if (res.ok) {
-      return { ok: true, ms: Math.round(performance.now() - start), modelStatus: 'grok-4-1-fast-non-reasoning is responding' };
+      return { ok: true, ms: Math.round(performance.now() - start), modelStatus: 'API is reachable & responding' };
     }
     return { ok: false, ms: Math.round(performance.now() - start), modelStatus: `HTTP ${res.status}` };
   } catch (error: any) {
