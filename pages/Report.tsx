@@ -6,7 +6,82 @@ import { InterviewSubmission } from '../types';
 import { createPortal } from 'react-dom';
 import { jsPDF } from 'jspdf';
 import { useMessageBox } from '../components/MessageBox';
-import { ArrowLeft, Download, Share2, User, FileText, MessageSquare, Eye, Brain, BarChart, Shield, Video, CheckCircle, XCircle } from 'lucide-react';
+import { ArrowLeft, Download, Share2, User, FileText, MessageSquare, Eye, Brain, BarChart, Shield, Video, CheckCircle, XCircle, Briefcase, MapPin, GraduationCap, DollarSign, Calendar, Award } from 'lucide-react';
+
+// New component for radial score display
+const ScoreCircle: React.FC<{ score: number; denom: number; color: 'green' | 'yellow' | 'red'; label: string }> = ({ score, denom, color, label }) => {
+    const pct = denom > 0 ? (score / denom) * 100 : 0;
+    const radius = 38;
+    const circumference = 2 * Math.PI * radius;
+    const offset = circumference - (pct / 100) * circumference;
+
+    const colorClasses = {
+        green: 'text-green-500',
+        yellow: 'text-yellow-500',
+        red: 'text-red-500',
+    };
+    const textColor = colorClasses[color];
+
+    return (
+        <div className="flex flex-col items-center gap-3 text-center">
+            <div className="relative w-28 h-28">
+                <svg className="w-full h-full" viewBox="0 0 100 100">
+                    <circle
+                        className="text-gray-100 dark:text-white/5"
+                        strokeWidth="8"
+                        stroke="currentColor"
+                        fill="transparent"
+                        r={radius}
+                        cx="50"
+                        cy="50"
+                    />
+                    <circle
+                        className={textColor}
+                        strokeWidth="8"
+                        strokeDasharray={circumference}
+                        strokeDashoffset={offset}
+                        strokeLinecap="round"
+                        stroke="currentColor"
+                        fill="transparent"
+                        r={radius}
+                        cx="50"
+                        cy="50"
+                        transform="rotate(-90 50 50)"
+                        style={{ transition: 'stroke-dashoffset 1s ease-out' }}
+                    />
+                </svg>
+                <div className="absolute inset-0 flex flex-col items-center justify-center">
+                    <span className={`text-3xl font-bold ${textColor}`}>{score.toFixed(1)}</span>
+                    <span className="text-sm text-gray-400">/ {denom}</span>
+                </div>
+            </div>
+            <p className="text-sm font-semibold text-gray-600 dark:text-gray-300">{label}</p>
+        </div>
+    );
+};
+
+const BehavioralStat: React.FC<{ icon: React.ReactNode, label: string, value: string | number, color: 'green' | 'yellow' | 'red' | 'blue' | 'purple' }> = ({ icon, label, value, color }) => {
+    const colorClasses = `bg-${color}-100 dark:bg-${color}-900/30 text-${color}-600 dark:text-${color}-400`;
+    return (
+        <div className={`flex items-center gap-3 p-3 rounded-xl bg-gray-50 dark:bg-black/20 border border-gray-100 dark:border-white/5`}>
+            <div className={`w-10 h-10 flex-shrink-0 flex items-center justify-center rounded-lg shadow-sm ${colorClasses}`}>{icon}</div>
+            <div>
+                <p className="text-xs text-gray-500 dark:text-gray-400 font-medium">{label}</p>
+                <p className="text-lg font-bold text-gray-900 dark:text-white">{value}</p>
+            </div>
+        </div>
+    );
+};
+
+const ProfileDetailItem: React.FC<{ label: string; value?: string | React.ReactNode; fullWidth?: boolean }> = ({ label, value, fullWidth }) => {
+    if (!value && value !== 0) return null;
+    return (
+        <div className={fullWidth ? 'col-span-1 md:col-span-2' : ''}>
+            <p className="text-xs text-gray-500 dark:text-gray-400 font-medium uppercase tracking-wider">{label}</p>
+            <div className="font-semibold text-gray-800 dark:text-gray-200 mt-1 text-sm">{value}</div>
+        </div>
+    );
+};
 
 const InterviewReport: React.FC = () => {
   const navigate = useNavigate();
@@ -70,16 +145,21 @@ const InterviewReport: React.FC = () => {
     return '10';
   };
 
-  const scoreColor = (score: number, denom?: string) => {
-    const d = Number(denom || '100');
+  const getScoreColorName = (score: number, denom?: string): 'green' | 'yellow' | 'red' => {
+    const d = Number(denom || '10');
     const pct = d > 0 ? (score / d) * 100 : 0;
-    if (pct >= 75) return 'text-green-500'; // 75%+ is good
-    if (pct >= 50) return 'text-yellow-500'; // 50-74% is fair
-    return 'text-red-500'; // Below 50% is poor
+    if (pct >= 75) return 'green';
+    if (pct >= 50) return 'yellow';
+    return 'red';
   };
 
   const verdictColor = (verdict: string) => {
     const v = verdict.toLowerCase();
+    // New verdict values
+    if (v.includes('recommended')) return { bg: 'bg-green-50 dark:bg-green-900/30', border: 'border-green-300 dark:border-green-700', text: 'text-green-700 dark:text-green-300' };
+    if (v.includes('reservations')) return { bg: 'bg-yellow-50 dark:bg-yellow-900/30', border: 'border-yellow-300 dark:border-yellow-700', text: 'text-yellow-700 dark:text-yellow-300' };
+    if (v.includes('not recommended')) return { bg: 'bg-red-50 dark:bg-red-900/30', border: 'border-red-300 dark:border-red-700', text: 'text-red-700 dark:text-red-300' };
+    // Fallback for old values for backward compatibility
     if (v.includes('strong hire')) return { bg: 'bg-green-50 dark:bg-green-900/30', border: 'border-green-300 dark:border-green-700', text: 'text-green-700 dark:text-green-300' };
     if (v.includes('hire')) return { bg: 'bg-emerald-50 dark:bg-emerald-900/30', border: 'border-emerald-300 dark:border-emerald-700', text: 'text-emerald-700 dark:text-emerald-300' };
     if (v.includes('leaning no')) return { bg: 'bg-yellow-50 dark:bg-yellow-900/30', border: 'border-yellow-300 dark:border-yellow-700', text: 'text-yellow-700 dark:text-yellow-300' };
@@ -321,15 +401,39 @@ const InterviewReport: React.FC = () => {
   };
 
   const parseFeedback = (feedback: unknown) => {
-    if (typeof feedback !== 'string') return { resumeAnalysis: 'N/A', answerQuality: 'N/A', overallEvaluation: 'N/A' };
-    const resumeMatch = feedback.match(/\*\*Resume Analysis:\*\*([\s\S]*?)(?=\*\*Answer Quality:\*\*|\*\*Scores:\*\*|$)/);
-    const qualityMatch = feedback.match(/\*\*Answer Quality:\*\*([\s\S]*?)(?=\*\*Overall Evaluation:\*\*|\*\*Scores:\*\*|$)/);
-    const evalMatch = feedback.match(/\*\*Overall Evaluation:\*\*([\s\S]*?)(?=\*\*Verdict:\*\*|\*\*Scores:\*\*|$)/);
+    if (typeof feedback !== 'string') {
+      return {
+        summary: 'N/A',
+        roleFit: 'N/A',
+        communicationSkills: 'N/A',
+        technicalSkills: 'N/A',
+        verdict: 'Not Available'
+      };
+    }
+
+    const summaryMatch = feedback.match(/\*\*Overall Evaluation:\*\*([\s\S]*?)(?=\*\*Verdict:\*\*|\*\*Scores:\*\*|$)/);
+    const roleFitMatch = feedback.match(/\*\*Resume Analysis:\*\*([\s\S]*?)(?=\*\*Answer Quality:\*\*|\*\*Scores:\*\*|$)/);
+    const answerQualityBlock = feedback.match(/\*\*Answer Quality:\*\*([\s\S]*?)(?=\*\*Overall Evaluation:\*\*|\*\*Scores:\*\*|$)/);
+    
+    let communicationSkills = 'N/A';
+    let technicalSkills = 'N/A';
+    if (answerQualityBlock && answerQualityBlock[1]) {
+      const commsMatch = answerQualityBlock[1].match(/\*\*Communication Skills:\*\*([\s\S]*?)(?=\*\*Technical Skills:\*\*|$)/);
+      const techMatch = answerQualityBlock[1].match(/\*\*Technical Skills:\*\*([\s\S]*)/);
+      communicationSkills = commsMatch ? commsMatch[1].trim() : 'N/A';
+      technicalSkills = techMatch ? techMatch[1].trim() : 'N/A';
+      // Fallback if sub-headings are not present in older reports
+      if (communicationSkills === 'N/A' && technicalSkills === 'N/A') {
+        communicationSkills = answerQualityBlock[1].trim();
+      }
+    }
+
     const verdictMatch = feedback.match(/\*\*Verdict:\*\*\s*(.*)/);
     return {
-        resumeAnalysis: resumeMatch ? resumeMatch[1].trim() : 'N/A',
-        answerQuality: qualityMatch ? qualityMatch[1].trim() : 'N/A',
-        overallEvaluation: evalMatch ? evalMatch[1].trim() : 'N/A',
+        summary: summaryMatch ? summaryMatch[1].trim() : 'N/A',
+        roleFit: roleFitMatch ? roleFitMatch[1].trim() : 'N/A',
+        communicationSkills,
+        technicalSkills,
         verdict: verdictMatch ? verdictMatch[1].trim() : 'Not Available'
     };
   };
@@ -354,7 +458,7 @@ const InterviewReport: React.FC = () => {
     );
   }
 
-  const { resumeAnalysis, answerQuality, overallEvaluation, verdict } = parseFeedback(submission.feedback);
+  const { summary, roleFit, communicationSkills, technicalSkills, verdict } = parseFeedback(submission.feedback);
   const vColor = verdictColor(verdict);
 
   return (
@@ -376,7 +480,7 @@ const InterviewReport: React.FC = () => {
             </div>
         </div>
 
-        <div id="report-content" className="max-w-6xl mx-auto space-y-6">
+        <div id="report-content" className="max-w-7xl mx-auto space-y-6">
             
             {/* Header & Candidate Info */}
             <div className="bg-white dark:bg-white/5 rounded-2xl p-6 border border-gray-200 dark:border-white/10 shadow-sm flex flex-col md:flex-row gap-6 justify-between items-center">
@@ -389,10 +493,10 @@ const InterviewReport: React.FC = () => {
                         <div className="flex items-center gap-2"><i className="fas fa-calendar-alt"></i> {submission.submittedAt?.toDate ? submission.submittedAt.toDate().toLocaleString('en-GB') : 'N/A'}</div>
                         {submission.candidateResumeURL && !submission.candidateResumeURL.startsWith('data:text/plain') && (
                             <div className="flex items-center gap-2 max-w-xs sm:max-w-sm">
-                                <i className="fas fa-external-link-alt text-blue-500"></i> 
-                                <a href={submission.candidateResumeURL} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline truncate font-medium" title={submission.candidateResumeURL}>
+                                <i className="fas fa-eye text-blue-500"></i> 
+                                <button onClick={() => setIsResumeModalOpen(true)} className="text-blue-500 hover:underline truncate font-medium text-left" title="View Resume Inline">
                                     View Resume (PDF)
-                                </a>
+                                </button>
                             </div>
                         )}
                         {submission.candidateResumeURL?.startsWith('data:text/plain') && (
@@ -408,216 +512,144 @@ const InterviewReport: React.FC = () => {
                         <User size={16} /> View Profile/Resume Data
                     </button>
                 </div>
+
             </div>
 
-            {/* Verdict Card */}
-            <div className={`p-6 rounded-2xl border-2 ${vColor.border} ${vColor.bg} text-center shadow-lg`}>
-                <p className={`text-sm font-bold uppercase tracking-widest opacity-70 ${vColor.text}`}>Hiring Verdict</p>
-                <p className={`text-3xl font-black mt-1 ${vColor.text}`}>
-                    {verdict}
-                </p>
-            </div>
-
-            {/* Candidate Profile Details */}
-            {submission.candidateInfo && (
-                <div className="bg-white dark:bg-white/5 rounded-2xl p-6 border border-gray-200 dark:border-white/10 shadow-sm">
-                    <h2 className="text-lg font-bold mb-6 flex items-center gap-2"><User size={20} className="text-primary"/> Candidate Profile Details</h2>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 text-sm">
-                        {/* Experience Type */}
-                        <div className="bg-gray-50 dark:bg-black/20 p-4 rounded-xl border border-gray-100 dark:border-white/5">
-                            <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Experience Level</p>
-                            <p className="font-semibold text-gray-800 dark:text-gray-200 text-base capitalize">{submission.candidateInfo.experienceType}</p>
-                        </div>
-
-                        {/* Total Experience */}
-                        {submission.candidateInfo.experienceType === 'experienced' && (
-                            <div className="bg-gray-50 dark:bg-black/20 p-4 rounded-xl border border-gray-100 dark:border-white/5">
-                                <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Total Experience</p>
-                                <p className="font-semibold text-gray-800 dark:text-gray-200 text-base">
-                                    {submission.candidateInfo.totalExperienceYears} years, {submission.candidateInfo.totalExperienceMonths} months
-                                </p>
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                {/* Main Content */}
+                <div className="lg:col-span-2 space-y-6">
+                    {/* AI Summary Card */}
+                    <div className="bg-white dark:bg-white/5 rounded-2xl p-6 md:p-8 border border-gray-200 dark:border-white/10 shadow-sm">
+                        <h2 className="text-xl font-bold mb-6 flex items-center gap-3"><Brain size={24} className="text-primary"/> Hiring Manager Evaluation</h2>
+                        <div className="space-y-8">
+                            <div>
+                                <strong className="text-gray-800 dark:text-gray-200 block mb-2 text-base">Summary:</strong> 
+                                <div className="bg-blue-50 dark:bg-blue-900/20 p-5 rounded-xl border border-blue-100 dark:border-blue-800/50 text-base text-blue-800 dark:text-blue-200 leading-relaxed whitespace-pre-wrap">{summary}</div>
                             </div>
-                        )}
-
-                        {/* Education Details (for Freshers) */}
-                        {submission.candidateInfo.experienceType === 'fresher' && (
-                            <>
-                                <div className="bg-gray-50 dark:bg-black/20 p-4 rounded-xl border border-gray-100 dark:border-white/5">
-                                    <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Graduation Year</p>
-                                    <p className="font-semibold text-gray-800 dark:text-gray-200 text-base">{submission.candidateInfo.graduationYear}</p>
-                                </div>
-                                <div className="bg-gray-50 dark:bg-black/20 p-4 rounded-xl border border-gray-100 dark:border-white/5 col-span-1 lg:col-span-2">
-                                    <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">College</p>
-                                    <p className="font-semibold text-gray-800 dark:text-gray-200 text-base">{submission.candidateInfo.collegeName}</p>
-                                </div>
-                                <div className="bg-gray-50 dark:bg-black/20 p-4 rounded-xl border border-gray-100 dark:border-white/5">
-                                    <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Degree</p>
-                                    <p className="font-semibold text-gray-800 dark:text-gray-200 text-base">{submission.candidateInfo.degree}</p>
-                                </div>
-                                <div className="bg-gray-50 dark:bg-black/20 p-4 rounded-xl border border-gray-100 dark:border-white/5 col-span-1 lg:col-span-2">
-                                    <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Specialization</p>
-                                    <p className="font-semibold text-gray-800 dark:text-gray-200 text-base">{submission.candidateInfo.specialization}</p>
-                                </div>
-                            </>
-                        )}
-
-                        {/* Work Status (for Experienced) */}
-                        {submission.candidateInfo.experienceType === 'experienced' && (
-                            <>
-                                <div className="bg-gray-50 dark:bg-black/20 p-4 rounded-xl border border-gray-100 dark:border-white/5">
-                                    <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Work Status</p>
-                                    <p className="font-semibold text-gray-800 dark:text-gray-200 text-base capitalize">{submission.candidateInfo.workStatus?.replace('_', ' ')}</p>
-                                </div>
-                                <div className="bg-gray-50 dark:bg-black/20 p-4 rounded-xl border border-gray-100 dark:border-white/5 col-span-1 lg:col-span-2">
-                                    <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">
-                                        {submission.candidateInfo.workStatus === 'working' ? 'Current Company' : 'Last Company'}
-                                    </p>
-                                    <p className="font-semibold text-gray-800 dark:text-gray-200 text-base">
-                                        {submission.candidateInfo.workStatus === 'working' ? submission.candidateInfo.currentCompany : submission.candidateInfo.pastCompany}
-                                    </p>
-                                </div>
-                            </>
-                        )}
-
-                        {/* Location & Relocation */}
-                        {submission.candidateInfo.currentLocation && (
-                            <div className="bg-gray-50 dark:bg-black/20 p-4 rounded-xl border border-gray-100 dark:border-white/5">
-                                <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Current Location</p>
-                                <p className="font-semibold text-gray-800 dark:text-gray-200 text-base">{submission.candidateInfo.currentLocation}</p>
+                            <div>
+                                <strong className="text-gray-800 dark:text-gray-200 block mb-2 text-base">Role Fit:</strong> 
+                                <div className="bg-gray-50 dark:bg-black/20 p-4 rounded-xl border border-gray-100 dark:border-white/5 text-sm text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-wrap">{roleFit}</div>
                             </div>
-                        )}
-                        <div className="bg-gray-50 dark:bg-black/20 p-4 rounded-xl border border-gray-100 dark:border-white/5">
-                            <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Ready to Relocate</p>
-                            <p className={`font-semibold text-base capitalize ${submission.candidateInfo.readyToRelocate === 'yes' ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
-                                {submission.candidateInfo.readyToRelocate}
-                            </p>
+                            <div>
+                                <strong className="text-gray-800 dark:text-gray-200 block mb-2 text-base">Communication Skills:</strong> 
+                                <div className="bg-gray-50 dark:bg-black/20 p-4 rounded-xl border border-gray-100 dark:border-white/5 text-sm text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-wrap">{communicationSkills}</div>
+                            </div>
                         </div>
+                    </div>
 
-                        {/* Salary Details */}
-                        {submission.candidateInfo.experienceType === 'experienced' && (
-                            <>
-                                <div className="bg-gray-50 dark:bg-black/20 p-4 rounded-xl border border-gray-100 dark:border-white/5">
-                                    <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Current Salary</p>
-                                    <p className="font-semibold text-gray-800 dark:text-gray-200 text-base">{submission.candidateInfo.currentSalary} LPA</p>
-                                </div>
-                                <div className="bg-gray-50 dark:bg-black/20 p-4 rounded-xl border border-gray-100 dark:border-white/5">
-                                    <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Expected Salary</p>
-                                    <p className="font-semibold text-gray-800 dark:text-gray-200 text-base">{submission.candidateInfo.expectedSalary} LPA</p>
-                                </div>
-                                <div className="bg-gray-50 dark:bg-black/20 p-4 rounded-xl border border-gray-100 dark:border-white/5">
-                                    <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Has Salary Proof</p>
-                                    <p className={`font-semibold text-base capitalize ${submission.candidateInfo.hasSalaryProof === 'yes' ? 'text-green-600 dark:text-green-400' : 'text-yellow-600 dark:text-yellow-400'}`}>
-                                        {submission.candidateInfo.hasSalaryProof}
-                                    </p>
-                                </div>
-                            </>
-                        )}
-                    </div>
-                </div>
-            )}
 
-            {/* Score Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="bg-white dark:bg-white/5 rounded-2xl p-6 border border-gray-200 dark:border-white/10 shadow-sm flex justify-between items-center relative overflow-hidden group">
-                    <div className="absolute top-0 right-0 w-24 h-24 bg-blue-500/10 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2 group-hover:scale-150 transition-transform"></div>
-                    <div className="relative z-10">
-                        <p className="text-sm font-semibold text-gray-500 dark:text-gray-400 mb-1">Resume Score</p>
-                        <p className="text-4xl font-bold text-gray-900 dark:text-white">{getScoreValue(submission.resumeScore)}<span className="text-xl text-gray-400">/{getScoreDenom(submission.resumeScore)}</span></p>
-                    </div>
-                    <div className="relative z-10 p-4 bg-blue-50 dark:bg-blue-900/20 text-blue-500 rounded-xl"><FileText size={28} /></div>
+
                 </div>
-                <div className="bg-white dark:bg-white/5 rounded-2xl p-6 border border-gray-200 dark:border-white/10 shadow-sm flex justify-between items-center relative overflow-hidden group">
-                     <div className="absolute top-0 right-0 w-24 h-24 bg-purple-500/10 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2 group-hover:scale-150 transition-transform"></div>
-                    <div className="relative z-10">
-                        <p className="text-sm font-semibold text-gray-500 dark:text-gray-400 mb-1">Q&A Score</p>
-                        <p className="text-4xl font-bold text-gray-900 dark:text-white">{getScoreValue(submission.qnaScore)}<span className="text-xl text-gray-400">/{getScoreDenom(submission.qnaScore)}</span></p>
+
+                {/* Sidebar */}
+                <div className="lg:col-span-1 space-y-6">
+                    {/* Scores Card */}
+                    <div className="bg-white dark:bg-white/5 rounded-2xl p-6 border border-gray-200 dark:border-white/10 shadow-sm">
+                        <h2 className="text-lg font-bold mb-4 flex items-center gap-2"><CheckCircle size={20} className="text-primary"/> Performance Scores</h2>
+                        <div className="flex justify-around items-center">
+                            <ScoreCircle score={Number(getScoreValue(submission.resumeScore))} denom={Number(getScoreDenom(submission.resumeScore))} color={getScoreColorName(Number(getScoreValue(submission.resumeScore)), getScoreDenom(submission.resumeScore))} label="Resume" />
+                            <ScoreCircle score={Number(getScoreValue(submission.qnaScore))} denom={Number(getScoreDenom(submission.qnaScore))} color={getScoreColorName(Number(getScoreValue(submission.qnaScore)), getScoreDenom(submission.qnaScore))} label="Q&A" />
+                            <ScoreCircle score={Number(getScoreValue(submission.score))} denom={Number(getScoreDenom(submission.score))} color={getScoreColorName(Number(getScoreValue(submission.score)), getScoreDenom(submission.score))} label="Overall" />
+                        </div>
                     </div>
-                    <div className="relative z-10 p-4 bg-purple-50 dark:bg-purple-900/20 text-purple-500 rounded-xl"><MessageSquare size={28} /></div>
-                </div>
-                <div className="bg-white dark:bg-white/5 rounded-2xl p-6 border border-gray-200 dark:border-white/10 shadow-sm flex justify-between items-center relative overflow-hidden group">
-                    <div className={`absolute top-0 right-0 w-24 h-24 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2 group-hover:scale-150 transition-transform ${(Number(getScoreValue(submission.score)) / Number(getScoreDenom(submission.score))) >= 0.7 ? 'bg-green-500/10' : 'bg-yellow-500/10'}`}></div>
-                    <div className="relative z-10">
-                        <p className="text-sm font-semibold text-gray-500 dark:text-gray-400 mb-1">Overall Score</p>
-                        <p className={`text-4xl font-bold ${scoreColor(Number(getScoreValue(submission.score)), getScoreDenom(submission.score))}`}>{getScoreValue(submission.score)}<span className="text-xl text-gray-400">/{getScoreDenom(submission.score)}</span></p>
+
+                    {/* Candidate Onboarding Details */}
+                    {submission.candidateInfo && (
+                        <div className="bg-white dark:bg-white/5 rounded-2xl p-6 border border-gray-200 dark:border-white/10 shadow-sm flex flex-col gap-4">
+                            <h2 className="text-lg font-bold flex items-center gap-2"><User size={20} className="text-primary"/> Onboarding Details</h2>
+                            
+                            <div className="bg-gray-50 dark:bg-black/20 rounded-xl p-4 border border-gray-100 dark:border-white/5 flex items-center justify-between">
+                                <div className="flex items-center gap-3">
+                                    <div className="w-10 h-10 rounded-lg bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center text-blue-600 dark:text-blue-400">
+                                        <Award size={20} />
+                                    </div>
+                                    <div>
+                                        <p className="text-xs text-gray-500 dark:text-gray-400 font-medium">Experience Level</p>
+                                        <p className="text-sm font-bold text-gray-900 dark:text-white capitalize">{submission.candidateInfo.experienceType}</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {submission.candidateInfo.experienceType === 'experienced' && (
+                                <div className="space-y-2">
+                                    <div className="flex items-center justify-between p-3 bg-gray-50 dark:bg-black/20 rounded-xl border border-gray-100 dark:border-white/5">
+                                        <div className="flex items-center gap-3"><Briefcase size={16} className="text-gray-400" /><span className="text-xs font-medium text-gray-500 dark:text-gray-400">Experience</span></div>
+                                        <div className="text-sm font-semibold text-gray-800 dark:text-gray-200">{submission.candidateInfo.totalExperienceYears}y {submission.candidateInfo.totalExperienceMonths}m</div>
+                                    </div>
+                                    <div className="flex items-center justify-between p-3 bg-gray-50 dark:bg-black/20 rounded-xl border border-gray-100 dark:border-white/5">
+                                        <div className="flex items-center gap-3"><Briefcase size={16} className="text-gray-400" /><span className="text-xs font-medium text-gray-500 dark:text-gray-400">{submission.candidateInfo.workStatus === 'working' ? 'Current Co.' : 'Last Co.'}</span></div>
+                                        <div className="text-sm font-semibold text-gray-800 dark:text-gray-200 text-right max-w-[50%] truncate" title={submission.candidateInfo.workStatus === 'working' ? submission.candidateInfo.currentCompany : submission.candidateInfo.pastCompany}>
+                                            {submission.candidateInfo.workStatus === 'working' ? submission.candidateInfo.currentCompany : submission.candidateInfo.pastCompany}
+                                        </div>
+                                    </div>
+                                    <div className="flex items-center justify-between p-3 bg-gray-50 dark:bg-black/20 rounded-xl border border-gray-100 dark:border-white/5">
+                                        <div className="flex items-center gap-3"><DollarSign size={16} className="text-gray-400" /><span className="text-xs font-medium text-gray-500 dark:text-gray-400">Salary</span></div>
+                                        <div className="text-sm font-semibold text-gray-800 dark:text-gray-200">{submission.candidateInfo.currentSalary} LPA</div>
+                                    </div>
+                                    <div className="flex items-center justify-between p-3 bg-gray-50 dark:bg-black/20 rounded-xl border border-gray-100 dark:border-white/5">
+                                        <div className="flex items-center gap-3"><DollarSign size={16} className="text-gray-400" /><span className="text-xs font-medium text-gray-500 dark:text-gray-400">Expected</span></div>
+                                        <div className="text-sm font-semibold text-gray-800 dark:text-gray-200">{submission.candidateInfo.expectedSalary} LPA</div>
+                                    </div>
+                                </div>
+                            )}
+
+                            {submission.candidateInfo.experienceType === 'fresher' && (
+                                <div className="space-y-2">
+                                    <div className="flex items-center justify-between p-3 bg-gray-50 dark:bg-black/20 rounded-xl border border-gray-100 dark:border-white/5">
+                                        <div className="flex items-center gap-3"><GraduationCap size={16} className="text-gray-400" /><span className="text-xs font-medium text-gray-500 dark:text-gray-400">Degree</span></div>
+                                        <div className="text-sm font-semibold text-gray-800 dark:text-gray-200 text-right max-w-[50%] truncate" title={submission.candidateInfo.degree}>{submission.candidateInfo.degree}</div>
+                                    </div>
+                                    <div className="flex items-center justify-between p-3 bg-gray-50 dark:bg-black/20 rounded-xl border border-gray-100 dark:border-white/5">
+                                        <div className="flex items-center gap-3"><Calendar size={16} className="text-gray-400" /><span className="text-xs font-medium text-gray-500 dark:text-gray-400">Graduation</span></div>
+                                        <div className="text-sm font-semibold text-gray-800 dark:text-gray-200">{submission.candidateInfo.graduationYear}</div>
+                                    </div>
+                                    <div className="p-3 bg-gray-50 dark:bg-black/20 rounded-xl border border-gray-100 dark:border-white/5">
+                                        <div className="flex items-center gap-2 mb-1"><GraduationCap size={16} className="text-gray-400" /><span className="text-xs font-medium text-gray-500 dark:text-gray-400">College</span></div>
+                                        <div className="text-sm font-semibold text-gray-800 dark:text-gray-200 truncate" title={submission.candidateInfo.collegeName}>{submission.candidateInfo.collegeName}</div>
+                                    </div>
+                                </div>
+                            )}
+
+                            <div className="space-y-2">
+                                <div className="flex items-center justify-between p-3 bg-gray-50 dark:bg-black/20 rounded-xl border border-gray-100 dark:border-white/5">
+                                    <div className="flex items-center gap-3"><MapPin size={16} className="text-gray-400" /><span className="text-xs font-medium text-gray-500 dark:text-gray-400">Location</span></div>
+                                    <div className="text-sm font-semibold text-gray-800 dark:text-gray-200 text-right max-w-[50%] truncate" title={submission.candidateInfo.currentLocation}>{submission.candidateInfo.currentLocation}</div>
+                                </div>
+                                <div className="flex items-center justify-between p-3 bg-gray-50 dark:bg-black/20 rounded-xl border border-gray-100 dark:border-white/5">
+                                    <div className="flex items-center gap-3"><MapPin size={16} className="text-gray-400" /><span className="text-xs font-medium text-gray-500 dark:text-gray-400">Relocate</span></div>
+                                    <div className={`text-sm font-semibold capitalize ${submission.candidateInfo.readyToRelocate === 'yes' ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+                                        {submission.candidateInfo.readyToRelocate}
+                                    </div>
+                                </div>
+                            </div>
+
+                            {submission.candidateInfo.highlightedSkillsForJob && (
+                                <div className="p-3 bg-gray-50 dark:bg-black/20 rounded-xl border border-gray-100 dark:border-white/5">
+                                    <div className="flex items-center gap-2 mb-1.5"><Brain size={16} className="text-gray-400" /><span className="text-xs font-medium text-gray-500 dark:text-gray-400">Highlighted Skills</span></div>
+                                    <div className="text-sm font-semibold text-gray-800 dark:text-gray-200 leading-relaxed">
+                                        {submission.candidateInfo.highlightedSkillsForJob}
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    )}
+
+                    {/* Behavioral Analysis Card */}
+                    <div className="bg-white dark:bg-white/5 rounded-2xl p-6 border border-gray-200 dark:border-white/10 shadow-sm">
+                        <h2 className="text-lg font-bold mb-4 flex items-center gap-2"><BarChart size={20} className="text-primary"/> Behavioral Analysis</h2>
+                        <div className="grid grid-cols-2 gap-4">
+                            <BehavioralStat icon={<Eye size={20}/>} label="Eye Contact" value={`${submission.meta?.cvStats?.eyeContactScore ?? 'N/A'}%`} color="blue" />
+                            <BehavioralStat icon={<Brain size={20}/>} label="Confidence" value={`${submission.meta?.cvStats?.confidenceScore ?? 'N/A'}%`} color="purple" />
+                            <BehavioralStat icon={<Shield size={20}/>} label="Tab Switches" value={submission.meta?.tabSwitchCount ?? 0} color={submission.meta?.tabSwitchCount && submission.meta.tabSwitchCount > 0 ? 'red' : 'green'} />
+                            <BehavioralStat icon={<User size={20}/>} label="Faces Detected" value={submission.meta?.cvStats?.facesDetected ?? 'N/A'} color={submission.meta?.cvStats?.facesDetected === 1 ? 'green' : 'yellow'} />
+                        </div>
                     </div>
-                    <div className="relative z-10 p-4 bg-green-50 dark:bg-green-900/20 text-green-500 rounded-xl"><CheckCircle size={28} /></div>
                 </div>
             </div>
 
-            {/* Behavioral Metrics Card - Full Width Row */}
+            {/* Q&A Videos and Transcripts - Full Width */}
             <div className="bg-white dark:bg-white/5 rounded-2xl p-6 border border-gray-200 dark:border-white/10 shadow-sm">
-                <h2 className="text-lg font-bold mb-6 flex items-center gap-2"><BarChart size={20} className="text-primary"/> Behavioral Analysis</h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 items-center">
-                    {/* Eye Contact */}
-                    <div className="w-full">
-                        <div className="flex justify-between items-center mb-2">
-                            <span className="text-sm font-semibold text-gray-600 dark:text-gray-300">Eye Contact</span>
-                            <span className="text-sm font-bold text-gray-900 dark:text-white">{submission.meta?.cvStats?.eyeContactScore ?? 'N/A'}%</span>
-                        </div>
-                        <div className="w-full bg-gray-100 dark:bg-gray-800 rounded-full h-2.5 overflow-hidden">
-                            <div className="bg-blue-500 h-full rounded-full transition-all duration-1000" style={{ width: `${submission.meta?.cvStats?.eyeContactScore ?? 0}%` }}></div>
-                        </div>
-                    </div>
-
-                    {/* Confidence */}
-                    <div className="w-full">
-                        <div className="flex justify-between items-center mb-2">
-                            <span className="text-sm font-semibold text-gray-600 dark:text-gray-300">Confidence</span>
-                            <span className="text-sm font-bold text-gray-900 dark:text-white">{submission.meta?.cvStats?.confidenceScore ?? 'N/A'}%</span>
-                        </div>
-                        <div className="w-full bg-gray-100 dark:bg-gray-800 rounded-full h-2.5 overflow-hidden">
-                            <div className="bg-purple-500 h-full rounded-full transition-all duration-1000" style={{ width: `${submission.meta?.cvStats?.confidenceScore ?? 0}%` }}></div>
-                        </div>
-                    </div>
-
-                    {/* Tab Switches */}
-                    <div className="flex items-center gap-4 p-4 bg-gray-50 dark:bg-white/5 rounded-xl border border-gray-100 dark:border-white/5 w-full">
-                        <div className={`w-12 h-12 flex flex-shrink-0 items-center justify-center rounded-xl shadow-sm ${submission.meta?.tabSwitchCount && submission.meta.tabSwitchCount > 0 ? 'bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400' : 'bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400'}`}>
-                            <i className="fas fa-desktop text-lg"></i>
-                        </div>
-                        <div className="min-w-0">
-                            <p className="text-sm text-gray-500 dark:text-gray-400 font-medium truncate">Tab Switches</p>
-                            <p className="text-xl font-bold text-gray-900 dark:text-white leading-tight truncate">{submission.meta?.tabSwitchCount ?? 0}</p>
-                        </div>
-                    </div>
-                    
-                    {/* Faces Detected */}
-                    <div className="flex items-center gap-4 p-4 bg-gray-50 dark:bg-white/5 rounded-xl border border-gray-100 dark:border-white/5 w-full">
-                        <div className={`w-12 h-12 flex flex-shrink-0 items-center justify-center rounded-xl shadow-sm ${submission.meta?.cvStats?.facesDetected === 1 ? 'bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400' : 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-600 dark:text-yellow-400'}`}>
-                            <i className="fas fa-user-friends text-lg"></i>
-                        </div>
-                        <div className="min-w-0">
-                            <p className="text-sm text-gray-500 dark:text-gray-400 font-medium truncate">Faces Detected</p>
-                            <p className="text-xl font-bold text-gray-900 dark:text-white leading-tight truncate">{submission.meta?.cvStats?.facesDetected ?? 'N/A'}</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            {/* AI Summary - Full Width Row */}
-            <div className="bg-gradient-to-br from-blue-50/50 to-indigo-50/50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-2xl p-6 md:p-8 border border-blue-100 dark:border-blue-800/30 shadow-sm">
-                <h2 className="text-xl font-bold mb-6 flex items-center gap-2 text-blue-800 dark:text-blue-300"><Brain size={24}/> AI Overall Evaluation</h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
-                    <div className="space-y-6">
-                        <div>
-                            <strong className="text-blue-800 dark:text-blue-300 block mb-2 text-base">Resume Match Analysis:</strong> 
-                            <p className="bg-white/60 dark:bg-black/20 p-4 rounded-xl border border-blue-100/50 dark:border-white/5 whitespace-pre-wrap">{resumeAnalysis}</p>
-                        </div>
-                        <div>
-                            <strong className="text-blue-800 dark:text-blue-300 block mb-2 text-base">Answer Quality Analysis:</strong> 
-                            <p className="bg-white/60 dark:bg-black/20 p-4 rounded-xl border border-blue-100/50 dark:border-white/5 whitespace-pre-wrap">{answerQuality}</p>
-                        </div>
-                    </div>
-                    <div className="flex flex-col h-full">
-                        <strong className="text-blue-800 dark:text-blue-300 block mb-2 text-base">Executive Summary:</strong> 
-                        <p className="bg-blue-100/50 dark:bg-blue-900/40 p-6 rounded-xl flex-1 border border-blue-200/50 dark:border-blue-800/50 text-base whitespace-pre-wrap">{overallEvaluation}</p>
-                    </div>
-                </div>
-            </div>
-
-            {/* Q&A Videos and Transcripts */}
-            <div className="bg-white dark:bg-white/5 rounded-2xl p-6 border border-gray-200 dark:border-white/10 shadow-sm">
-                <h2 className="text-xl font-bold mb-4 flex items-center gap-2"><Video size={20} className="text-primary"/> Question & Answer Insights</h2>
+                <h2 className="text-xl font-bold mb-4 flex items-center gap-3"><Video size={20} className="text-primary"/> Question & Answer Insights</h2>
                 <div className="space-y-6">
                     {submission.questions?.map((q, index) => (
                         <div key={index} className="flex flex-col lg:flex-row gap-6 p-5 bg-gray-50 dark:bg-black/20 rounded-2xl border border-gray-100 dark:border-white/5">
@@ -671,7 +703,6 @@ const InterviewReport: React.FC = () => {
                     )}
                 </div>
             </div>
-
         </div>
 
         {/* Modals content follows */}
@@ -735,13 +766,24 @@ const InterviewReport: React.FC = () => {
                            </div>
                           );
                       })() : submission.candidateResumeURL ? (
-                          <div className="text-center py-10 bg-gray-50 dark:bg-white/5 rounded-2xl border border-dashed border-gray-300 dark:border-white/10">
-                              <i className="fas fa-file-pdf text-6xl text-red-500 mb-6 drop-shadow-md"></i>
-                              <h4 className="text-xl font-bold text-gray-900 dark:text-white mb-2">Original Resume Document</h4>
-                              <p className="text-gray-600 dark:text-gray-400 mb-6 max-w-md mx-auto">The candidate utilized an uploaded PDF document. You can open it to view the original formatting and details.</p>
-                              <a href={submission.candidateResumeURL} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 px-6 py-3 bg-primary text-white font-bold rounded-xl hover:bg-primary/90 transition-colors shadow-lg hover:shadow-xl">
-                                  <FileText size={18} /> Open Resume PDF
-                              </a>
+                          <div className="flex flex-col gap-3">
+                              <div className="flex justify-between items-center px-1">
+                                  <h4 className="font-bold text-gray-900 dark:text-white text-sm flex items-center gap-2"><FileText size={16} className="text-primary"/> Original Resume Document</h4>
+                                  <a href={submission.candidateResumeURL} target="_blank" rel="noopener noreferrer" className="text-xs flex items-center gap-1.5 text-primary hover:underline font-medium px-3 py-1.5 bg-primary/10 rounded-lg">
+                                      <i className="fas fa-external-link-alt"></i> Open in New Tab
+                                  </a>
+                              </div>
+                              <div className="w-full h-[65vh] rounded-xl overflow-hidden border border-gray-200 dark:border-white/10 bg-white/50 dark:bg-black/20 relative shadow-inner">
+                                  <div className="absolute inset-0 flex flex-col items-center justify-center z-0 text-gray-400 dark:text-gray-500">
+                                      <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary mb-3"></div>
+                                      <span className="text-sm">Loading document...</span>
+                                  </div>
+                                  <iframe 
+                                      src={submission.candidateResumeURL}
+                                      title="Candidate Resume"
+                                      className="w-full h-full border-none absolute inset-0 z-10 bg-white"
+                                  />
+                              </div>
                           </div>
                       ) : (
                           <div className="bg-gray-50 dark:bg-white/5 rounded-xl p-6 border border-gray-200 dark:border-white/10">

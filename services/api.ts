@@ -131,7 +131,7 @@ export const generateFeedback = async (
     return `Q${i + 1}: ${q}\nA${i + 1}: ${ans}`;
   }).join('\n\n---\n\n');
 
-  const sys = `You are a senior technical recruiter providing a detailed, unbiased evaluation of a candidate's interview. Your analysis must be structured, data-driven, and provide actionable feedback. Adhere strictly to the output format.`;
+  const sys = `You are an experienced hiring manager evaluating a candidate after an interview. Your goal is to provide a realistic, accurate, and human-like hiring assessment. Be fair and practical, focusing on job readiness over perfection. If the candidate shows reasonable understanding and decent communication, avoid very low scores. If answers are mostly correct but imperfect, consider them positively. This is an interview, not an academic test. Adhere strictly to the output format provided.`;
 
   const feedbackPrompt =
 `## Candidate Evaluation
@@ -155,22 +155,23 @@ ${qaBlock}
 
 Based on the Job Description, the candidate's resume (provided in context), and their Q&A performance, provide a comprehensive evaluation.
 
-**1. Resume Analysis:**
-   - Compare the resume against the JD for required skills, experience, and qualifications.
-   - **Output:** Provide a concise summary as 3-4 bullet points. Use a '-' for each bullet.
-   - Focus on quantifiable matches (e.g., "- Resume shows 5/7 required skills") and critical gaps.
+**1. Resume Analysis (Role Fit):**
+   - **Goal:** Assess the candidate's **Role Fit**.
+   - **Action:** Clearly state how well the candidate fits the role (e.g., Strong Fit, Moderate Fit, Partial Fit, Not a Fit). Explain WHY in 2–3 lines, referencing their resume and experience against the job description.
 
-**2. Answer Quality Analysis:**
-   - Evaluate each answer for technical accuracy, clarity, and relevance to the question.
-   - **Output:** Provide a concise summary as 3-4 bullet points. Use a '-' for each bullet.
-   - Highlight the strongest and weakest answers with brief justification (e.g., "- Answer to Q2 was strong and detailed.").
-   - Comment on overall communication style (e.g., "- Communication was confident and clear.").
+**2. Answer Quality (Communication & Technical Skills):**
+   - **Goal:** Evaluate **Communication & Technical Skills**.
+   - **Action:** Evaluate how clearly and effectively the candidate communicated (clarity, confidence, structure). Also, evaluate their technical/domain skills based on both resume and answers, mentioning if they demonstrate practical understanding.
 
-**3. Overall Evaluation & Verdict:**
-   - Write a concise executive summary (1-2 sentences).
-   - Provide a final hiring verdict from: "Strong Hire", "Hire", "Leaning No", "No Hire".
+**3. Overall Evaluation (Summary):**
+   - **Goal:** Provide a **Summary**.
+   - **Action:** Write a concise 2–3 line summary of the candidate’s overall performance.
 
-**4. Scoring (MANDATORY):**
+**4. Verdict (Final Verdict):**
+   - **Goal:** Give a clear **Final Verdict**.
+   - **Action:** State if the candidate is a "Strong Hire", "Hire", "Leaning No", or "No Hire". Keep it professional and balanced.
+
+**5. Scoring (MANDATORY):**
    - **Resume Score:** A numerical score from 0-100 based on the resume's alignment with the JD.
    - **Q&A Score:** A numerical score from 0-100 based on the quality and accuracy of their answers.
    - **DO NOT** provide an "Overall Score". The application will calculate it.
