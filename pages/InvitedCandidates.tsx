@@ -341,6 +341,24 @@ const InvitedCandidates: React.FC = () => {
                                 <option key={inv.id} value={inv.id}>{inv.title} ({inv.department || 'General'})</option>
                             ))}
                         </select>
+                        {selectedInterviewId && (() => {
+                            const selectedInterview = interviews.find(i => i.id === selectedInterviewId);
+                            if (!selectedInterview) return null;
+                            const link = window.location.origin + '/#/interview/' + selectedInterview.id;
+                            const template = `👋 Hi there!\n\nWe're actively hiring for the *${selectedInterview.title}* role and your profile caught our eye! 🌟\n\nWe'd love to invite you to take our next-gen AI-powered interview to fast-track your application. It only takes a few minutes and you can complete it whenever you're ready!\n\n🚀 *Start your interview here:* \n${link}\n\n🔑 *Your Access Code:* \n${selectedInterview.accessCode}\n\nBest of luck, and we can't wait to see your skills in action! 🎉`;
+                            return (
+                                <button
+                                    onClick={() => {
+                                        navigator.clipboard.writeText(template);
+                                        messageBox.showSuccess('WhatsApp template copied to clipboard!');
+                                    }}
+                                    className="w-full mt-3 p-2.5 bg-[#25D366]/10 text-[#128C7E] dark:text-[#25D366] hover:bg-[#25D366]/20 border border-[#25D366]/30 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 shadow-sm"
+                                    title="Copy Invite Template for WhatsApp"
+                                >
+                                    <i className="fab fa-whatsapp text-base"></i> Copy WP Invite Msg
+                                </button>
+                            );
+                        })()}
                     </div>
 
                     {/* Step 2: Extract from Resumes */}
