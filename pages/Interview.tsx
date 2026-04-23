@@ -9,6 +9,10 @@ import { createPortal, useMemo } from 'react-dom';
 import { LanguageSelector } from './LanguageSelector';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
+import * as pdfjsLib from 'pdfjs-dist';
+
+// Setup PDF.js worker to enable PDF parsing
+pdfjsLib.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjsLib.version}/build/pdf.worker.min.mjs`;
 
 // --- Types ---
 type WizardStep = 'validating' | 'collect-info' | 'instructions' | 'setup' | 'interview' | 'processing' | 'finish';
@@ -88,6 +92,25 @@ const transcribeWithSarvam = async (audioBlob: Blob, languageCode: string): Prom
       return `Error: ${(err as Error).message}`;
   }
 }
+
+const parsePdfToText = async (fileOrBlob: File | Blob): Promise<string> => {
+  try {
+    const arrayBuffer = await fileOrBlob.arrayBuffer();
+    const pdf = await pdfjsLib.getDocument({ data: new Uint8Array(arrayBuffer) }).promise;
+    let fullText = '';
+    for (let i = 1; i <= pdf.numPages; i++) {
+      const page = await pdf.getPage(i);
+      const textContent = await page.getTextContent();
+      const pageText = textContent.items.map((item: any) => item.str).join(' ');
+      fullText += pageText + ' ';
+    }
+    return fullText.trim();
+  } catch (error) {
+    console.error("PDF parsing error:", error);
+    // Return empty string on failure, the base64 will be used as a fallback
+    return '';
+  }
+};
 
 const QUESTION_TIME_MS = 2 * 60 * 1000; // 2 minutes
 
@@ -725,12 +748,20 @@ const CandidateInterviewFlow: React.FC = () => {
       let base64String = '';
       let resumeMimeType = '';
       let resumeUrlToSave = cloudinaryUrl || existingResumeUrl || '';
+      let resumeTextContent = ''; // This will hold the parsed text content of the resume
 
       if (cloudinaryUrl) {
         setLoadingMsg("Fetching uploaded resume for AI...");
         try {
           const res = await fetch(cloudinaryUrl);
           const blob = await res.blob();
+
+          // If it's a PDF, parse it to text for better AI context
+          if (blob.type === 'application/pdf') {
+            // Don't await this, let it run in the background while base64 is processed
+            parsePdfToText(blob).then(text => resumeTextContent = text);
+          }
+
           const getBlobAsBase64 = (b: Blob): Promise<string> => {
             return new Promise((resolve, reject) => {
               const reader = new FileReader();
@@ -747,6 +778,13 @@ const CandidateInterviewFlow: React.FC = () => {
         }
       } else if (submittedFile) {
         setLoadingMsg("Uploading and parsing your resume...");
+
+        if (submittedFile.type === 'application/pdf') {
+          resumeTextContent = await parsePdfToText(submittedFile);
+        } else if (submittedFile.type.startsWith('text/')) {
+          resumeTextContent = await submittedFile.text();
+        }
+
         const getFileAsBase64 = (file: File): Promise<{ base64: string, url: string }> => {
           return new Promise((resolve, reject) => {
             const reader = new FileReader();
@@ -775,6 +813,7 @@ const CandidateInterviewFlow: React.FC = () => {
         const profileText = `[Candidate Profile Data]\nName: ${submittedInfo.name}\nEmail: ${submittedInfo.email}\nExperience: ${userProfile.experience || 0} Years\nSkills: ${(userProfile.skills || []).join(', ')}`;
         base64String = btoa(unescape(encodeURIComponent(profileText)));
         resumeMimeType = 'text/plain';
+        resumeTextContent = profileText; // Use the generated text for AI context
         resumeUrlToSave = 'data:text/plain;base64,' + base64String;
       } else {
         throw new Error("No resume or profile data provided.");
@@ -784,11 +823,14 @@ const CandidateInterviewFlow: React.FC = () => {
       const aiQuestions = await generateInterviewQuestions(
         interview!.title,
         interview!.description,
-        userProfile?.experience ? `${userProfile.experience} years` : "0 years",
+        (submittedInfo.experienceType === 'experienced' && submittedInfo.totalExperienceYears)
+          ? `${submittedInfo.totalExperienceYears} years ${submittedInfo.totalExperienceMonths} months`
+          : "0 years",
         base64String,
         resumeMimeType,
         submittedInfo.language,
-        (interview as any).numQuestions || 5
+        (interview as any).numQuestions || 5,
+        resumeTextContent // Pass the parsed text to the AI
       );
 
       const manualQuestions = (interview as any).manualQuestions || [];
@@ -800,6 +842,7 @@ const CandidateInterviewFlow: React.FC = () => {
         candidateResumeURL: resumeUrlToSave,
         candidateResumeMimeType: resumeMimeType,
         candidateResumeBase64: base64String,
+        candidateResumeText: resumeTextContent, // Store parsed text in state
         language: submittedInfo.language,
         answers: Array(questions.length).fill(null),
         videoURLs: Array(questions.length).fill(null),
@@ -1629,10 +1672,23 @@ const InterviewSubmission: React.FC<{
         
         setStatus("AI Analyzing performance...");
         let base64Resume = state.candidateResumeBase64;
+        let resumeTextContent = (state as any).candidateResumeText;
         
         if (!base64Resume) {
-          const resp = await fetch(state.candidateResumeURL!);
+          // Fallback to fetch resume if not already base64'd (e.g. from Cloudinary URL)
+          if (!state.candidateResumeURL) {
+              throw new Error("Candidate resume URL is missing for feedback generation.");
+          }
+
+          const resp = await fetch(state.candidateResumeURL);
           const blob = await resp.blob();
+
+          if (blob.type === 'application/pdf' && !resumeTextContent) {
+            resumeTextContent = await parsePdfToText(blob);
+          } else if (blob.type.startsWith('text/') && !resumeTextContent) {
+            resumeTextContent = await blob.text();
+          }
+
           base64Resume = await new Promise<string>((resolve) => {
             const reader = new FileReader();
             reader.readAsDataURL(blob);
@@ -1640,24 +1696,47 @@ const InterviewSubmission: React.FC<{
           });
         }
 
+        const candidateExperience = (candidateInfo.experienceType === 'experienced' && candidateInfo.totalExperienceYears)
+            ? `${candidateInfo.totalExperienceYears} years ${candidateInfo.totalExperienceMonths} months`
+            : "0 years";
+
         const feedbackRaw = await generateFeedback(
-          state.jobTitle, state.jobDescription, `0 years`, base64Resume!, state.candidateResumeMimeType!, state.questions, transcriptTexts
+          state.jobTitle,
+          state.jobDescription,
+          candidateExperience,
+          base64Resume,
+          state.candidateResumeMimeType!,
+          state.questions,
+          transcriptTexts,
+          resumeTextContent
         );
-        const parseScore = (regex: RegExp) => {
+
+        // The AI prompt for generateFeedback should be structured to consistently return scores
+        // in the format: "Overall Score: X/100", "Resume Score: Y/100", "Q&A Score: Z/100".
+        // We now calculate the overall score on the client side.
+        const parseScoreValue = (regex: RegExp): number => {
           const match = feedbackRaw.match(regex);
-          if (match) return match[1] + "/" + (match[2] || "10");
-          return "N/A";
+          if (match && match[1]) {
+            return parseInt(match[1], 10);
+          }
+          return 0;
         };
+
+        const resumeScoreNum = parseScoreValue(/Resume Score:\s*(\d{1,3})(?:\s*\/\s*100)?/i);
+        const qnaScoreNum = parseScoreValue(/Q&A Score:\s*(\d{1,3})(?:\s*\/\s*100)?/i);
+
+        // Calculate Overall Score based on the defined mathematical model
+        const overallScoreNum = Math.round((resumeScoreNum * 0.4) + (qnaScoreNum * 0.6));
 
         setStatus("Saving Report...");
         const attemptData = {
             ...state,
             candidateResumeBase64: null, // Do not bloat Firebase storage
-            transcriptTexts, 
+            transcriptTexts,
             feedback: feedbackRaw,
-            score: parseScore(/Overall Score:\s*(\d{1,3})\s*\/\s*(\d+)/i),
-            resumeScore: parseScore(/Resume Score:\s*(\d{1,3})\s*\/\s*(\d+)/i),
-            qnaScore: parseScore(/Q&A Score:\s*(\d{1,3})\s*\/\s*(\d+)/i),
+            score: `${overallScoreNum}/100`,
+            resumeScore: `${resumeScoreNum}/100`,
+            qnaScore: `${qnaScoreNum}/100`,
             candidateInfo,
             status: cvStats?.terminated ? 'Terminated' : 'Completed', 
             submittedAt: serverTimestamp(), 

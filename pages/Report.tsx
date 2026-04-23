@@ -54,27 +54,43 @@ const InterviewReport: React.FC = () => {
     fetchSubmission();
   }, [interviewId, submissionId]);
 
-  useEffect(() => {
-    if (submission && submission.candidateResumeURL?.startsWith('data:text/plain;base64,')) {
-        try {
-            const base64Part = submission.candidateResumeURL.split(',')[1];
-            const decoded = decodeURIComponent(escape(atob(base64Part)));
-            setProfileTextData(decoded);
-        } catch (e) {
-            console.error("Could not decode profile string", e);
-        }
-    }
-  }, [submission]);
-
   const getScoreValue = (score: unknown): string => {
-    if (typeof score === 'number') return score.toFixed(0);
-    if (typeof score === 'string' && score.includes('/')) return score.split('/')[0];
-    return 'N/A';
+    if (typeof score === 'string' && score.includes('/')) {
+      const value = parseInt(score.split('/')[0], 10);
+      return isNaN(value) ? '0' : String(value);
+    }
+    if (typeof score === 'number') {
+      return String(Math.round(score));
+    }
+    return '0';
   };
 
   const getScoreDenom = (score: unknown): string => {
-    if (typeof score === 'string' && score.includes('/')) return score.split('/')[1];
-    return '10';
+    if (typeof score === 'string' && score.includes('/')) {
+      const denom = parseInt(score.split('/')[1], 10);
+      return isNaN(denom) ? '100' : String(denom); // Default to 100 if invalid
+    }
+    if (typeof score === 'number') {
+      return '100'; // Assuming numerical scores are out of 100
+    }
+    return '100'; // Default denominator
+  };
+
+  const scoreColor = (score: number, denom?: string) => {
+    const d = Number(denom || '100');
+    const pct = d > 0 ? (score / d) * 100 : 0;
+    if (pct >= 75) return 'text-green-500'; // 75%+ is good
+    if (pct >= 50) return 'text-yellow-500'; // 50-74% is fair
+    return 'text-red-500'; // Below 50% is poor
+  };
+
+  const verdictColor = (verdict: string) => {
+    const v = verdict.toLowerCase();
+    if (v.includes('strong hire')) return { bg: 'bg-green-50 dark:bg-green-900/30', border: 'border-green-300 dark:border-green-700', text: 'text-green-700 dark:text-green-300' };
+    if (v.includes('hire')) return { bg: 'bg-emerald-50 dark:bg-emerald-900/30', border: 'border-emerald-300 dark:border-emerald-700', text: 'text-emerald-700 dark:text-emerald-300' };
+    if (v.includes('leaning no')) return { bg: 'bg-yellow-50 dark:bg-yellow-900/30', border: 'border-yellow-300 dark:border-yellow-700', text: 'text-yellow-700 dark:text-yellow-300' };
+    if (v.includes('no hire')) return { bg: 'bg-red-50 dark:bg-red-900/30', border: 'border-red-300 dark:border-red-700', text: 'text-red-700 dark:text-red-300' };
+    return { bg: 'bg-gray-100 dark:bg-gray-800', border: 'border-gray-300 dark:border-gray-700', text: 'text-gray-700 dark:text-gray-300' };
   };
 
   const handleShare = () => {
@@ -343,25 +359,17 @@ const InterviewReport: React.FC = () => {
 
   const parseFeedback = (feedback: unknown) => {
     if (typeof feedback !== 'string') return { resumeAnalysis: 'N/A', answerQuality: 'N/A', overallEvaluation: 'N/A' };
-    const resumeMatch = feedback.match(/\*\*Resume Analysis:\*\*([\s\S]*?)(?=\*\*Answer Quality:\*\*|$)/);
-    const qualityMatch = feedback.match(/\*\*Answer Quality:\*\*([\s\S]*?)(?=\*\*Overall Evaluation:\*\*|$)/);
-    const evalMatch = feedback.match(/\*\*Overall Evaluation:\*\*([\s\S]*)/);
+    const resumeMatch = feedback.match(/\*\*Resume Analysis:\*\*([\s\S]*?)(?=\*\*Answer Quality:\*\*|\*\*Scores:\*\*|$)/);
+    const qualityMatch = feedback.match(/\*\*Answer Quality:\*\*([\s\S]*?)(?=\*\*Overall Evaluation:\*\*|\*\*Scores:\*\*|$)/);
+    const evalMatch = feedback.match(/\*\*Overall Evaluation:\*\*([\s\S]*?)(?=\*\*Verdict:\*\*|\*\*Scores:\*\*|$)/);
+    const verdictMatch = feedback.match(/\*\*Verdict:\*\*\s*(.*)/);
     return {
         resumeAnalysis: resumeMatch ? resumeMatch[1].trim() : 'N/A',
         answerQuality: qualityMatch ? qualityMatch[1].trim() : 'N/A',
-        overallEvaluation: evalMatch ? evalMatch[1].trim() : 'N/A'
+        overallEvaluation: evalMatch ? evalMatch[1].trim() : 'N/A',
+        verdict: verdictMatch ? verdictMatch[1].trim() : 'Not Available'
     };
   };
-
-  const scoreColor = (score: number, denom?: string) => {
-    const d = Number(denom || '10');
-    const pct = d > 0 ? (score / d) * 100 : 0;
-    if (pct >= 70) return 'text-green-500';
-    if (pct >= 40) return 'text-yellow-500';
-    return 'text-red-500';
-  };
-
-
 
   if (loading) {
     return (
@@ -383,22 +391,20 @@ const InterviewReport: React.FC = () => {
     );
   }
 
-  const { resumeAnalysis, answerQuality, overallEvaluation } = parseFeedback(submission.feedback);
+  const { resumeAnalysis, answerQuality, overallEvaluation, verdict } = parseFeedback(submission.feedback);
+  const vColor = verdictColor(verdict);
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-[#0a0a0a] text-gray-800 dark:text-gray-200 font-sans p-4 md:p-8">
         {/* Sticky Header */}
         <div className="sticky top-0 z-40 bg-white/80 dark:bg-[#0a0a0a]/80 backdrop-blur-md rounded-2xl border border-gray-200 dark:border-white/10 mb-6 shadow-sm">
             <div className="max-w-6xl mx-auto flex justify-between items-center p-4">
-                <button onClick={() => navigate(-1)} className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400 hover:text-primary transition-colors">
+                <button onClick={() => navigate(-1)} className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400 hover:text-primary transition-colors" title="Go Back">
                     <ArrowLeft size={18} /> Back
                 </button>
                 <div className="flex items-center gap-2">
-                    <button onClick={handleShare} className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-white/10 transition-colors text-gray-500 dark:text-gray-400" title="Share Report">
+                    <button onClick={handleShare} className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-white/10 transition-colors text-gray-500 dark:text-gray-400" title="Copy Link">
                         <Share2 size={18} />
-                    </button>
-                    <button onClick={handleDownloadPDF} className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg text-sm font-medium hover:bg-primary/90 transition-colors shadow-sm">
-                        <Download size={16} /> Download PDF
                     </button>
                 </div>
             </div>
@@ -407,7 +413,7 @@ const InterviewReport: React.FC = () => {
         <div id="report-content" className="max-w-6xl mx-auto space-y-6">
             
             {/* Header & Candidate Info */}
-            <div className="bg-white dark:bg-white/5 rounded-2xl p-6 border border-gray-200 dark:border-white/10 shadow-sm flex flex-col md:flex-row gap-6 justify-between items-start md:items-center">
+            <div className="bg-white dark:bg-white/5 rounded-2xl p-6 border border-gray-200 dark:border-white/10 shadow-sm flex flex-col md:flex-row gap-6 justify-between items-center">
                 <div>
                     <h1 className="text-3xl font-extrabold text-gray-900 dark:text-white mb-2">
                         {submission.candidateInfo?.name || 'Candidate'}'s Report
@@ -436,6 +442,14 @@ const InterviewReport: React.FC = () => {
                         <User size={16} /> View Profile/Resume Data
                     </button>
                 </div>
+            </div>
+
+            {/* Verdict Card */}
+            <div className={`p-6 rounded-2xl border-2 ${vColor.border} ${vColor.bg} text-center shadow-lg`}>
+                <p className={`text-sm font-bold uppercase tracking-widest opacity-70 ${vColor.text}`}>Hiring Verdict</p>
+                <p className={`text-3xl font-black mt-1 ${vColor.text}`}>
+                    {verdict}
+                </p>
             </div>
 
             {/* Score Grid */}
@@ -523,16 +537,16 @@ const InterviewReport: React.FC = () => {
                     <div className="space-y-6">
                         <div>
                             <strong className="text-blue-800 dark:text-blue-300 block mb-2 text-base">Resume Match Analysis:</strong> 
-                            <p className="bg-white/60 dark:bg-black/20 p-4 rounded-xl border border-blue-100/50 dark:border-white/5">{resumeAnalysis}</p>
+                            <p className="bg-white/60 dark:bg-black/20 p-4 rounded-xl border border-blue-100/50 dark:border-white/5 whitespace-pre-wrap">{resumeAnalysis}</p>
                         </div>
                         <div>
                             <strong className="text-blue-800 dark:text-blue-300 block mb-2 text-base">Answer Quality Analysis:</strong> 
-                            <p className="bg-white/60 dark:bg-black/20 p-4 rounded-xl border border-blue-100/50 dark:border-white/5">{answerQuality}</p>
+                            <p className="bg-white/60 dark:bg-black/20 p-4 rounded-xl border border-blue-100/50 dark:border-white/5 whitespace-pre-wrap">{answerQuality}</p>
                         </div>
                     </div>
                     <div className="flex flex-col h-full">
                         <strong className="text-blue-800 dark:text-blue-300 block mb-2 text-base">Executive Summary:</strong> 
-                        <p className="bg-blue-100/50 dark:bg-blue-900/40 p-6 rounded-xl flex-1 border border-blue-200/50 dark:border-blue-800/50 text-base">{overallEvaluation}</p>
+                        <p className="bg-blue-100/50 dark:bg-blue-900/40 p-6 rounded-xl flex-1 border border-blue-200/50 dark:border-blue-800/50 text-base whitespace-pre-wrap">{overallEvaluation}</p>
                     </div>
                 </div>
             </div>

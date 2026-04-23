@@ -117,9 +117,11 @@ export async function grokGenerateWithResume(
   base64Resume: string,
   mimeType: string,
   temperature = 0.5,
-  maxTokens?: number
+  maxTokens?: number,
+  resumeTextContent?: string // New optional parameter
 ): Promise<string> {
-  const resumeText = extractResumeText(base64Resume, mimeType);
+  // Prioritize the pre-parsed text if available, otherwise extract from base64.
+  const resumeText = resumeTextContent || extractResumeText(base64Resume, mimeType);
 
   const fullUserMessage = resumeText
     ? `${textPrompt}\n\n[Resume]\n${resumeText}`

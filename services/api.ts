@@ -56,7 +56,8 @@ export const generateInterviewQuestions = async (
   base64Resume: string,
   mimeType: string,
   languageCode: string = 'en',
-  numQuestions: number = 5
+  numQuestions: number = 5,
+  resumeTextContent?: string
 ) => {
   // Language-specific instructions for easy, natural language
   let langInstruction = '';
@@ -101,7 +102,7 @@ How to generate questions:
 6. The candidate should feel like you have actually read their resume.`;
 
   try {
-    const text = await grokGenerateWithResume(sys, prompt, base64Resume, mimeType, 0.5, BUDGET.QUESTIONS);
+    const text = await grokGenerateWithResume(sys, prompt, base64Resume, mimeType, 0.5, BUDGET.QUESTIONS, resumeTextContent);
     const clean = text.replace(/^\s*[\d\.\-\*\+]+\s*/gm, '').replace(/\*\*/g, '').trim();
     return clean.split('\n').map(q => q.trim()).filter(q => q && q.length > 5).slice(0, numQuestions);
   } catch (error: any) {
@@ -118,7 +119,8 @@ export const generateFeedback = async (
   base64Resume: string,
   mimeType: string,
   questions: string[],
-  transcripts: string[]
+  transcripts: string[],
+  resumeTextContent?: string
 ) => {
   const jd  = truncate(jobDescription, JD_MAX_CHARS);
   const exp = truncate(candidateExp, 150);
@@ -127,35 +129,74 @@ export const generateFeedback = async (
   const qaBlock = questions.map((q, i) => {
     const ans = truncate(transcripts[i] || '(no answer given)', TRANSCRIPT_MAX_CHARS);
     return `Q${i + 1}: ${q}\nA${i + 1}: ${ans}`;
-  }).join('\n');
+  }).join('\n\n---\n\n');
 
-  const sys = `You are a professional hiring evaluator. Provide accurate, specific feedback.`;
+  const sys = `You are a senior technical recruiter providing a detailed, unbiased evaluation of a candidate's interview. Your analysis must be structured, data-driven, and provide actionable feedback. Adhere strictly to the output format.`;
 
   const feedbackPrompt =
-`Evaluate candidate for "${jobTitle}".
+`## Candidate Evaluation
 
-<JD>${jd}</JD>
-<Experience>${exp}</Experience>
-<QA>
+**ROLE:** ${jobTitle}
+**CANDIDATE STATED EXPERIENCE:** ${exp}
+
+---
+
+### JOB DESCRIPTION
+${jd}
+
+---
+
+### INTERVIEW TRANSCRIPT
 ${qaBlock}
-</QA>
 
-RESUME SCORE: Compare JD skills/exp with resume. Score 1-10:
-- 9-10: Most JD requirements in resume
-- 7-8: Good match
-- 5-6: Partial match
-- 1-4: Poor match
+---
 
-Q&A SCORE: 1-10 based on answer quality.
+### EVALUATION TASK
 
-OUTPUT (short paragraphs):
-**Resume Analysis:** [Skills/experience match analysis]
-**Answer Quality:** [Answer evaluation]
-**Overall:** [1 sentence verdict]
-Scores: Resume:X/10 Q&A:X/10 Overall:X/10`;
+Based on the Job Description, the candidate's resume (provided in context), and their Q&A performance, provide a comprehensive evaluation.
+
+**1. Resume Analysis:**
+   - Compare the resume against the JD for required skills, experience, and qualifications.
+   - Identify 2-3 key strengths (e.g., specific project experience that matches).
+   - Identify 2-3 key weaknesses or missing qualifications.
+   - Provide a detailed paragraph explaining your reasoning.
+
+**2. Answer Quality Analysis:**
+   - Evaluate each answer for technical accuracy, clarity, and relevance to the question.
+   - Mention which answers were strong and which were weak, with brief justifications.
+   - Provide a detailed paragraph summarizing their communication and problem-solving skills.
+
+**3. Overall Evaluation & Verdict:**
+   - Write a concise executive summary (2-3 sentences).
+   - Provide a final hiring verdict from: "Strong Hire", "Hire", "Leaning No", "No Hire".
+
+**4. Scoring (MANDATORY):**
+   - **Resume Score:** A numerical score from 0-100 based on the resume's alignment with the JD.
+   - **Q&A Score:** A numerical score from 0-100 based on the quality and accuracy of their answers.
+   - **DO NOT** provide an "Overall Score". The application will calculate it.
+
+---
+
+### OUTPUT FORMAT (Strictly follow this structure)
+
+**Resume Analysis:**
+[Your detailed analysis of the resume vs. the JD, including strengths and weaknesses.]
+
+**Answer Quality:**
+[Your detailed analysis of the candidate's answers and communication skills.]
+
+**Overall Evaluation:**
+[Your 2-3 sentence executive summary.]
+
+**Verdict:** [Strong Hire | Hire | Leaning No | No Hire]
+
+**Scores:**
+Resume Score: [SCORE]/100
+Q&A Score: [SCORE]/100
+`;
 
   try {
-    const result = await grokGenerateWithResume(sys, feedbackPrompt, base64Resume, mimeType, 0.2, BUDGET.FEEDBACK);
+    const result = await grokGenerateWithResume(sys, feedbackPrompt, base64Resume, mimeType, 0.2, BUDGET.FEEDBACK, resumeTextContent);
     return result || "AI feedback generation failed.";
   } catch (error: any) {
     console.error("Grok Feedback Error:", error);
