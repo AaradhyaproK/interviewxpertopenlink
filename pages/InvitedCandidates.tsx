@@ -77,7 +77,7 @@ const InvitedCandidates: React.FC = () => {
 
                         allCands.push({
                             email: email,
-                            phone: enhancedData?.phone || submission.candidateInfo?.phone || 'N/A',
+                            phone: enhancedData?.phone || (submission.candidateInfo as any)?.phone || 'N/A',
                             interviewId: interview.id,
                             interviewTitle: interview.title || 'Untitled Role',
                             hasSubmitted: true,
@@ -126,7 +126,7 @@ const InvitedCandidates: React.FC = () => {
         
         const jobsPayload = interviews.map(i => ({ id: i.id, title: i.title, description: i.description }));
 
-        const parsePromises = Array.from(files).map(async (file) => {
+        const parsePromises = Array.from(files).map(async (file: File) => {
             let text = '';
             try {
                 if (file.type === 'application/pdf') {

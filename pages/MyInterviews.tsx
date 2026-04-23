@@ -62,7 +62,7 @@ const MyInterviews: React.FC = () => {
           const mock: Interview[] = [];
 
           allSubmissions.forEach(submission => {
-            if (submission.isMock) {
+            if ((submission as any).isMock) {
               mock.push(submission);
             } else {
               real.push(submission);
@@ -86,7 +86,7 @@ const MyInterviews: React.FC = () => {
             orderBy('submittedAt', 'desc')
           );
           const assessmentsSnap = await getDocs(assessmentsQuery);
-          const assessmentsData = assessmentsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+          const assessmentsData = assessmentsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() } as any));
 
           if (assessmentsData.length > 0) {
             const testIds = [...new Set(assessmentsData.map(a => a.testId).filter(Boolean))];

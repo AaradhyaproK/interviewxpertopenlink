@@ -15,7 +15,7 @@ const INITIAL_SERVICES: ServiceStatus[] = [
   { name: 'Sarvam API', description: 'AI-powered speech & language services', status: 'checking', iconUrl: 'https://www.google.com/s2/favicons?domain=sarvam.ai&sz=128' },
   { name: 'Firebase API', description: 'Authentication, database & storage', status: 'checking', iconUrl: 'https://www.google.com/s2/favicons?domain=firebase.google.com&sz=128' },
   { name: 'Cloudinary API', description: 'Media uploads & asset management', status: 'checking', iconUrl: 'https://www.google.com/s2/favicons?domain=cloudinary.com&sz=128' },
-  { name: 'Gemini API', description: 'AI interview question generation & evaluation', status: 'checking', iconUrl: 'https://www.google.com/s2/favicons?domain=gemini.google.com&sz=128', modelStatus: '...' },
+  { name: 'Grok API', description: 'AI interview question generation & evaluation', status: 'checking', iconUrl: 'https://www.google.com/s2/favicons?domain=x.ai&sz=128', modelStatus: '...' },
 ];
 
 // Timeout wrapper — aborts any check after 10 seconds

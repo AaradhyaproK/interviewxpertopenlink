@@ -264,8 +264,8 @@ const InterviewReport: React.FC = () => {
         const verdictBorder = vColor.border.includes('green') ? [167, 243, 208] : vColor.border.includes('yellow') ? [252, 211, 77] : vColor.border.includes('red') ? [252, 165, 165] : [226, 232, 240];
         const verdictText = vColor.text.includes('green') ? [21, 128, 61] : vColor.text.includes('yellow') ? [180, 83, 9] : vColor.text.includes('red') ? [185, 28, 28] : [55, 65, 81];
         
-        pdf.setFillColor(...verdictBg);
-        pdf.setDrawColor(...verdictBorder);
+        pdf.setFillColor(verdictBg[0], verdictBg[1], verdictBg[2]);
+        pdf.setDrawColor(verdictBorder[0], verdictBorder[1], verdictBorder[2]);
         pdf.setLineWidth(0.5);
         pdf.roundedRect(margin, y, contentW, 20, 3, 3, 'FD');
         pdf.setFontSize(8);
