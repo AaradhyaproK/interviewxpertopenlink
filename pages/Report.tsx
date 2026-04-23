@@ -6,7 +6,7 @@ import { InterviewSubmission } from '../types';
 import { createPortal } from 'react-dom';
 import { jsPDF } from 'jspdf';
 import { useMessageBox } from '../components/MessageBox';
-import { ArrowLeft, Download, Share2, User, FileText, MessageSquare, Eye, Brain, BarChart, Shield, Video, CheckCircle, XCircle, Briefcase, MapPin, GraduationCap, DollarSign, Calendar, Award } from 'lucide-react';
+import { ArrowLeft, Download, Share2, User, FileText, MessageSquare, Eye, Brain, BarChart, Shield, Video, CheckCircle, XCircle, Briefcase, MapPin, GraduationCap, DollarSign, Calendar, Award, Link as LinkIcon } from 'lucide-react';
 
 // New component for radial score display
 const ScoreCircle: React.FC<{ score: number; denom: number; color: 'green' | 'yellow' | 'red'; label: string }> = ({ score, denom, color, label }) => {
@@ -208,14 +208,25 @@ const InterviewReport: React.FC = () => {
 
         const drawInfoBox = (label: string, value: string, x: number, boxY: number, boxW: number) => {
             pdf.setFillColor(248, 250, 252);
-            pdf.roundedRect(x, boxY, boxW, 16, 2, 2, 'F');
+            pdf.setDrawColor(226, 232, 240);
+            pdf.setLineWidth(0.3);
+            pdf.roundedRect(x, boxY, boxW, 16, 2, 2, 'FD');
             pdf.setFontSize(8);
             pdf.setTextColor(100, 116, 139);
             pdf.text(label, x + 4, boxY + 6);
             pdf.setFontSize(10);
             pdf.setFont('helvetica', 'bold');
             pdf.setTextColor(15, 23, 42);
-            pdf.text(value, x + 4, boxY + 12);
+            
+            // Protect against long text overflow
+            const valStr = (value || 'N/A').toString();
+            const valueLines = pdf.splitTextToSize(valStr, boxW - 6);
+            if (valueLines.length > 1) {
+                pdf.setFontSize(8);
+                pdf.text(valueLines[0].substring(0, 30) + '...', x + 4, boxY + 12);
+            } else {
+                pdf.text(valStr, x + 4, boxY + 12);
+            }
         };
 
         // 1. HEADER
@@ -247,7 +258,7 @@ const InterviewReport: React.FC = () => {
 
         // 3. VERDICT & SCORES
         checkPage(35);
-        const { verdict, resumeAnalysis, answerQuality, overallEvaluation } = parseFeedback(submission.feedback);
+        const { verdict, summary, roleFit, communicationSkills, technicalSkills } = parseFeedback(submission.feedback);
         const vColor = verdictColor(verdict);
         const verdictBg = vColor.bg.includes('green') ? [236, 253, 245] : vColor.bg.includes('yellow') ? [254, 252, 232] : vColor.bg.includes('red') ? [254, 242, 242] : [241, 245, 249];
         const verdictBorder = vColor.border.includes('green') ? [167, 243, 208] : vColor.border.includes('yellow') ? [252, 211, 77] : vColor.border.includes('red') ? [252, 165, 165] : [226, 232, 240];
@@ -315,27 +326,39 @@ const InterviewReport: React.FC = () => {
         // 5. AI EVALUATION
         drawSectionHeader("AI Evaluation");
         const aiSections = [
-            { title: 'Resume Match Analysis', body: resumeAnalysis },
-            { title: 'Answer Quality Analysis', body: answerQuality },
-            { title: 'Executive Summary', body: overallEvaluation },
+            { title: 'Executive Summary', body: summary },
+            { title: 'Role & Resume Fit', body: roleFit },
+            { title: 'Communication Skills', body: communicationSkills },
+            { title: 'Technical / Domain Skills', body: technicalSkills },
         ];
 
         aiSections.forEach(sec => {
+            if (!sec.body || sec.body === 'N/A') return;
+
+            checkPage(20);
             pdf.setFont('helvetica', 'bold');
             pdf.setFontSize(10);
-            pdf.setTextColor(55, 65, 81);
-            checkPage(10);
-            pdf.text(sec.title, margin, y);
+            pdf.setTextColor(15, 23, 42); 
+            
+            // Add a small primary-colored accent rectangle next to the title
+            pdf.setFillColor(37, 99, 235);
+            pdf.rect(margin, y - 3, 1.5, 4, 'F');
+            
+            pdf.text(sec.title, margin + 4, y);
             y += 6;
 
             pdf.setFont('helvetica', 'normal');
             pdf.setFontSize(9);
-            pdf.setTextColor(82, 82, 91);
-            const bodyLines = pdf.splitTextToSize(sec.body || 'N/A', contentW);
-            checkPage(bodyLines.length * 5 + 8);
-            pdf.text(bodyLines, margin, y);
-            y += bodyLines.length * 5 + 8;
+            pdf.setTextColor(71, 85, 105);
+            
+            const bodyLines = pdf.splitTextToSize(sec.body, contentW - 4);
+            const blockH = bodyLines.length * 4.5 + 4;
+            checkPage(blockH + 5);
+            
+            pdf.text(bodyLines, margin + 4, y);
+            y += blockH + 6;
         });
+        y += 2;
 
         // 6. BEHAVIORAL ANALYSIS
         if (submission.meta?.cvStats) {
@@ -469,11 +492,18 @@ const InterviewReport: React.FC = () => {
                 <button onClick={() => navigate(-1)} className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400 hover:text-primary transition-colors" title="Go Back">
                     <ArrowLeft size={18} /> Back
                 </button>
-                <div className="flex items-center gap-2">
-                    <button onClick={handleShare} className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-white/10 transition-colors text-gray-500 dark:text-gray-400" title="Copy Link">
-                        <Share2 size={18} />
+                <div className="flex items-center gap-3">
+                    <button 
+                        onClick={handleShare}
+                        className="flex items-center gap-2 px-5 py-2.5 bg-white dark:bg-white/10 text-gray-700 dark:text-gray-200 border border-gray-200 dark:border-white/10 rounded-lg font-semibold hover:bg-gray-50 dark:hover:bg-white/20 transition-all shadow-sm"
+                        title="Copy Report Link"
+                    >
+                        <LinkIcon size={16} /> Copy Link
                     </button>
-                    <button onClick={handleDownloadPDF} className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg text-sm font-medium hover:bg-primary/90 transition-colors shadow-sm">
+                    <button 
+                        onClick={handleDownloadPDF} 
+                        className="flex items-center gap-2 px-5 py-2.5 bg-primary text-white rounded-lg font-semibold hover:bg-primary-dark transition-all shadow-sm"
+                    >
                         <Download size={16} /> Download PDF
                     </button>
                 </div>

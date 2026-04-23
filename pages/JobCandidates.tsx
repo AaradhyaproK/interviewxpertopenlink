@@ -151,6 +151,16 @@ const JobCandidates: React.FC = () => {
     }
   };
 
+  const getDisplayScore = (score: unknown) => {
+    let value = 0;
+    if (typeof score === 'string' && score.includes('/')) {
+      value = parseInt(score.split('/')[0], 10);
+    } else if (typeof score === 'number' || typeof score === 'string') {
+      value = parseFloat(String(score));
+    }
+    return isNaN(value) ? '0.0' : (value / 10).toFixed(1);
+  };
+
   return (
     <div>
       <div className="flex items-center gap-4 mb-6">
@@ -187,14 +197,24 @@ const JobCandidates: React.FC = () => {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredInterviews.map(interview => (
-            <div key={interview.id} className="bg-white dark:bg-black/80 backdrop-blur-sm p-6 rounded-lg shadow-sm border border-gray-200 dark:border-slate-800 hover:shadow-md hover:border-blue-200 dark:hover:border-blue-900 transition-all">
-              <div className="flex items-center gap-3 mb-4">
-                 <div className="h-10 w-10 rounded-full bg-primary-light dark:bg-primary/20 text-primary flex items-center justify-center font-bold">
-                    {interview.candidateName.charAt(0)}
+            <div key={interview.id} className="bg-white dark:bg-black/80 backdrop-blur-sm p-6 rounded-lg shadow-sm border border-gray-200 dark:border-slate-800 hover:shadow-md hover:border-blue-200 dark:hover:border-blue-900 transition-all flex flex-col justify-between">
+              <div className="flex items-start justify-between gap-3 mb-4">
+                 <div className="flex items-center gap-3">
+                     <div className="h-10 w-10 rounded-full bg-primary-light dark:bg-primary/20 text-primary flex items-center justify-center font-bold">
+                        {interview.candidateName?.charAt(0) || '?'}
+                     </div>
+                     <div>
+                       <h3 className="font-bold text-gray-800 dark:text-white capitalize">{interview.candidateName}</h3>
+                        {interview.candidateInfo?.phone && (
+                          <div className="text-xs text-gray-500 dark:text-slate-400 mt-1 flex items-center gap-1.5"><i className="fas fa-phone"></i> {interview.candidateInfo.phone}</div>
+                        )}
+                        {interview.candidateInfo?.email && (
+                          <div className="text-xs text-gray-500 dark:text-slate-400 mt-1 flex items-center gap-1.5"><i className="fas fa-envelope"></i> {interview.candidateInfo.email}</div>
+                        )}
+                     </div>
                  </div>
-                 <div>
-                   <h3 className="font-bold text-gray-800 dark:text-white">{interview.candidateName}</h3>
-                    <p className="text-xs text-gray-500 dark:text-slate-400">
+                 <div className="text-right">
+                    <p className="text-xs font-medium text-gray-400 dark:text-slate-500">
                       {interview.submittedAt?.toDate
                         ? (() => {
                             const d = interview.submittedAt.toDate();
@@ -210,15 +230,15 @@ const JobCandidates: React.FC = () => {
               <div className="space-y-2 mb-6">
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-500 dark:text-slate-400">Overall Score:</span>
-                  <span className="font-bold text-gray-800 dark:text-white">{interview.score}</span>
+                  <span className="font-bold text-gray-800 dark:text-white">{getDisplayScore(interview.score)}/10</span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-500 dark:text-slate-400">Resume Match:</span>
-                  <span className="font-semibold text-gray-700 dark:text-slate-300">{interview.resumeScore}</span>
+                  <span className="font-semibold text-gray-700 dark:text-slate-300">{getDisplayScore(interview.resumeScore)}/10</span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-500 dark:text-slate-400">Q&A Quality:</span>
-                  <span className="font-semibold text-gray-700 dark:text-slate-300">{interview.qnaScore}</span>
+                  <span className="font-semibold text-gray-700 dark:text-slate-300">{getDisplayScore(interview.qnaScore)}/10</span>
                 </div>
               </div>
 

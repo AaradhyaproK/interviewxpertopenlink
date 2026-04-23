@@ -9,8 +9,6 @@ const InterviewResponses: React.FC = () => {
   const { interviewId } = useParams<{ interviewId: string }>();
   const [submissions, setSubmissions] = useState<InterviewSubmission[]>([]);
   const [loading, setLoading] = useState(true);
-  const [expandedId, setExpandedId] = useState<string | null>(null);
-  const [videoInView, setVideoInView] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [sortOrder, setSortOrder] = useState<'desc' | 'asc'>('desc');
 
@@ -35,12 +33,13 @@ const InterviewResponses: React.FC = () => {
   }, [interviewId]);
 
   const getScoreValue = (score: unknown): number => {
-    if (typeof score === 'number') return score;
-    if (typeof score === 'string') {
+    let value = 0;
+    if (typeof score === 'number') value = score;
+    else if (typeof score === 'string') {
       const parsed = parseInt(score.split('/')[0], 10);
-      return isNaN(parsed) ? 0 : parsed;
+      value = isNaN(parsed) ? 0 : parsed;
     }
-    return 0;
+    return value / 10;
   };
 
   const getScoreDenom = (score: unknown): string => {
@@ -149,179 +148,45 @@ const InterviewResponses: React.FC = () => {
       ) : (
         <div className="space-y-6">
             {filteredAndSortedSubmissions.map(submission => {
-                const isExpanded = expandedId === submission.id;
-                const { resumeAnalysis, answerQuality, overallEvaluation } = parseFeedback(submission.feedback);
-
                 return (
-                  <div key={submission.id} className="bg-white dark:bg-[#111] rounded-2xl border border-gray-200 dark:border-white/5 shadow-sm transition-all duration-300">
-                      <div className="p-6 cursor-pointer" onClick={() => setExpandedId(isExpanded ? null : submission.id)}>
-                        <div className="flex justify-between items-start">
+                  <Link 
+                    to={`/report/${interviewId}/${submission.id}`}
+                    key={submission.id} 
+                    className="block bg-white dark:bg-[#111] rounded-2xl border border-gray-200 dark:border-white/5 shadow-sm hover:shadow-md hover:border-primary/50 dark:hover:border-primary/50 transition-all duration-300"
+                  >
+                      <div className="p-6">
+                        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4">
                             <div>
-                                <h3 className="font-bold text-xl text-gray-900 dark:text-white">{submission.candidateInfo?.name || 'Unknown Candidate'}</h3>
-                                <p className="text-sm text-gray-500">{submission.candidateInfo?.email}</p>
-                                <p className="text-sm text-gray-500">Submitted: {submission.submittedAt?.toDate ? submission.submittedAt.toDate().toLocaleString('en-GB') : 'N/A'}</p>
+                                <h3 className="font-bold text-xl text-gray-900 dark:text-white capitalize">{submission.candidateInfo?.name || 'Unknown Candidate'}</h3>
+                                {submission.candidateInfo?.phone && (
+                                  <div className="flex items-center gap-2 mt-1.5 text-sm text-gray-500 font-medium">
+                                      <i className="fas fa-phone"></i> {submission.candidateInfo.phone}
+                                  </div>
+                                )}
+                                {submission.candidateInfo?.email && (
+                                  <div className="flex items-center gap-2 mt-1 text-sm text-gray-500 font-medium">
+                                      <i className="fas fa-envelope"></i> {submission.candidateInfo.email}
+                                  </div>
+                                )}
+                                <div className="flex items-center gap-2 mt-1 text-sm text-gray-500">
+                                    <i className="fas fa-calendar-alt"></i> Submitted: {submission.submittedAt?.toDate ? submission.submittedAt.toDate().toLocaleString('en-GB') : 'N/A'}
+                                </div>
                             </div>
-                            <div className="text-right">
-                              <div className="text-3xl font-bold text-primary">{getScoreValue(submission.score).toFixed(0)}<span className="text-lg text-gray-400">/{getScoreDenom(submission.score)}</span></div>
-                              <span className="text-sm text-gray-500">Overall Score</span>
+                            <div className="flex flex-col items-end">
+                              <div className="text-3xl font-black text-primary">{getScoreValue(submission.score).toFixed(1)}<span className="text-lg text-gray-400 font-medium">/{getScoreDenom(submission.score)}</span></div>
+                              <span className="text-sm font-semibold uppercase tracking-wider text-gray-500 mt-1">Overall Score</span>
                             </div>
+                        </div>
+                        <div className="mt-5 pt-4 border-t border-gray-100 dark:border-white/5 flex justify-end">
+                            <span className="text-primary font-bold text-sm flex items-center gap-2 hover:gap-3 transition-all">
+                                View Detailed Report <i className="fas fa-arrow-right"></i>
+                            </span>
                         </div>
                       </div>
-
-                      {isExpanded && (
-                        <div className="pb-6 px-6 border-t border-gray-200 dark:border-white/10 animate-fade-in-up">
-                          
-                          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 my-6">
-                            {submission.candidateResumeURL && !submission.candidateResumeURL.startsWith('data:text/plain') ? (
-                              <a href={submission.candidateResumeURL} target="_blank" rel="noopener noreferrer" className="bg-gray-50 dark:bg-gray-800/50 p-4 rounded-lg text-center hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors block">
-                                  <i className="fas fa-file-alt text-2xl text-blue-500 mb-2"></i>
-                                  <p className="font-semibold text-sm">View Resume</p>
-                              </a>
-                            ) : (
-                              <div className="bg-gray-50 dark:bg-gray-800/50 p-4 rounded-lg text-center opacity-50">
-                                  <i className="fas fa-file-alt text-2xl text-gray-500 mb-2"></i>
-                                  <p className="font-semibold text-sm">Resume Unavailable</p>
-                              </div>
-                            )}
-                            <div className="bg-gray-50 dark:bg-gray-800/50 p-4 rounded-lg text-center">
-                                <i className="fas fa-user-tie text-2xl text-green-500 mb-2"></i>
-                                <p className="font-semibold text-sm">Resume Score: {getScoreValue(submission.resumeScore).toFixed(0)}/{getScoreDenom(submission.resumeScore)}</p>
-                            </div>
-                            <div className="bg-gray-50 dark:bg-gray-800/50 p-4 rounded-lg text-center">
-                                <i className="fas fa-microphone-alt text-2xl text-purple-500 mb-2"></i>
-                                <p className="font-semibold text-sm">Q&A Score: {getScoreValue(submission.qnaScore).toFixed(0)}/{getScoreDenom(submission.qnaScore)}</p>
-                            </div>
-                          </div>
-
-                          {(submission.candidateInfo as any)?.experienceType && (
-                            <div className="space-y-4 mb-6">
-                              <h4 className="font-bold text-lg">Candidate Questionnaire</h4>
-                              <div className="p-4 bg-gray-50 dark:bg-gray-800/50 rounded-lg grid grid-cols-1 md:grid-cols-2 gap-4">
-                                  <div>
-                                    <h5 className="text-xs font-semibold text-gray-500 uppercase">Contact Details</h5>
-                                    <p className="text-sm font-medium">{submission.candidateInfo?.email}</p>
-                                    <p className="text-sm">{submission.candidateInfo?.phone || 'No phone provided'}</p>
-                                  </div>
-                                  <div>
-                                    <h5 className="text-xs font-semibold text-gray-500 uppercase">Experience</h5>
-                                    <p className="text-sm font-medium">
-                                      {(submission.candidateInfo as any).experienceType === 'fresher' 
-                                        ? `Fresher (Graduated: ${(submission.candidateInfo as any).graduationYear})` 
-                                        : `${(submission.candidateInfo as any).totalExperienceYears}y ${(submission.candidateInfo as any).totalExperienceMonths}m 
-                                           (${(submission.candidateInfo as any).workStatus === 'working' ? `At ${(submission.candidateInfo as any).currentCompany}` : `Left ${(submission.candidateInfo as any).pastCompany} on ${(submission.candidateInfo as any).leaveDate}`})`
-                                      }
-                                    </p>
-                                  </div>
-                                  <div>
-                                    <h5 className="text-xs font-semibold text-gray-500 uppercase">Location & Relocation</h5>
-                                    <p className="text-sm font-medium">{(submission.candidateInfo as any).currentLocation}</p>
-                                    <p className="text-sm">{(submission.candidateInfo as any).readyToRelocate === 'yes' ? `Ready to relocate (${(submission.candidateInfo as any).relocateReason || 'No reason'})` : 'Not ready to relocate'}</p>
-                                  </div>
-                                  <div>
-                                    <h5 className="text-xs font-semibold text-gray-500 uppercase">Salary Details</h5>
-                                    <p className="text-sm font-medium">Current: {(submission.candidateInfo as any).currentSalary} LPA | Expected: {(submission.candidateInfo as any).expectedSalary} LPA</p>
-                                    <p className="text-sm">Has proofs: {(submission.candidateInfo as any).hasSalaryProof === 'yes' ? 'Yes' : 'No'}</p>
-                                  </div>
-                                  <div>
-                                    <h5 className="text-xs font-semibold text-gray-500 uppercase">Resume Updated?</h5>
-                                    <p className="text-sm font-medium">{(submission.candidateInfo as any).resumeUpdated === 'yes' ? 'Yes' : 'No'}</p>
-                                  </div>
-                              </div>
-                            </div>
-                          )}
-
-                          <div className="space-y-4 mb-6">
-                            <h4 className="font-bold text-lg">AI Evaluation</h4>
-                            <div className="p-4 bg-gray-50 dark:bg-gray-800/50 rounded-lg">
-                                <h5 className="font-semibold mb-1">Resume Analysis</h5>
-                                <p className="text-sm text-gray-600 dark:text-gray-400">{resumeAnalysis}</p>
-                            </div>
-                            <div className="p-4 bg-gray-50 dark:bg-gray-800/50 rounded-lg">
-                                <h5 className="font-semibold mb-1">Answer Quality</h5>
-                                <p className="text-sm text-gray-600 dark:text-gray-400">{answerQuality}</p>
-                            </div>
-                            <div className="p-4 bg-gray-50 dark:bg-gray-800/50 rounded-lg">
-                                <h5 className="font-semibold mb-1">Overall Summary</h5>
-                                <p className="text-sm text-gray-600 dark:text-gray-400">{overallEvaluation}</p>
-                            </div>
-                          </div>
-
-                          <div className="space-y-4 mb-6">
-                            <h4 className="font-bold text-lg">Behavioral Analysis</h4>
-                             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
-                                <div className="bg-gray-50 dark:bg-gray-800/50 p-3 rounded-lg">
-                                  <p className="text-xl font-bold">{submission.meta?.cvStats?.eyeContactScore ?? 'N/A'}%</p>
-                                  <p className="text-xs text-gray-500">Eye Contact</p>
-                                </div>
-                                <div className="bg-gray-50 dark:bg-gray-800/50 p-3 rounded-lg">
-                                  <p className="text-xl font-bold">{submission.meta?.cvStats?.confidenceScore ?? 'N/A'}%</p>
-                                  <p className="text-xs text-gray-500">Confidence</p>
-                                </div>
-                                 <div className="bg-gray-50 dark:bg-gray-800/50 p-3 rounded-lg">
-                                  <p className="text-xl font-bold">{submission.meta?.tabSwitchCount ?? 'N/A'}</p>
-                                  <p className="text-xs text-gray-500">Tab Switches</p>
-                                </div>
-                                <div className="bg-gray-50 dark:bg-gray-800/50 p-3 rounded-lg">
-                                  <p className="text-xl font-bold">{submission.meta?.cvStats?.facesDetected ?? 'N/A'}</p>
-                                  <p className="text-xs text-gray-500">Faces Detected</p>
-                                </div>
-                            </div>
-                          </div>
-
-                          <div>
-                            <h4 className="font-bold text-lg mb-4">Answers</h4>
-                            <div className="space-y-6">
-                              {submission.questions?.map((q, index) => (
-                                <div key={index} className="p-4 border dark:border-gray-700 rounded-lg">
-                                  <p className="font-semibold mb-2">Q{index + 1}: {q}</p>
-                                  {submission.videoURLs?.[index] ? (
-                                    <button 
-                                      onClick={() => setVideoInView(submission.videoURLs![index]!)}
-                                      className="inline-flex items-center gap-2 px-4 py-2 bg-blue-500 text-white rounded-md font-semibold text-sm hover:bg-blue-600 transition-colors mb-2"
-                                    >
-                                      <i className="fas fa-play-circle"></i> View Video Response
-                                    </button>
-                                  ) : <p className="text-sm text-gray-400 italic">Video not available.</p>}
-                                  <details className="text-sm">
-                                      <summary className="cursor-pointer text-gray-500 hover:text-primary">View Transcript</summary>
-                                      <p className="mt-2 text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-800/50 p-3 rounded-md">{submission.transcriptTexts?.[index] || 'Transcript not available.'}</p>
-                                  </details>
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-
-                          <div className="mt-6 text-center">
-                             <Link to={`/report/${interviewId}/${submission.id}`} target="_blank" className="px-6 py-2 bg-primary text-white rounded-full text-sm font-medium hover:bg-primary-dark transition-colors">
-                                View Full Report Page
-                            </Link>
-                          </div>
-                        </div>
-                      )}
-                  </div>
+                  </Link>
                 )
             })}
         </div>
-    )}
-
-    {videoInView && createPortal(
-      <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4" onClick={() => setVideoInView(null)}>
-          <div className="bg-white dark:bg-gray-900 rounded-lg shadow-xl w-full max-w-4xl max-h-[80vh] flex flex-col" onClick={e => e.stopPropagation()}>
-              <div className="flex justify-between items-center p-4 border-b border-gray-200 dark:border-gray-700">
-                  <h3 className="font-bold text-lg text-gray-900 dark:text-white">Video Response</h3>
-                  <button onClick={() => setVideoInView(null)} className="text-2xl text-gray-500 hover:text-gray-800 dark:hover:text-white">&times;</button>
-              </div>
-              <div className="p-4 flex-1 bg-black">
-                  <video
-                      controls
-                      autoPlay
-                      src={videoInView}
-                      className="w-full h-full rounded-md"
-                  />
-              </div>
-          </div>
-      </div>,
-      document.body
     )}
 </div>
   );
