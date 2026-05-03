@@ -38,9 +38,10 @@ const CreateTest: React.FC = () => {
   const [hasNegativeMarking, setHasNegativeMarking] = useState(false);
   const [negativeMarksPerQuestion, setNegativeMarksPerQuestion] = useState(0.25);
   const [numQuestions, setNumQuestions] = useState(5);
+  const [includeExplanation, setIncludeExplanation] = useState(false);
 
   // Manual Question State
-  const [manualQ, setManualQ] = useState({ question: '', options: ['', '', '', ''], correct: 0 });
+  const [manualQ, setManualQ] = useState({ question: '', options: ['', '', '', ''], correct: 0, explanation: '' });
   const [manualCodeQ, setManualCodeQ] = useState({ title: '', description: '', testCases: '' });
 
   useEffect(() => {
@@ -72,7 +73,8 @@ const CreateTest: React.FC = () => {
         if (isPYQ) promptStr += ` (Make them similar to Previous Year Questions).`;
         if (notes) promptStr += ` Base questions strictly on these notes: "${notes}".`;
         if (aiPrompt) promptStr += ` Additional context: "${aiPrompt}".`;
-        promptStr += `\n\nCRITICAL: You must return a JSON object containing a "questions" array. All text values inside the JSON MUST be in ${language}. Schema: { "questions": [{"question": "string (in ${language})", "options": ["string", "string", "string", "string"], "correctIndex": number}] }`;
+        if (includeExplanation) promptStr += ` Provide a detailed 'explanation' for each correct answer.`;
+        promptStr += `\n\nCRITICAL: You must return a JSON object containing a "questions" array. All text values inside the JSON MUST be in ${language}. Schema: { "questions": [{"question": "string (in ${language})", "options": ["string", "string", "string", "string"], "correctIndex": number${includeExplanation ? ', "explanation": "string"' : ''}}] }`;
       } else {
         promptStr = `Generate ${numQuestions} coding problem(s). YOU MUST WRITE THE TITLE AND DESCRIPTION ENTIRELY IN THE ${language.toUpperCase()} LANGUAGE! Do not use English if another language is selected.`;
         if (topic) promptStr += ` Topic: "${topic}".`;
@@ -165,7 +167,7 @@ const CreateTest: React.FC = () => {
   const addManualQuestion = () => {
     if (type === 'aptitude') {
       setQuestions([...questions, { ...manualQ, correctIndex: Number(manualQ.correct) }]);
-      setManualQ({ question: '', options: ['', '', '', ''], correct: 0 });
+      setManualQ({ question: '', options: ['', '', '', ''], correct: 0, explanation: '' });
     } else {
       setQuestions([...questions, manualCodeQ]);
       setManualCodeQ({ title: '', description: '', testCases: '' });
@@ -213,14 +215,23 @@ const CreateTest: React.FC = () => {
 
   return (
     <div className={`min-h-screen p-6 ${isDark ? 'text-white' : 'text-gray-900'}`}>
-      <div className="max-w-4xl mx-auto">
-        <button onClick={() => navigate(-1)} className="flex items-center gap-2 text-gray-500 hover:text-blue-500 mb-6">
-          <ArrowLeft size={18} /> Back
-        </button>
+      <div className="max-w-7xl mx-auto">
+        <div className="flex items-center justify-between mb-8">
+          <div>
+            <button onClick={() => navigate(-1)} className="flex items-center gap-2 text-gray-500 hover:text-blue-500 mb-2">
+              <ArrowLeft size={18} /> Back
+            </button>
+            <h1 className="text-3xl font-bold">Create Assessment</h1>
+          </div>
+          <button onClick={handleSave} disabled={loading || questions.length === 0} className="px-8 py-3 bg-green-600 hover:bg-green-700 text-white rounded-xl font-bold shadow-lg flex items-center gap-2 disabled:opacity-50 transition-all">
+            <Save size={20} /> Save Assessment
+          </button>
+        </div>
 
-        <h1 className="text-3xl font-bold mb-8">Create Assessment</h1>
-
-        <div className="bg-white dark:bg-[#111] p-6 rounded-2xl border border-gray-200 dark:border-white/10 shadow-sm mb-6">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+          {/* Left Column: Configuration */}
+          <div className="lg:col-span-7 space-y-6">
+            <div className="bg-white dark:bg-[#111] p-6 rounded-2xl border border-gray-200 dark:border-white/10 shadow-sm">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
             <div>
               <label className="block text-sm font-bold mb-2">Test Title</label>
@@ -300,7 +311,13 @@ const CreateTest: React.FC = () => {
                   <label className="block text-xs font-bold text-blue-700 dark:text-blue-400 mb-1">AI Description / Custom Prompt</label>
                   <input type="text" value={aiPrompt} onChange={e => setAiPrompt(e.target.value)} placeholder={`Enter specific instructions for ${type} questions...`} className="w-full p-3 rounded-xl bg-white dark:bg-[#050505] border border-blue-200 dark:border-blue-800 outline-none" />
                 </div>
-                <div className="flex items-end">
+                <div className="flex flex-col justify-end gap-2">
+                  {type === 'aptitude' && (
+                    <div className="flex items-center gap-2 mb-1">
+                      <input type="checkbox" id="aiExpl" checked={includeExplanation} onChange={e => setIncludeExplanation(e.target.checked)} className="w-4 h-4 rounded border-blue-300" />
+                      <label htmlFor="aiExpl" className="text-xs font-bold text-blue-800 dark:text-blue-300 cursor-pointer">Generate Explanations</label>
+                    </div>
+                  )}
                   <button onClick={handleAiGenerate} disabled={loading} className="w-full md:w-auto px-6 py-3 bg-blue-600 text-white rounded-xl font-bold hover:bg-blue-700 disabled:opacity-50 h-[50px] shadow-sm">
                     {loading ? 'Generating...' : 'Generate'}
                   </button>
@@ -389,6 +406,7 @@ const CreateTest: React.FC = () => {
                 <select value={manualQ.correct} onChange={e => setManualQ({ ...manualQ, correct: Number(e.target.value) })} className="w-full p-3 rounded-xl bg-gray-50 dark:bg-[#1a1a1a] border border-gray-200 dark:border-white/10">
                   {manualQ.options.map((_, i) => <option key={i} value={i}>Correct Option: {i + 1}</option>)}
                 </select>
+                <textarea placeholder="Explanation (Optional)" value={manualQ.explanation} onChange={e => setManualQ({ ...manualQ, explanation: e.target.value })} className="w-full p-3 rounded-xl bg-gray-50 dark:bg-[#1a1a1a] border border-gray-200 dark:border-white/10 min-h-[80px]" />
                 <button onClick={addManualQuestion} className="w-full py-3 bg-gray-100 dark:bg-white/5 hover:bg-gray-200 dark:hover:bg-white/10 rounded-xl font-bold flex items-center justify-center gap-2">
                   <Plus size={18} /> Add Question
                 </button>
@@ -404,42 +422,58 @@ const CreateTest: React.FC = () => {
               </div>
             )}
           </div>
+        </div>
+      </div>
 
-          {/* Preview */}
-          <div>
-            <h3 className="font-bold mb-4">Questions ({questions.length})</h3>
-            <div className="space-y-4">
-              {questions.map((q, i) => (
-                <div key={i} className="p-4 rounded-xl bg-gray-50 dark:bg-[#1a1a1a] border border-gray-200 dark:border-white/5 relative group">
-                  <button onClick={() => setQuestions(questions.filter((_, idx) => idx !== i))} className="absolute top-4 right-4 text-gray-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <Trash size={18} />
-                  </button>
-                  {type === 'aptitude' ? (
-                    <>
-                      <p className="font-bold mb-2"><Latex>{`${i + 1}. ${q.question}`}</Latex></p>
-                      <div className="grid grid-cols-2 gap-2 text-sm">
-                        {q.options?.map((opt: string, idx: number) => (
-                          <div key={idx} className={`p-2 rounded ${idx === q.correctIndex ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' : 'bg-gray-100 dark:bg-white/5'}`}>
-                            <Latex>{opt}</Latex>
+          {/* Right Column: Preview */}
+          <div className="lg:col-span-5">
+            <div className="sticky top-6 bg-white dark:bg-[#111] p-6 rounded-2xl border border-gray-200 dark:border-white/10 shadow-sm max-h-[calc(100vh-48px)] flex flex-col">
+              <h3 className="font-bold text-xl mb-4 flex justify-between items-center pb-4 border-b border-gray-200 dark:border-white/10">
+                <span>Questions Preview</span>
+                <span className="bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 px-3 py-1 rounded-full text-sm">{questions.length}</span>
+              </h3>
+              
+              <div className="overflow-y-auto pr-2 custom-scrollbar flex-1 space-y-4">
+                {questions.length === 0 ? (
+                  <div className="text-center py-12 px-4 border-2 border-dashed border-gray-200 dark:border-white/10 rounded-xl">
+                    <p className="text-gray-500 dark:text-gray-400">No questions added yet. Use the AI generator or add them manually.</p>
+                  </div>
+                ) : (
+                  questions.map((q, i) => (
+                    <div key={i} className="p-4 rounded-xl bg-gray-50 dark:bg-[#1a1a1a] border border-gray-200 dark:border-white/5 relative group">
+                      <button onClick={() => setQuestions(questions.filter((_, idx) => idx !== i))} className="absolute top-4 right-4 text-gray-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <Trash size={18} />
+                      </button>
+                      {type === 'aptitude' ? (
+                        <>
+                          <p className="font-bold mb-2"><Latex>{`${i + 1}. ${q.question}`}</Latex></p>
+                          <div className="grid grid-cols-2 gap-2 text-sm mt-2">
+                            {q.options?.map((opt: string, idx: number) => (
+                              <div key={idx} className={`p-2 rounded ${idx === q.correctIndex ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' : 'bg-gray-100 dark:bg-white/5'}`}>
+                                <Latex>{opt}</Latex>
+                              </div>
+                            ))}
                           </div>
-                        ))}
-                      </div>
-                    </>
-                  ) : (
-                    <>
-                      <p className="font-bold mb-1"><Latex>{`${i + 1}. ${q.title}`}</Latex></p>
-                      <p className="text-sm text-gray-500 line-clamp-2"><Latex>{q.description}</Latex></p>
-                    </>
-                  )}
-                </div>
-              ))}
+                          {q.explanation && (
+                            <div className="mt-3 p-3 bg-blue-50 dark:bg-blue-900/10 border border-blue-100 dark:border-blue-900/30 rounded-lg text-sm text-gray-700 dark:text-gray-300">
+                              <span className="font-bold text-blue-700 dark:text-blue-400 mr-2">💡 Explanation:</span>
+                              <Latex>{q.explanation}</Latex>
+                            </div>
+                          )}
+                        </>
+                      ) : (
+                        <>
+                          <p className="font-bold mb-1"><Latex>{`${i + 1}. ${q.title}`}</Latex></p>
+                          <p className="text-sm text-gray-500 line-clamp-2"><Latex>{q.description}</Latex></p>
+                        </>
+                      )}
+                    </div>
+                  ))
+                )}
+              </div>
             </div>
           </div>
         </div>
-
-        <button onClick={handleSave} disabled={loading || questions.length === 0} className="w-full py-4 bg-green-600 hover:bg-green-700 text-white rounded-xl font-bold shadow-lg flex items-center justify-center gap-2 disabled:opacity-50">
-          <Save size={20} /> Save Assessment
-        </button>
       </div>
     </div>
   );

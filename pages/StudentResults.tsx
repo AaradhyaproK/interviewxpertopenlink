@@ -267,6 +267,12 @@ const StudentResults: React.FC = () => {
                             </div>
                           )}
                         </div>
+                        {q.explanation && (
+                          <div className="mt-3 p-3 bg-blue-50 dark:bg-blue-900/10 border border-blue-100 dark:border-blue-900/30 rounded-lg text-sm text-gray-700 dark:text-gray-300">
+                            <span className="font-bold text-blue-700 dark:text-blue-400 mr-2">💡 Explanation:</span>
+                            <Latex>{q.explanation}</Latex>
+                          </div>
+                        )}
                       </div>
                     );
                   })}

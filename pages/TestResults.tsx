@@ -216,6 +216,12 @@ const TestResults: React.FC = () => {
                             </div>
                           );
                         })}
+                        {q.explanation && (
+                          <div className={`mt-3 p-3 rounded-lg border text-sm ${isDark ? 'bg-blue-900/10 border-blue-900/30 text-gray-300' : 'bg-blue-50 border-blue-100 text-gray-700'}`}>
+                            <span className={`font-bold mr-2 ${isDark ? 'text-blue-400' : 'text-blue-700'}`}>💡 Explanation:</span>
+                            <Latex>{q.explanation}</Latex>
+                          </div>
+                        )}
                       </div>
                     ) : (
                       <div className="bg-[#1e1e1e] p-4 rounded-xl overflow-x-auto border border-gray-700">

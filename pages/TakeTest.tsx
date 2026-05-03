@@ -740,6 +740,12 @@ const TakeTest: React.FC = () => {
                         <span className="text-gray-500 dark:text-gray-400">Correct: {q.options[q.correctIndex]}</span>
                       )}
                     </div>
+                    {q.explanation && (
+                      <div className="mt-3 p-3 bg-blue-50 dark:bg-blue-900/10 border border-blue-100 dark:border-blue-900/30 rounded-lg text-xs text-gray-700 dark:text-gray-300">
+                        <span className="font-bold text-blue-700 dark:text-blue-400 mr-1">💡 Explanation:</span>
+                        <Latex>{q.explanation}</Latex>
+                      </div>
+                    )}
                   </div>
                 );
               })}
