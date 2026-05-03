@@ -704,6 +704,27 @@ const TakeTest: React.FC = () => {
           )}
 
           {resultData.type === 'aptitude' && (
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
+              <div className="bg-gray-50 dark:bg-[#1a1a1a] p-4 rounded-xl border border-gray-200 dark:border-white/10 text-center">
+                <p className="text-xs text-gray-500 uppercase font-bold tracking-wider mb-1">Total</p>
+                <p className="text-2xl font-black">{resultData.questions.length}</p>
+              </div>
+              <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-xl border border-blue-200 dark:border-blue-800/30 text-center">
+                <p className="text-xs text-blue-600 dark:text-blue-400 uppercase font-bold tracking-wider mb-1">Attempted</p>
+                <p className="text-2xl font-black text-blue-700 dark:text-blue-300">{resultData.questions.length - (resultData.stats?.unattempted || 0)}</p>
+              </div>
+              <div className="bg-green-50 dark:bg-green-900/20 p-4 rounded-xl border border-green-200 dark:border-green-800/30 text-center">
+                <p className="text-xs text-green-600 dark:text-green-400 uppercase font-bold tracking-wider mb-1">Correct</p>
+                <p className="text-2xl font-black text-green-700 dark:text-green-300">{resultData.stats?.correct || 0}</p>
+              </div>
+              <div className="bg-red-50 dark:bg-red-900/20 p-4 rounded-xl border border-red-200 dark:border-red-800/30 text-center">
+                <p className="text-xs text-red-600 dark:text-red-400 uppercase font-bold tracking-wider mb-1">Wrong</p>
+                <p className="text-2xl font-black text-red-700 dark:text-red-300">{resultData.stats?.incorrect || 0}</p>
+              </div>
+            </div>
+          )}
+
+          {resultData.type === 'aptitude' && (
             <div className="space-y-4 mb-8 max-h-96 overflow-y-auto pr-2 custom-scrollbar">
               <h3 className="font-bold border-b border-gray-200 dark:border-white/10 pb-2">Answer Key</h3>
               {resultData.questions.map((q: any, i: number) => {

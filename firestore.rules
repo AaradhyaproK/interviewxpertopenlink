@@ -169,12 +169,8 @@ service cloud.firestore {
 
     match /testSubmissions/{submissionId} {
       allow create: if true;
-      // Allow candidate, the test's recruiter, or an admin to read
-      allow read: if request.auth != null && (
-                    resource.data.candidateUID == request.auth.uid ||
-                    get(/databases/$(database)/documents/tests/$(resource.data.testId)).data.recruiterUID == request.auth.uid ||
-                    get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin'
-                  );
+      // Allow public read to enable the Student Results portal where candidates search by email
+      allow read: if true;
     }
 
     // --- Interview Access Tokens (generated when candidate passes an assessment) ---

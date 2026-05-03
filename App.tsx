@@ -49,6 +49,7 @@ import OurJourney from './pages/OurJourney';
 import InvitedCandidates from './pages/InvitedCandidates';
 import CareerHub from './pages/CareerHub';
 import StatusPage from './pages/Status';
+import StudentResults from './pages/StudentResults';
 
 const ProtectedRoute: React.FC<{ children: React.ReactNode; role?: 'recruiter' | 'candidate' | 'admin' }> = ({ children, role }) => {
   const { user, userProfile, loading } = useAuth();
@@ -173,6 +174,11 @@ const App: React.FC = () => {
             <Route path="test/start/:testId" element={
               <ThemeProvider>
                 <TakeTest />
+              </ThemeProvider>
+            } />
+            <Route path="student/results" element={
+              <ThemeProvider>
+                <StudentResults />
               </ThemeProvider>
             } />
 

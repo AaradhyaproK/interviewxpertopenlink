@@ -27,6 +27,7 @@ const Navbar: React.FC = () => {
     { name: "FAQ", href: "#faq" },
     { name: "Blogs", href: "/blogs", isRoute: true },
     { name: "Career Hub", href: "/career-hub", isRoute: true },
+    { name: "Student Results", href: "/student/results", isRoute: true },
   ];
 
   const handleScroll = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
