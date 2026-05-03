@@ -4,6 +4,7 @@ import { collection, query, where, getDocs, orderBy, doc, getDoc } from 'firebas
 import { db } from '../services/firebase';
 import { ArrowLeft, AlertTriangle, User, FileText, X, Check, XCircle, Search, Mail, Filter } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
+import Latex from 'react-latex-next';
 
 const TestResults: React.FC = () => {
   const { testId } = useParams();
@@ -128,6 +129,13 @@ const TestResults: React.FC = () => {
                       <AlertTriangle size={14} /> Tab switched {sub.tabSwitchCount} time(s)
                     </div>
                   )}
+                  {sub.stats && (
+                    <div className="flex items-center gap-3 mt-2 text-xs font-bold">
+                      <span className="text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/20 px-2 py-1 rounded border border-green-100 dark:border-green-800/50">Correct: {sub.stats.correct}</span>
+                      <span className="text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 px-2 py-1 rounded border border-red-100 dark:border-red-800/50">Incorrect: {sub.stats.incorrect}</span>
+                      <span className="text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-white/5 px-2 py-1 rounded border border-gray-200 dark:border-white/10">Unattempted: {sub.stats.unattempted}</span>
+                    </div>
+                  )}
                   {sub.feedback && <p className="text-sm text-gray-400 mt-1 italic">"{sub.feedback}"</p>}
                 </div>
                 <div className="flex items-center gap-4">
@@ -183,11 +191,14 @@ const TestResults: React.FC = () => {
                   <div key={i} className="mb-8 last:mb-0">
                     <h4 className={`font-bold mb-3 flex gap-2 ${isDark ? 'text-gray-200' : 'text-gray-800'}`}>
                       <span className="text-gray-400">Q{i+1}.</span> 
-                      {test.type === 'aptitude' ? q.question : q.title}
+                      <Latex>{test.type === 'aptitude' ? q.question : q.title}</Latex>
                     </h4>
                     
                     {test.type === 'aptitude' ? (
                       <div className="space-y-2">
+                        {(selectedSubmission.answers?.[i] === undefined || selectedSubmission.answers?.[i] === '') && (
+                          <div className="inline-block px-2 py-1 mb-2 text-xs font-bold text-orange-700 bg-orange-100 dark:text-orange-400 dark:bg-orange-900/30 rounded">Not Attempted</div>
+                        )}
                         {q.options?.map((opt: string, optIdx: number) => {
                           const isSelected = selectedSubmission.answers?.[i] === optIdx;
                           const isCorrect = q.correctIndex === optIdx;
@@ -199,7 +210,7 @@ const TestResults: React.FC = () => {
 
                           return (
                             <div key={optIdx} className={itemClass}>
-                              <span>{opt}</span>
+                              <span><Latex>{opt}</Latex></span>
                               {isCorrect && <Check size={16} />}
                               {isSelected && !isCorrect && <XCircle size={16} />}
                             </div>

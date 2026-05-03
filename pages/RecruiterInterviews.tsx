@@ -9,6 +9,7 @@ import { useMessageBox } from '../components/MessageBox';
 import { createPortal } from 'react-dom';
 import { sendInterviewInvitations } from '../services/brevoService';
 import EditJobModal from './EditJob';
+import { QRCodeSVG } from 'qrcode.react';
 
 import { evaluateResumeMatch } from '../services/api';
 
@@ -91,6 +92,11 @@ const RecruiterInterviews: React.FC = () => {
 
   const handleRemoveNewEmail = (emailToRemove: string) => {
       setNewEmails(newEmails.filter(email => email !== emailToRemove));
+  };
+
+  const generateWhatsAppMessage = (interview: Interview) => {
+    const text = `Hello! You have been invited to an assessment on InterviewXpert.\n\n*Exam:* ${interview.title}\n${interview.topic ? `*Topic:* ${interview.topic}\n` : ''}*Link:* ${interview.interviewLink}\n*Access Code:* ${interview.accessCode}\n\nBest of luck!`;
+    return encodeURIComponent(text);
   };
 
   const handleResumeUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -318,14 +324,41 @@ const RecruiterInterviews: React.FC = () => {
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
             <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] flex flex-col text-gray-900 dark:text-white">
                 <h3 className="font-bold text-lg p-4 border-b border-gray-200 dark:border-gray-700">Invite Candidates</h3>
-                <div className="p-4 space-y-4 overflow-y-auto">
-                    <div className="p-4 bg-gray-100 dark:bg-gray-700 rounded-lg">
-                        <h4 className="font-semibold text-sm">Access Code</h4>
-                        <div className="flex items-center justify-between">
-                            <span className="font-mono text-lg tracking-widest">{selectedInterview.accessCode}</span>
-                            <button onClick={() => navigator.clipboard.writeText(selectedInterview.accessCode || '')} className="text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white" title="Copy Access Code">
-                                <i className="fas fa-copy"></i>
-                            </button>
+                <div className="p-4 space-y-6 overflow-y-auto">
+                    <div className="flex flex-col md:flex-row gap-6 p-4 bg-gray-50 dark:bg-gray-700/30 rounded-xl border border-gray-200 dark:border-gray-700">
+                        <div className="flex-1 space-y-4">
+                            <div>
+                                <h4 className="font-semibold text-sm text-gray-500 dark:text-gray-400">Assessment Link</h4>
+                                <div className="flex items-center gap-2 mt-1">
+                                    <span className="font-mono text-sm text-blue-600 dark:text-blue-400 truncate max-w-[200px] sm:max-w-xs">{selectedInterview.interviewLink}</span>
+                                    <button onClick={() => navigator.clipboard.writeText(selectedInterview.interviewLink || '')} className="text-gray-400 hover:text-gray-900 dark:hover:text-white" title="Copy Link">
+                                        <i className="fas fa-copy"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div>
+                                <h4 className="font-semibold text-sm text-gray-500 dark:text-gray-400">Access Code</h4>
+                                <div className="flex items-center gap-2 mt-1">
+                                    <span className="font-mono text-lg tracking-widest font-bold">{selectedInterview.accessCode}</span>
+                                    <button onClick={() => navigator.clipboard.writeText(selectedInterview.accessCode || '')} className="text-gray-400 hover:text-gray-900 dark:hover:text-white" title="Copy Access Code">
+                                        <i className="fas fa-copy"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div className="pt-2">
+                                <a 
+                                  href={`https://wa.me/?text=${generateWhatsAppMessage(selectedInterview)}`} 
+                                  target="_blank" 
+                                  rel="noopener noreferrer"
+                                  className="inline-flex items-center gap-2 px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg font-medium transition-colors text-sm shadow-sm"
+                                >
+                                    <i className="fab fa-whatsapp text-lg"></i> Share via WhatsApp
+                                </a>
+                            </div>
+                        </div>
+                        <div className="flex flex-col items-center justify-center shrink-0 bg-white p-3 rounded-xl border border-gray-200 shadow-sm">
+                            <QRCodeSVG value={selectedInterview.interviewLink || ''} size={120} />
+                            <span className="text-[10px] text-gray-500 mt-2 font-medium">Scan to open</span>
                         </div>
                     </div>
                     <div>

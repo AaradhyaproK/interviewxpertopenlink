@@ -8,6 +8,8 @@ import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import { AlertTriangle, Clock, Code, Terminal, Play, FileCode, Settings, CheckCircle, Calculator as CalculatorIcon, Flag, X } from 'lucide-react';
 import { sendInterviewInvitations } from '../services/brevoService';
+import Latex from 'react-latex-next';
+import 'katex/dist/katex.min.css';
 
 const TestInfoForm: React.FC<{ onSubmit: (info: {name: string, email: string}) => void }> = ({ onSubmit }) => {
   const [name, setName] = useState('');
@@ -401,15 +403,27 @@ const TakeTest: React.FC = () => {
     let score = 0;
     let feedback = '';
 
+    let stats = { correct: 0, incorrect: 0, unattempted: 0 };
+
     if (reason === 'terminated') {
       score = 0;
       feedback = 'Test terminated automatically due to security violations (left fullscreen too many times).';
     } else if (test.type === 'aptitude') {
-      let correctCount = 0;
       test.questions.forEach((q: any, i: number) => {
-        if (answers[i] === q.correctIndex) correctCount++;
+        if (answers[i] === undefined || answers[i] === '') {
+          stats.unattempted++;
+        } else if (answers[i] === q.correctIndex) {
+          stats.correct++;
+        } else {
+          stats.incorrect++;
+        }
       });
-      score = Math.round((correctCount / test.questions.length) * 100);
+      let rawScore = stats.correct;
+      if (test.hasNegativeMarking && test.negativeMarksPerQuestion) {
+        rawScore -= stats.incorrect * test.negativeMarksPerQuestion;
+      }
+      rawScore = Math.max(0, rawScore);
+      score = Math.round((rawScore / test.questions.length) * 100);
     } else {
       // AI Grading for Coding (powered by Grok)
       try {
@@ -555,6 +569,7 @@ const TakeTest: React.FC = () => {
       candidateEmail: candidateInfo.email,
       answers,
       score,
+      stats,
       feedback,
       status: submissionStatus,
       tabSwitchCount,
@@ -569,6 +584,7 @@ const TakeTest: React.FC = () => {
 
     setResultData({
       score,
+      stats,
       feedback,
       questions: test.questions,
       userAnswers: answers,
@@ -817,6 +833,11 @@ const TakeTest: React.FC = () => {
           <div className="hidden md:flex items-center gap-2 text-yellow-600 bg-yellow-50 dark:bg-yellow-900/20 px-3 py-1.5 rounded-lg text-xs sm:text-sm font-bold">
             <AlertTriangle size={16} /> No Copy Paste
           </div>
+          {test.hasNegativeMarking && (
+            <div className="flex items-center gap-2 text-red-600 bg-red-50 dark:bg-red-900/20 px-3 py-1.5 rounded-lg text-xs sm:text-sm font-bold">
+              <AlertTriangle size={16} /> -{test.negativeMarksPerQuestion} Penalty
+            </div>
+          )}
           <button onClick={() => setShowCalculator(true)} className="flex items-center gap-2 text-blue-600 bg-blue-50 dark:bg-blue-900/20 px-3 py-1.5 rounded-lg text-xs sm:text-sm font-bold cursor-pointer">
             <CalculatorIcon size={16} /> <span className="hidden sm:inline">Calculator</span>
           </button>
@@ -836,7 +857,7 @@ const TakeTest: React.FC = () => {
         <div className="lg:col-span-9 flex flex-col min-h-0">
           {test.type === 'aptitude' ? ( // APTITUDE VIEW
             <div className="bg-white dark:bg-[#111] p-8 rounded-2xl shadow-sm border border-gray-200 dark:border-white/10">
-              <h2 className="text-xl font-bold mb-6">{question.question || 'Question text missing'}</h2>
+              <h2 className="text-xl font-bold mb-6"><Latex>{question.question || 'Question text missing'}</Latex></h2>
               <div className="space-y-3">
                 {question.options?.map((opt: string, i: number) => (
                   <button
@@ -847,7 +868,7 @@ const TakeTest: React.FC = () => {
                       : 'bg-gray-50 dark:bg-[#1a1a1a] border-transparent hover:bg-gray-100 dark:hover:bg-white/5'
                       }`}
                   >
-                    {opt}
+                    <Latex>{opt}</Latex>
                   </button>
                 ))}
               </div>

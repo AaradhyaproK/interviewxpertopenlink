@@ -2,12 +2,14 @@ import React, { useEffect, useState } from 'react';
 import { collection, query, where, getDocs, deleteDoc, doc, orderBy } from 'firebase/firestore';
 import { db, auth } from '../services/firebase';
 import { Link, useNavigate } from 'react-router-dom';
-import { Plus, Trash2, FileText, Code, Eye, Clock, Sparkles } from 'lucide-react';
+import { Plus, Trash2, FileText, Code, Eye, Clock, Sparkles, Share2, X } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
+import { QRCodeSVG } from 'qrcode.react';
 
 const RecruiterTests: React.FC = () => {
   const [tests, setTests] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selectedShareTest, setSelectedShareTest] = useState<any | null>(null);
   const navigate = useNavigate();
   const { isDark } = useTheme();
 
@@ -43,6 +45,12 @@ const RecruiterTests: React.FC = () => {
     }
   };
 
+  const generateWhatsAppMessage = (test: any) => {
+    const link = `${window.location.origin}/#/test/${test.id}`;
+    const text = `Hello! You have been invited to an assessment on InterviewXpert.\n\n*Exam Name:* ${test.title || test.examName}\n*Topic:* ${test.topic || 'General'}\n*Link:* ${link}\n*Access Code:* ${test.accessCode}\n\nBest of luck!`;
+    return encodeURIComponent(text);
+  };
+
   return (
     <div className={`min-h-screen p-6 ${isDark ? 'text-white' : 'text-gray-900'}`}>
       <div className="max-w-6xl mx-auto">
@@ -72,6 +80,9 @@ const RecruiterTests: React.FC = () => {
                     {test.type === 'coding' ? <Code size={24} /> : <FileText size={24} />}
                   </div>
                   <div className="flex gap-2">
+                    <button onClick={() => setSelectedShareTest(test)} className="p-2 text-gray-400 hover:text-green-500 transition-colors" title="Share Assessment">
+                      <Share2 size={18} />
+                    </button>
                     <button onClick={() => navigate(`/recruiter/tests/${test.id}/results`)} className="p-2 text-gray-400 hover:text-blue-500 transition-colors" title="View Results">
                       <Eye size={18} />
                     </button>
@@ -114,6 +125,62 @@ const RecruiterTests: React.FC = () => {
           </div>
         )}
       </div>
+
+      {/* Share Modal */}
+      {selectedShareTest && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 backdrop-blur-sm" onClick={() => setSelectedShareTest(null)}>
+          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-2xl overflow-hidden flex flex-col text-gray-900 dark:text-white" onClick={e => e.stopPropagation()}>
+            <div className="flex justify-between items-center p-5 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50">
+              <h3 className="font-bold text-xl flex items-center gap-2">
+                <Share2 size={20} className="text-blue-500" /> Share Assessment
+              </h3>
+              <button onClick={() => setSelectedShareTest(null)} className="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">
+                <X size={20} />
+              </button>
+            </div>
+            <div className="p-6">
+              <div className="flex flex-col md:flex-row gap-6 p-4 bg-gray-50 dark:bg-gray-700/30 rounded-xl border border-gray-200 dark:border-gray-700">
+                <div className="flex-1 space-y-4">
+                  <div>
+                    <h4 className="font-semibold text-sm text-gray-500 dark:text-gray-400">Assessment Link</h4>
+                    <div className="flex items-center gap-2 mt-1">
+                      <span className="font-mono text-sm text-blue-600 dark:text-blue-400 truncate max-w-[200px] sm:max-w-xs">
+                        {`${window.location.origin}/#/test/${selectedShareTest.id}`}
+                      </span>
+                      <button onClick={() => navigator.clipboard.writeText(`${window.location.origin}/#/test/${selectedShareTest.id}`)} className="text-gray-400 hover:text-gray-900 dark:hover:text-white" title="Copy Link">
+                        <i className="fas fa-copy"></i>
+                      </button>
+                    </div>
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-sm text-gray-500 dark:text-gray-400">Access Code</h4>
+                    <div className="flex items-center gap-2 mt-1">
+                      <span className="font-mono text-lg tracking-widest font-bold">{selectedShareTest.accessCode}</span>
+                      <button onClick={() => navigator.clipboard.writeText(selectedShareTest.accessCode || '')} className="text-gray-400 hover:text-gray-900 dark:hover:text-white" title="Copy Access Code">
+                        <i className="fas fa-copy"></i>
+                      </button>
+                    </div>
+                  </div>
+                  <div className="pt-2">
+                    <a 
+                      href={`https://wa.me/?text=${generateWhatsAppMessage(selectedShareTest)}`} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-2 px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg font-medium transition-colors text-sm shadow-sm"
+                    >
+                      <i className="fab fa-whatsapp text-lg"></i> Share via WhatsApp
+                    </a>
+                  </div>
+                </div>
+                <div className="flex flex-col items-center justify-center shrink-0 bg-white p-3 rounded-xl border border-gray-200 shadow-sm">
+                  <QRCodeSVG value={`${window.location.origin}/#/test/${selectedShareTest.id}`} size={120} />
+                  <span className="text-[10px] text-gray-500 mt-2 font-medium">Scan to open</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
