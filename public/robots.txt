@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+Disallow: /candidate/
+Disallow: /recruiter/
+Disallow: /admin/
+
+Sitemap: https://www.interviewxpert.in/sitemap.xml
