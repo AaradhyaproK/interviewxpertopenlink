@@ -6,7 +6,7 @@ import { useAuth } from '../context/AuthContext';
 import { speak } from '../lib/tts';
 import { grokChat, grokGenerateText } from '../services/grokService';
 import { useMessageBox } from '../components/MessageBox';
-import { Video, VideoOff, Mic, MicOff, PhoneOff, Send, HelpCircle, AlertCircle, MessageSquare } from 'lucide-react';
+import { Video, VideoOff, Mic, MicOff, PhoneOff, Send, HelpCircle, AlertCircle, MessageSquare, X } from 'lucide-react';
 
 const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
 
@@ -649,8 +649,8 @@ Q&A Score: [SCORE]/100
       <div className="flex-1 flex flex-col lg:flex-row overflow-hidden relative">
         
         {/* Left Side: Video Screens Area - FIXED widths, stable viewport sizing */}
-        <div className="flex-1 p-4 md:p-6 bg-[#111] flex flex-col justify-center items-center overflow-hidden min-h-0">
-          <div className="w-full max-w-5xl h-full flex flex-col md:flex-row gap-4 md:gap-6 items-stretch justify-center">
+        <div className="flex-1 p-3 md:p-6 bg-[#111] flex flex-col justify-center items-center overflow-hidden min-h-0 relative">
+          <div className="w-full max-w-5xl h-full flex flex-col md:flex-row gap-4 md:gap-6 items-stretch justify-center relative">
             
             {/* Box 1: AI Interviewer Avatar Screen */}
             <div className="flex-1 bg-[#1f2023] rounded-3xl border border-[#2d3135] relative overflow-hidden flex flex-col items-center justify-center p-6 shadow-xl aspect-video md:aspect-auto">
@@ -692,8 +692,8 @@ Q&A Score: [SCORE]/100
               )}
             </div>
 
-            {/* Box 2: Candidate Live Camera View */}
-            <div className="flex-1 bg-[#1f2023] rounded-3xl border border-[#2d3135] relative overflow-hidden flex items-center justify-center shadow-xl aspect-video md:aspect-auto">
+            {/* Box 2: Candidate Live Camera View (PiP Floating on Mobile, equal split screen on Desktop) */}
+            <div className="absolute bottom-4 right-4 w-28 h-40 md:relative md:bottom-0 md:right-0 md:w-auto md:h-auto md:flex-1 bg-[#1f2023] rounded-2xl md:rounded-3xl border border-white/10 md:border-[#2d3135] overflow-hidden flex items-center justify-center shadow-2xl md:shadow-xl aspect-video md:aspect-auto z-20">
               <div className="absolute top-4 left-4 bg-black/40 px-3 py-1 rounded-full text-xs font-bold text-gray-300 flex items-center gap-1.5">
                 <span>You</span>
                 {isMuted && <MicOff size={12} className="text-red-500" />}
@@ -727,9 +727,9 @@ Q&A Score: [SCORE]/100
                 </div>
               )}
 
-              {/* Floating Closed Captions inside Self Box */}
+              {/* Floating Closed Captions inside Self Box (Only on Desktop) */}
               {(isListening || transcriptText || interimTranscript) && (
-                <div className="absolute bottom-4 left-4 right-4 bg-black/75 backdrop-blur-sm px-4 py-3 rounded-2xl border border-white/5 min-h-[60px] max-h-[100px] overflow-y-auto text-xs text-gray-200">
+                <div className="hidden md:block absolute bottom-4 left-4 right-4 bg-black/75 backdrop-blur-sm px-4 py-3 rounded-2xl border border-white/5 min-h-[60px] max-h-[100px] overflow-y-auto text-xs text-gray-200">
                   <p className="text-[10px] font-bold text-green-400 uppercase tracking-widest mb-1">Closed Captions (Speaking):</p>
                   <p className="italic">
                     {transcriptText}
@@ -742,20 +742,41 @@ Q&A Score: [SCORE]/100
               )}
             </div>
           </div>
+
+          {/* Mobile-Only User Subtitles Overlay (Floating above Hero layout) */}
+          {(isListening || transcriptText || interimTranscript) && (
+            <div className="md:hidden absolute bottom-24 left-4 right-4 bg-black/85 backdrop-blur-sm px-4 py-2.5 rounded-2xl border border-white/10 z-30 text-center text-xs text-gray-200 shadow-2xl">
+              <span className="font-bold text-green-400 block mb-0.5 text-[9px] uppercase tracking-wider">You:</span>
+              <span className="italic">
+                {transcriptText}
+                <span className="text-green-400">{interimTranscript}</span>
+                {!transcriptText && !interimTranscript && "Listening..."}
+              </span>
+            </div>
+          )}
         </div>
 
-        {/* Right Side: Google Meet Chat & Captions Panel - Completely rigid width, never resizes left panel */}
+        {/* Right Side: Google Meet Chat Overlay / Panel - Fully rigid size desktop split & sliding full sheet mobile drawer */}
         {isSidebarOpen && (
-          <aside className="w-full lg:w-[420px] lg:max-w-[420px] bg-[#1a1c20] border-t lg:border-t-0 lg:border-l border-[#2d3135] flex flex-col h-[300px] lg:h-full overflow-hidden shrink-0">
+          <aside className="w-full lg:w-[420px] lg:max-w-[420px] bg-[#1a1c20] border-t lg:border-t-0 lg:border-l border-[#2d3135] flex flex-col h-full overflow-hidden shrink-0 absolute inset-0 z-40 lg:relative lg:inset-auto lg:z-0">
             {/* Header */}
             <div className="px-4 py-4 border-b border-[#2d3135] flex items-center justify-between shrink-0">
               <span className="font-bold text-sm text-gray-200 flex items-center gap-2">
                 <MessageSquare size={16} className="text-primary" />
                 Live Transcript & Meeting Chat
               </span>
-              <span className="px-2 py-0.5 bg-[#2d3135] text-[10px] font-bold uppercase tracking-wider text-gray-400 rounded-md">
-                Continuous Round
-              </span>
+              <div className="flex items-center gap-2">
+                <span className="px-2 py-0.5 bg-[#2d3135] text-[10px] font-bold uppercase tracking-wider text-gray-400 rounded-md">
+                  Continuous Round
+                </span>
+                <button
+                  onClick={() => setIsSidebarOpen(false)}
+                  className="lg:hidden p-1.5 hover:bg-[#2d3135] active:scale-90 rounded-full text-gray-400 hover:text-white transition-all"
+                  title="Close Chat panel"
+                >
+                  <X size={18} />
+                </button>
+              </div>
             </div>
 
             {/* Message Area */}

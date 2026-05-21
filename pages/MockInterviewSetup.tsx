@@ -29,6 +29,11 @@ const MockInterviewSetup: React.FC = () => {
   const [oneOnOneDifficulty, setOneOnOneDifficulty] = useState<'Easy' | 'Medium' | 'Hard'>('Medium');
   const [oneOnOneDuration, setOneOnOneDuration] = useState(5);
 
+  const getOneOnOneCost = (duration: number) => {
+    if (duration <= 3) return 10;
+    return 10 + (duration - 3) * 2;
+  };
+
 
   useEffect(() => {
     document.title = "AI Mock Interview Practice | InterviewXpert";
@@ -260,7 +265,7 @@ const MockInterviewSetup: React.FC = () => {
       const userRef = doc(db, 'users', user.uid);
       const userSnap = await getDoc(userRef);
       const currentBalance = userSnap.data()?.walletBalance || 0;
-      const COST = 10;
+      const COST = getOneOnOneCost(oneOnOneDuration);
 
       if (currentBalance < COST) {
         messageBox.showConfirm(
@@ -645,6 +650,13 @@ const MockInterviewSetup: React.FC = () => {
                     <p className="text-xs text-gray-500 dark:text-gray-400">Adaptive questioning—the AI probes deeper based on your answers.</p>
                   </div>
                 </div>
+                <div className="flex items-center gap-3 p-3 bg-white/50 dark:bg-white/5 rounded-lg border border-gray-100 dark:border-white/10">
+                  <i className="fas fa-coins text-yellow-500 text-xl"></i>
+                  <div className="text-left">
+                    <h4 className="font-semibold text-sm">Dynamic Point Cost</h4>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">10 Pts base cost (3 min), then just +2 Pts for each additional minute.</p>
+                  </div>
+                </div>
               </div>
             </div>
 
@@ -653,7 +665,7 @@ const MockInterviewSetup: React.FC = () => {
                 <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6 flex items-center justify-between">
                   Setup Session
                   <span className="text-sm font-normal px-3 py-1 bg-yellow-50 dark:bg-yellow-900/20 text-yellow-700 dark:text-yellow-400 rounded-full border border-yellow-100 dark:border-yellow-800">
-                    <i className="fas fa-coins mr-1"></i> 10 Pts
+                    <i className="fas fa-coins mr-1"></i> {getOneOnOneCost(oneOnOneDuration)} Pts
                   </span>
                 </h2>
                 <form onSubmit={handleStartOneOnOne} className="space-y-6">
