@@ -22,7 +22,7 @@ import { db } from '../services/firebase';
 
 const SEO: React.FC = () => {
   useEffect(() => {
-    document.title = "InterviewXpert: AI-Powered Interview & Career Platform";
+    document.title = "InterviewXpert | India's #1 AI Mock Interview & Technical Preparation Platform";
 
     const setMetaTag = (attr: 'name' | 'property', value: string, content: string) => {
       let element = document.querySelector(`meta[${attr}='${value}']`) as HTMLMetaElement;
@@ -34,21 +34,21 @@ const SEO: React.FC = () => {
       element.setAttribute('content', content);
     };
 
-    setMetaTag('name', 'description', 'Master your next interview with InterviewXpert. Get AI-powered resume analysis, mock interviews with real-time feedback, and a smart resume builder. Prepare for your dream job today.');
-    setMetaTag('name', 'keywords', 'AI interview, mock interview, resume builder, resume analysis, ATS score, career prep, job interview practice, interviewxpert, interview xpert');
+    setMetaTag('name', 'description', 'Master your next tech job interview with InterviewXpert. Practice conversational 1-on-1 AI simulations, custom coding challenges, and logic aptitude tests with instant AI grading. Used by thousands of candidates in India.');
+    setMetaTag('name', 'keywords', 'InterviewXpert, interviewxpert, interviewxpert.in, www.interviewxpert.in, ai mock interview, live 1-on-1 interview, google meet mock interview, technical interview prep, recruiter ai, coding assessment, aptitude tests, tcs mock interview, wipro mock interview, infosys, free mock interview practice, interview preparation platform, india');
 
     // Open Graph / Facebook
     setMetaTag('property', 'og:type', 'website');
-    setMetaTag('property', 'og:url', 'https://interviewxpert.in/');
-    setMetaTag('property', 'og:title', 'InterviewXpert: AI-Powered Interview & Career Platform');
-    setMetaTag('property', 'og:description', 'Master your next interview with AI-powered resume analysis, mock interviews, and a smart resume builder.');
-    setMetaTag('property', 'og:image', 'https://i.ibb.co/3y9DKsB6/Yellow-and-Black-Illustrative-Education-Logo-1.png');
+    setMetaTag('property', 'og:url', 'https://www.interviewxpert.in/');
+    setMetaTag('property', 'og:title', "InterviewXpert | India's #1 AI Mock Interview & Technical Preparation Platform");
+    setMetaTag('property', 'og:description', 'Master your next tech job interview with InterviewXpert. Practice conversational 1-on-1 AI simulations, custom coding challenges, and logic aptitude tests with instant AI grading.');
+    setMetaTag('property', 'og:image', 'https://www.interviewxpert.in/logo-black.png');
 
     // Twitter
     setMetaTag('name', 'twitter:card', 'summary_large_image');
-    setMetaTag('property', 'twitter:title', 'InterviewXpert: AI-Powered Interview & Career Platform');
-    setMetaTag('property', 'twitter:description', 'Master your next interview with AI-powered resume analysis, mock interviews, and a smart resume builder.');
-    setMetaTag('property', 'twitter:image', 'https://i.ibb.co/3y9DKsB6/Yellow-and-Black-Illustrative-Education-Logo-1.png');
+    setMetaTag('property', 'twitter:title', "InterviewXpert | India's #1 AI Mock Interview Platform");
+    setMetaTag('property', 'twitter:description', 'Practice live 1-on-1 conversational AI mock interviews, custom coding challenges, and aptitude tests with instant scoring.');
+    setMetaTag('property', 'twitter:image', 'https://www.interviewxpert.in/logo-black.png');
   }, []);
 
   return null;
