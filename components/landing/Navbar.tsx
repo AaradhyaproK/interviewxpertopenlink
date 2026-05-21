@@ -68,12 +68,12 @@ const Navbar: React.FC = () => {
           `}
         >
           {/* Logo */}
-          <Link to="/" className="flex items-center">
+          <Link to="/" className="flex items-center shrink-0">
             <Logo className={`rounded-xl transition-all duration-500 ${isScrolled ? 'w-6 h-6 md:w-7 md:h-7' : 'w-8 h-8'}`} isDark={isDark} />
           </Link>
 
           {/* Desktop Links */}
-          <div className="hidden lg:flex items-center gap-4 xl:gap-8 absolute left-1/2 -translate-x-1/2">
+          <div className="hidden lg:flex flex-1 justify-center items-center gap-3 xl:gap-8 px-4">
             {navLinks.map((link) => (
               link.isRoute ? (
                 <Link
@@ -97,7 +97,7 @@ const Navbar: React.FC = () => {
           </div>
 
           {/* CTAs */}
-          <div className="hidden lg:flex items-center gap-4">
+          <div className="hidden lg:flex items-center gap-4 shrink-0">
             {/* Theme Toggle */}
             <button
               onClick={toggleTheme}
