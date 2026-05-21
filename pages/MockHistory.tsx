@@ -1,13 +1,15 @@
 import React, { useEffect, useState } from 'react';
-import { collection, query, where, getDocs, orderBy } from 'firebase/firestore';
+import { collection, query, where, getDocs, orderBy, collectionGroup } from 'firebase/firestore';
 import { auth, db } from '../services/firebase';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { Interview } from '../types';
 
 const MockHistory: React.FC = () => {
   const [interviews, setInterviews] = useState<Interview[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const location = useLocation();
+  const isOneOnOneHistory = location.pathname.includes('one-on-one');
 
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged(async (user) => {
@@ -37,18 +39,24 @@ const MockHistory: React.FC = () => {
     return () => unsubscribe();
   }, []);
 
-  const filteredInterviews = interviews.filter(interview => 
-    ((interview as any).jobTitle || '').toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredInterviews = interviews.filter(interview => {
+    const matchesSearch = ((interview as any).jobTitle || '').toLowerCase().includes(searchTerm.toLowerCase());
+    if (isOneOnOneHistory) {
+      return matchesSearch && (interview as any).meta?.isOneOnOne === true;
+    }
+    return matchesSearch;
+  });
 
   if (loading) return <div className="text-center py-10 dark:text-slate-400">Loading mock history...</div>;
 
   return (
     <div className="max-w-6xl mx-auto p-4 md:p-6">
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 gap-4">
-        <h2 className="text-2xl font-bold text-gray-800 dark:text-white">Mock Interview History</h2>
+        <h2 className="text-2xl font-bold text-gray-800 dark:text-white">
+          {isOneOnOneHistory ? 'One-on-One Interview History' : 'Mock Interview History'}
+        </h2>
         <Link to="/candidate/mock-interview" className="w-full sm:w-auto text-center bg-primary hover:bg-primary-dark text-white px-4 py-2 rounded-lg shadow transition-colors text-sm font-medium">
-          <i className="fas fa-plus mr-2"></i> New Mock Interview
+          <i className="fas fa-plus mr-2"></i> {isOneOnOneHistory ? 'New One-on-One' : 'New Mock Interview'}
         </Link>
       </div>
 
@@ -70,9 +78,15 @@ const MockHistory: React.FC = () => {
           <div className="w-16 h-16 bg-blue-50 dark:bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-4 text-blue-500 dark:text-blue-400 text-2xl">
             <i className="fas fa-history"></i>
           </div>
-          <h3 className="text-lg font-bold text-gray-800 dark:text-white mb-2">No Mock Interviews Yet</h3>
-          <p className="text-gray-500 dark:text-slate-400 mb-6">Start practicing to see your history here.</p>
-          <Link to="/candidate/mock-interview" className="text-primary font-medium hover:underline">Start a Mock Interview</Link>
+          <h3 className="text-lg font-bold text-gray-800 dark:text-white mb-2">
+            {isOneOnOneHistory ? 'No One-on-One Interviews Yet' : 'No Mock Interviews Yet'}
+          </h3>
+          <p className="text-gray-500 dark:text-slate-400 mb-6">
+            {isOneOnOneHistory ? 'Practice a Google Meet style session to see your records here.' : 'Start practicing to see your history here.'}
+          </p>
+          <Link to="/candidate/mock-interview" className="text-primary font-medium hover:underline">
+            {isOneOnOneHistory ? 'Start One-on-One Practice' : 'Start a Mock Interview'}
+          </Link>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -89,9 +103,15 @@ const MockHistory: React.FC = () => {
                 <div className="flex justify-between items-start mb-4 relative z-10">
                    <div>
                       <div className="flex items-center gap-2 mb-1">
-                        <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-blue-50 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400">
-                          Mock
-                        </span>
+                        {(interview as any).meta?.isOneOnOne ? (
+                          <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-purple-50 text-purple-600 dark:bg-purple-900/30 dark:text-purple-400">
+                            1-on-1 Meet
+                          </span>
+                        ) : (
+                          <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-blue-50 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400">
+                            Mock
+                          </span>
+                        )}
                         <span className="text-xs text-gray-400 dark:text-slate-500 flex items-center gap-1">
                           <i className="far fa-calendar-alt"></i>
                           {interview.submittedAt?.toDate ? interview.submittedAt.toDate().toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' }) : 'Date N/A'}
@@ -133,7 +153,13 @@ const MockHistory: React.FC = () => {
                 </div>
 
                 <div className="pt-4 border-t border-gray-100 dark:border-slate-800 mt-auto relative z-10">
-                  <Link to={`/report/${interview.interviewId}/${interview.id}`} className="flex items-center justify-center w-full px-4 py-2.5 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 text-gray-700 dark:text-slate-300 hover:bg-primary hover:text-white hover:border-primary dark:hover:bg-primary dark:hover:border-primary rounded-xl transition-all font-semibold text-sm group-hover:shadow-md">
+                  <Link 
+                    to={(interview as any).meta?.isOneOnOne 
+                      ? `/candidate/one-on-one/report/${interview.interviewId}/${interview.id}`
+                      : `/report/${interview.interviewId}/${interview.id}`
+                    } 
+                    className="flex items-center justify-center w-full px-4 py-2.5 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 text-gray-700 dark:text-slate-300 hover:bg-primary hover:text-white hover:border-primary dark:hover:bg-primary dark:hover:border-primary rounded-xl transition-all font-semibold text-sm group-hover:shadow-md"
+                  >
                     View Analysis <i className="fas fa-chart-pie ml-2"></i>
                   </Link>
                 </div>

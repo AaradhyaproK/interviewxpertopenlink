@@ -50,6 +50,8 @@ import InvitedCandidates from './pages/InvitedCandidates';
 import CareerHub from './pages/CareerHub';
 import StatusPage from './pages/Status';
 import StudentResults from './pages/StudentResults';
+import OneOnOneSession from './pages/OneOnOneSession';
+import OneOnOneReport from './pages/OneOnOneReport';
 
 const ProtectedRoute: React.FC<{ children: React.ReactNode; role?: 'recruiter' | 'candidate' | 'admin' }> = ({ children, role }) => {
   const { user, userProfile, loading } = useAuth();
@@ -158,12 +160,26 @@ const App: React.FC = () => {
               </ThemeProvider>
             } />
 
-            {/* Interview Route (No Layout) */}
             <Route path="interview/start/:interviewId" element={
               <ThemeProvider>
                 <InterviewWizard />
               </ThemeProvider>
             } />
+
+            {/* One-on-One Session Route (No Layout) */}
+            <Route path="candidate/one-on-one/session" element={
+              <ThemeProvider>
+                <OneOnOneSession />
+              </ThemeProvider>
+            } />
+
+            {/* Dedicated One-on-One Report Page (No Layout) */}
+            <Route path="candidate/one-on-one/report/:interviewId/:submissionId" element={
+              <ThemeProvider>
+                <OneOnOneReport />
+              </ThemeProvider>
+            } />
+
 
             {/* Public Test Taking Routes (No Layout) */}
             <Route path="test/:testId" element={
@@ -221,6 +237,7 @@ const App: React.FC = () => {
                   <Route path="candidate/resume-builder" element={<ProtectedRoute role="candidate"><ResumeBuilder /></ProtectedRoute>} />
                   <Route path="candidate/mock-interview" element={<ProtectedRoute role="candidate"><MockInterviewSetup /></ProtectedRoute>} />
                   <Route path="candidate/mock-history" element={<ProtectedRoute role="candidate"><MockHistory /></ProtectedRoute>} />
+                  <Route path="candidate/one-on-one/history" element={<ProtectedRoute role="candidate"><MockHistory /></ProtectedRoute>} />
                   <Route path="candidate/payment" element={<ProtectedRoute role="candidate"><Payment /></ProtectedRoute>} />
                   <Route path="candidate/tests" element={<ProtectedRoute role="candidate"><CandidateTests /></ProtectedRoute>} />
                   

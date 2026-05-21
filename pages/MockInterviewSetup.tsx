@@ -15,12 +15,20 @@ const MockInterviewSetup: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [fetchingLinkedin, setFetchingLinkedin] = useState(false);
   const messageBox = useMessageBox();
-  const [activeTab, setActiveTab] = useState<'video' | 'assessment'>('video');
+  const [activeTab, setActiveTab] = useState<'video' | 'assessment' | 'one-on-one'>('video');
   const [assessmentType, setAssessmentType] = useState<'aptitude' | 'coding'>('aptitude');
   const [assessmentTopic, setAssessmentTopic] = useState('');
   const [videoNumQuestions, setVideoNumQuestions] = useState(5);
   const [numQuestions, setNumQuestions] = useState(5);
   const [difficulty, setDifficulty] = useState<'Easy' | 'Medium' | 'Hard'>('Medium');
+
+  // One-on-One States
+  const [oneOnOneCompany, setOneOnOneCompany] = useState('TCS');
+  const [oneOnOneCustomCompany, setOneOnOneCustomCompany] = useState('');
+  const [oneOnOneRole, setOneOnOneRole] = useState('Software Engineer');
+  const [oneOnOneDifficulty, setOneOnOneDifficulty] = useState<'Easy' | 'Medium' | 'Hard'>('Medium');
+  const [oneOnOneDuration, setOneOnOneDuration] = useState(5);
+
 
   useEffect(() => {
     document.title = "AI Mock Interview Practice | InterviewXpert";
@@ -242,6 +250,73 @@ const MockInterviewSetup: React.FC = () => {
     }
   };
 
+  const handleStartOneOnOne = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!user) return;
+    setLoading(true);
+
+    try {
+      // Check wallet balance (e.g. 10 points for one-on-one)
+      const userRef = doc(db, 'users', user.uid);
+      const userSnap = await getDoc(userRef);
+      const currentBalance = userSnap.data()?.walletBalance || 0;
+      const COST = 10;
+
+      if (currentBalance < COST) {
+        messageBox.showConfirm(
+          `Insufficient wallet balance (${currentBalance} pts). A One-on-One interview requires ${COST} points. Would you like to add points?`,
+          () => navigate('/candidate/payment')
+        );
+        setLoading(false);
+        return;
+      }
+
+      // Deduct Points
+      await updateDoc(userRef, {
+        walletBalance: increment(-COST)
+      });
+
+      const selectedCompany = oneOnOneCompany === 'Other' ? oneOnOneCustomCompany : oneOnOneCompany;
+
+      // Pre-generate a single ID for job & interview documents
+      const mockDocRef = doc(collection(db, 'jobs'));
+      const mockId = mockDocRef.id;
+
+      // Create the mock job document
+      await setDoc(mockDocRef, {
+        title: `${selectedCompany} One-on-One Interview - ${oneOnOneRole}`,
+        description: `This is a live, dynamic one-on-one conversation simulating a real technical interview at ${selectedCompany} for the role of ${oneOnOneRole}. Difficulty level: ${oneOnOneDifficulty}.`,
+        companyName: selectedCompany,
+        isMock: true,
+        duration: oneOnOneDuration,
+        recruiterUID: null,
+        createdAt: serverTimestamp(),
+        applyDeadline: Timestamp.fromDate(new Date(Date.now() + 86400000 * 365)),
+        interviewPermission: 'anyone',
+      });
+
+      // Create the corresponding interview document with the same ID
+      await setDoc(doc(db, 'interviews', mockId), {
+        title: `${selectedCompany} One-on-One Interview - ${oneOnOneRole}`,
+        description: `Conversational one-on-one session at ${selectedCompany} for ${oneOnOneRole}.`,
+        duration: oneOnOneDuration,
+        recruiterUID: null,
+        isMock: true,
+        createdAt: serverTimestamp(),
+        jobId: mockId,
+      });
+
+      // Navigate to the Google Meet style session page
+      navigate(`/candidate/one-on-one/session?interviewId=${mockId}&company=${encodeURIComponent(selectedCompany)}&difficulty=${oneOnOneDifficulty}&role=${encodeURIComponent(oneOnOneRole)}&duration=${oneOnOneDuration}`);
+    } catch (err) {
+      console.error(err);
+      messageBox.showError("Failed to start One-on-One Interview");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+
   return (
     <div className="max-w-6xl mx-auto p-4 md:p-6 transition-colors duration-300">
       <div className="w-full relative z-10">
@@ -262,7 +337,15 @@ const MockInterviewSetup: React.FC = () => {
           >
             <i className="fas fa-laptop-code mr-2"></i> Skill Assessment
           </button>
+          <button
+            type="button"
+            onClick={() => setActiveTab('one-on-one')}
+            className={`saas-tab pb-4 px-2 text-sm font-bold ${activeTab === 'one-on-one' ? 'saas-tab-active' : ''}`}
+          >
+            <i className="fas fa-comments mr-2"></i> One-on-One Interview
+          </button>
         </div>
+
 
         {activeTab === 'video' ? (
           <div className="flex flex-col lg:flex-row gap-4 lg:gap-16 items-start">
@@ -397,7 +480,7 @@ const MockInterviewSetup: React.FC = () => {
               </div>
             </div>
           </div>
-        ) : (
+        ) : activeTab === 'assessment' ? (
           <div className="grid lg:grid-cols-5 gap-12 items-center py-8">
             {/* Left side: Info */}
             <div className="lg:col-span-2 text-center lg:text-left">
@@ -524,6 +607,166 @@ const MockInterviewSetup: React.FC = () => {
                       <><i className="fas fa-circle-notch fa-spin"></i> Generating...</>
                     ) : (
                       <><i className="fas fa-play"></i> Start Practice Test</>
+                    )}
+                  </button>
+                </form>
+              </div>
+            </div>
+          </div>
+        ) : (
+          /* One-on-One Interview Setup Tab */
+          <div className="grid lg:grid-cols-5 gap-12 items-center py-8">
+            <div className="lg:col-span-2 text-center lg:text-left">
+              <h1 className="text-4xl font-extrabold text-gray-900 dark:text-white mb-4 tracking-tight">
+                Live One-on-One Interview
+              </h1>
+              <p className="text-gray-600 dark:text-gray-400 mb-6 text-lg leading-relaxed">
+                Experience a simulated, real-time Google Meet interview with an AI recruiter. The AI asks questions and adapts dynamically based on your responses!
+              </p>
+              <div className="space-y-4">
+                <div className="flex items-center gap-3 p-3 bg-white/50 dark:bg-white/5 rounded-lg border border-gray-100 dark:border-white/10">
+                  <i className="fas fa-video text-primary text-xl"></i>
+                  <div className="text-left">
+                    <h4 className="font-semibold text-sm">Google Meet Style UI</h4>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">Live webcam feedback, microphone controls, and captions.</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3 p-3 bg-white/50 dark:bg-white/5 rounded-lg border border-gray-100 dark:border-white/10">
+                  <i className="fas fa-shield-halved text-green-500 text-xl"></i>
+                  <div className="text-left">
+                    <h4 className="font-semibold text-sm">100% Privacy Ensured</h4>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">Only transcripts are analyzed. Video or audio recordings are NEVER stored.</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3 p-3 bg-white/50 dark:bg-white/5 rounded-lg border border-gray-100 dark:border-white/10">
+                  <i className="fas fa-comments text-primary text-xl"></i>
+                  <div className="text-left">
+                    <h4 className="font-semibold text-sm">Conversational AI Rounds</h4>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">Adaptive questioning—the AI probes deeper based on your answers.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="lg:col-span-3">
+              <div className="bg-white dark:bg-[#111] p-6 md:p-8 rounded-2xl border border-gray-200 dark:border-white/5 shadow-xl">
+                <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6 flex items-center justify-between">
+                  Setup Session
+                  <span className="text-sm font-normal px-3 py-1 bg-yellow-50 dark:bg-yellow-900/20 text-yellow-700 dark:text-yellow-400 rounded-full border border-yellow-100 dark:border-yellow-800">
+                    <i className="fas fa-coins mr-1"></i> 10 Pts
+                  </span>
+                </h2>
+                <form onSubmit={handleStartOneOnOne} className="space-y-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {/* Target Company selection */}
+                    <div>
+                      <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">Target Company</label>
+                      <div className="relative">
+                        <i className="fas fa-building absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                        <select
+                          value={oneOnOneCompany}
+                          onChange={(e) => setOneOnOneCompany(e.target.value)}
+                          className="w-full pl-10 p-4 border border-gray-200 dark:border-white/10 rounded-xl bg-gray-50 dark:bg-[#050505] dark:text-white focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all appearance-none cursor-pointer"
+                        >
+                          <option value="TCS">TCS (Tata Consultancy Services)</option>
+                          <option value="Infosys">Infosys</option>
+                          <option value="Wipro">Wipro</option>
+                          <option value="Cognizant">Cognizant</option>
+                          <option value="Accenture">Accenture</option>
+                          <option value="Google">Google</option>
+                          <option value="Microsoft">Microsoft</option>
+                          <option value="Amazon">Amazon</option>
+                          <option value="Meta">Meta (Facebook)</option>
+                          <option value="Other">Other / Custom</option>
+                        </select>
+                        <i className="fas fa-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"></i>
+                      </div>
+                    </div>
+
+                    {/* Difficulty Selection */}
+                    <div>
+                      <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">Difficulty Level</label>
+                      <div className="relative">
+                        <i className="fas fa-layer-group absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                        <select
+                          value={oneOnOneDifficulty}
+                          onChange={(e) => setOneOnOneDifficulty(e.target.value as any)}
+                          className="w-full pl-10 p-4 border border-gray-200 dark:border-white/10 rounded-xl bg-gray-50 dark:bg-[#050505] dark:text-white focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all appearance-none cursor-pointer"
+                        >
+                          <option value="Easy">Easy</option>
+                          <option value="Medium">Medium</option>
+                          <option value="Hard">Hard</option>
+                        </select>
+                        <i className="fas fa-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"></i>
+                      </div>
+                    </div>
+                  </div>
+
+                  {oneOnOneCompany === 'Other' && (
+                    <div className="animate-fadeIn animate-duration-200">
+                      <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">Custom Company Name</label>
+                      <div className="relative">
+                        <i className="fas fa-pen absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                        <input
+                          type="text"
+                          required
+                          placeholder="e.g. Netflix, Oracle, HCL"
+                          value={oneOnOneCustomCompany}
+                          onChange={(e) => setOneOnOneCustomCompany(e.target.value)}
+                          className="w-full pl-10 p-4 border border-gray-200 dark:border-white/10 rounded-xl bg-gray-50 dark:bg-[#050505] dark:text-white focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all"
+                        />
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Target Role input */}
+                  <div>
+                    <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">Job Role / Position</label>
+                    <div className="relative">
+                      <i className="fas fa-user-tie absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                      <input
+                        type="text"
+                        required
+                        placeholder="e.g. Frontend Engineer, Fullstack Developer"
+                        value={oneOnOneRole}
+                        onChange={(e) => setOneOnOneRole(e.target.value)}
+                        className="w-full pl-10 p-4 border border-gray-200 dark:border-white/10 rounded-xl bg-gray-50 dark:bg-[#050505] dark:text-white focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Interview Duration Input */}
+                  <div>
+                    <div className="flex justify-between mb-2">
+                      <label className="block text-sm font-bold text-gray-700 dark:text-gray-300">Interview Duration</label>
+                      <span className="text-sm font-medium text-primary bg-primary/10 px-2 py-0.5 rounded">
+                        {oneOnOneDuration} Minutes
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-4">
+                      <span className="text-gray-500 font-bold w-8 text-center">{oneOnOneDuration}m</span>
+                      <input
+                        type="range"
+                        min="3"
+                        max="15"
+                        step="1"
+                        required
+                        className="w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-lg appearance-none cursor-pointer accent-primary"
+                        value={oneOnOneDuration}
+                        onChange={(e) => setOneOnOneDuration(parseInt(e.target.value, 10) || 5)}
+                      />
+                    </div>
+                  </div>
+
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className="w-full py-4 bg-gradient-to-r from-primary to-blue-600 hover:to-primary text-white rounded-xl font-bold text-lg shadow-lg shadow-primary/20 transition-all transform hover:-translate-y-1 disabled:opacity-70 disabled:transform-none flex items-center justify-center gap-2"
+                  >
+                    {loading ? (
+                      <><i className="fas fa-circle-notch fa-spin"></i> Setting up...</>
+                    ) : (
+                      <><i className="fas fa-play"></i> Start One-on-One Interview</>
                     )}
                   </button>
                 </form>

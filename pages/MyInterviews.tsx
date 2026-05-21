@@ -8,11 +8,12 @@ import { X, Check, XCircle } from 'lucide-react';
 const MyInterviews: React.FC = () => {
   const [realInterviews, setRealInterviews] = useState<Interview[]>([]);
   const [mockInterviews, setMockInterviews] = useState<Interview[]>([]);
+  const [oneOnOneInterviews, setOneOnOneInterviews] = useState<Interview[]>([]);
   const [assessments, setAssessments] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [sortOrder, setSortOrder] = useState('newest');
-  const [activeTab, setActiveTab] = useState<'real' | 'mock' | 'assessment'>('real');
+  const [activeTab, setActiveTab] = useState<'real' | 'mock' | 'oneOnOne' | 'assessment'>('real');
   const [selectedSubmission, setSelectedSubmission] = useState<any>(null);
   const [selectedTest, setSelectedTest] = useState<any>(null);
   const [viewLoading, setViewLoading] = useState(false);
@@ -60,10 +61,15 @@ const MyInterviews: React.FC = () => {
           // Separate interviews
           const real: Interview[] = [];
           const mock: Interview[] = [];
+          const oneOnOne: Interview[] = [];
 
           allSubmissions.forEach(submission => {
             if ((submission as any).isMock) {
-              mock.push(submission);
+              if ((submission as any).meta?.isOneOnOne) {
+                oneOnOne.push(submission);
+              } else {
+                mock.push(submission);
+              }
             } else {
               real.push(submission);
             }
@@ -71,6 +77,7 @@ const MyInterviews: React.FC = () => {
 
           setRealInterviews(real);
           setMockInterviews(mock);
+          setOneOnOneInterviews(oneOnOne);
 
         } catch (err) {
           console.error("Error fetching interviews:", err);
@@ -123,7 +130,7 @@ const MyInterviews: React.FC = () => {
     return () => unsubscribe();
   }, []);
 
-  const currentList = activeTab === 'real' ? realInterviews : activeTab === 'mock' ? mockInterviews : assessments;
+  const currentList = activeTab === 'real' ? realInterviews : activeTab === 'mock' ? mockInterviews : activeTab === 'oneOnOne' ? oneOnOneInterviews : assessments;
 
   const filteredInterviews = currentList
     .filter(interview =>
@@ -159,27 +166,34 @@ const MyInterviews: React.FC = () => {
       </div>
 
       {/* Tabs */}
-      <div className="saas-tabs mb-6">
+      <div className="saas-tabs mb-6 flex flex-wrap gap-2">
         <button
           type="button"
           onClick={() => setActiveTab('real')}
           className={`saas-tab text-sm font-bold ${activeTab === 'real' ? 'saas-tab-active' : ''}`}
         >
-          Job Interviews <span className="ml-1 px-2 py-0.5 bg-gray-100 dark:bg-slate-800 rounded-full text-xs">{realInterviews.length}</span>
+          Job Interviews <span className="ml-1 px-2 py-0.5 bg-gray-100 dark:bg-slate-800 rounded-full text-xs font-semibold">{realInterviews.length}</span>
         </button>
         <button
           type="button"
           onClick={() => setActiveTab('mock')}
           className={`saas-tab text-sm font-bold ${activeTab === 'mock' ? 'saas-tab-active' : ''}`}
         >
-          Mock Interviews <span className="ml-1 px-2 py-0.5 bg-gray-100 dark:bg-slate-800 rounded-full text-xs">{mockInterviews.length}</span>
+          Mock Interviews <span className="ml-1 px-2 py-0.5 bg-gray-100 dark:bg-slate-800 rounded-full text-xs font-semibold">{mockInterviews.length}</span>
+        </button>
+        <button
+          type="button"
+          onClick={() => setActiveTab('oneOnOne')}
+          className={`saas-tab text-sm font-bold ${activeTab === 'oneOnOne' ? 'saas-tab-active' : ''}`}
+        >
+          One-on-One Meet <span className="ml-1 px-2 py-0.5 bg-purple-50 dark:bg-purple-950 text-purple-700 dark:text-purple-300 rounded-full text-xs font-bold">{oneOnOneInterviews.length}</span>
         </button>
         <button
           type="button"
           onClick={() => setActiveTab('assessment')}
           className={`saas-tab text-sm font-bold ${activeTab === 'assessment' ? 'saas-tab-active' : ''}`}
         >
-          Skill Assessments <span className="ml-1 px-2 py-0.5 bg-gray-100 dark:bg-slate-800 rounded-full text-xs">{assessments.length}</span>
+          Skill Assessments <span className="ml-1 px-2 py-0.5 bg-gray-100 dark:bg-slate-800 rounded-full text-xs font-semibold">{assessments.length}</span>
         </button>
       </div>
 
@@ -213,7 +227,7 @@ const MyInterviews: React.FC = () => {
 
       {filteredInterviews.length === 0 ? (
         <div className="text-center py-10 bg-white dark:bg-[#111] rounded-lg shadow-sm border border-gray-100 dark:border-white/5">
-          <p className="text-gray-500 dark:text-gray-400">No {activeTab === 'mock' ? 'mock' : activeTab === 'assessment' ? 'assessment' : 'job'} records found matching your criteria.</p>
+          <p className="text-gray-500 dark:text-gray-400">No {activeTab === 'mock' ? 'mock' : activeTab === 'oneOnOne' ? 'one-on-one' : activeTab === 'assessment' ? 'assessment' : 'job'} records found matching your criteria.</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -270,6 +284,7 @@ const MyInterviews: React.FC = () => {
             }
 
             // --- RENDER INTERVIEW CARD (Existing) ---
+            const isOneOnOneCard = activeTab === 'oneOnOne' || (interview as any).meta?.isOneOnOne === true;
             return (
               <div key={interview.id} className="group bg-white dark:bg-[#111] rounded-2xl p-5 shadow-sm border border-gray-100 dark:border-white/5 hover:shadow-xl hover:border-primary/20 dark:hover:border-primary/20 transition-all duration-300 flex flex-col relative overflow-hidden">
                 {/* Decorative background element */}
@@ -278,12 +293,16 @@ const MyInterviews: React.FC = () => {
                 <div className="flex justify-between items-start mb-4 relative z-10">
                   <div>
                     <div className="flex flex-wrap items-center gap-2 mb-1">
-                      {activeTab === 'mock' ? (
+                      {isOneOnOneCard ? (
+                        <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-purple-50 text-purple-600 dark:bg-purple-900/30 dark:text-purple-400">
+                          1-on-1 Meet
+                        </span>
+                      ) : activeTab === 'mock' ? (
                         <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-blue-50 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400">
                           Mock
                         </span>
                       ) : (
-                        <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-purple-50 text-purple-600 dark:bg-purple-900/30 dark:text-purple-400">
+                        <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-blue-55 text-indigo-600 dark:bg-indigo-900/30 dark:text-indigo-400">
                           Job
                         </span>
                       )}
@@ -336,7 +355,10 @@ const MyInterviews: React.FC = () => {
 
                 <div className="pt-4 border-t border-gray-100 dark:border-white/5 mt-auto relative z-10">
                   <Link
-                    to={`/report/${interview.interviewId}/${interview.id}`}
+                    to={isOneOnOneCard
+                      ? `/candidate/one-on-one/report/${interview.interviewId}/${interview.id}`
+                      : `/report/${interview.interviewId}/${interview.id}`
+                    }
                     className="flex items-center justify-center w-full px-4 py-2.5 bg-white dark:bg-slate-800 border border-gray-200 dark:border-white/5 text-gray-700 dark:text-gray-300 hover:bg-primary hover:text-white hover:border-primary dark:hover:bg-primary dark:hover:border-primary rounded-xl transition-all font-semibold text-sm group-hover:shadow-md"
                   >
                     View Full Report <i className="fas fa-arrow-right ml-2"></i>
