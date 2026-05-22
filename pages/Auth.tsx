@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { createUserWithEmailAndPassword, signInWithEmailAndPassword, sendEmailVerification, sendPasswordResetEmail, signOut, setPersistence, browserLocalPersistence, browserSessionPersistence } from 'firebase/auth';
+import { createUserWithEmailAndPassword, signInWithEmailAndPassword, sendEmailVerification, sendPasswordResetEmail, signOut, setPersistence, browserLocalPersistence, browserSessionPersistence, GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
 import { doc, setDoc, serverTimestamp, addDoc, collection, getDoc } from 'firebase/firestore';
 import { auth, db } from '../services/firebase';
 import { useNavigate, Link } from 'react-router-dom';
@@ -165,6 +165,35 @@ const AuthPage: React.FC = () => {
       setIsLogin(true);
     } catch (err: any) {
       setError("Reset failed: " + err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleGoogleSignIn = async () => {
+    setLoading(true);
+    setError(null);
+    setMessage(null);
+    try {
+      const provider = new GoogleAuthProvider();
+      const result = await signInWithPopup(auth, provider);
+      
+      const userDoc = await getDoc(doc(db, 'users', result.user.uid));
+      if (!userDoc.exists()) {
+        await setDoc(doc(db, 'users', result.user.uid), {
+          uid: result.user.uid,
+          email: result.user.email,
+          fullname: result.user.displayName || '',
+          role: 'candidate',
+          experience: 0,
+          accountStatus: 'active',
+          createdAt: serverTimestamp(),
+          profilePhotoURL: result.user.photoURL || null
+        });
+      }
+      navigate('/');
+    } catch (err: any) {
+      setError("Google Sign-In failed: " + err.message);
     } finally {
       setLoading(false);
     }
@@ -396,7 +425,17 @@ const AuthPage: React.FC = () => {
                     </div>
                   </div>
 
-                  <div className="text-center">
+                  <button
+                    type="button"
+                    onClick={handleGoogleSignIn}
+                    disabled={loading}
+                    className="w-full py-2.5 rounded-[12px] bg-white text-black font-semibold transition-all hover:bg-zinc-200 disabled:opacity-50 disabled:cursor-not-allowed mt-4 text-sm flex items-center justify-center gap-2"
+                  >
+                    <i className="fa-brands fa-google"></i>
+                    Sign in with Google
+                  </button>
+
+                  <div className="text-center mt-4">
                     <button
                       type="button"
                       onClick={() => setIsLogin(!isLogin)}
