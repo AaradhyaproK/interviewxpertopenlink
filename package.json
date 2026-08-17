@@ -21,6 +21,7 @@
     "katex": "^0.16.45",
     "lucide-react": "^0.469.0",
     "mermaid": "11.4.1",
+    "openai": "^7.4.0",
     "pdfjs-dist": "^5.4.530",
     "qrcode.react": "^4.2.0",
     "react": "^19.2.0",
