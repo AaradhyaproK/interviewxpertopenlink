@@ -46,7 +46,7 @@ const StudentResults: React.FC = () => {
 
       const detailedResults = await Promise.all(
         submissions.map(async (sub: any) => {
-          let testData = { title: 'Unknown Test', type: 'aptitude', topic: 'General' };
+          let testData: { title: string; type: string; topic: string; questions?: any[] } = { title: 'Unknown Test', type: 'aptitude', topic: 'General', questions: [] };
           if (sub.testId) {
             try {
               const testDoc = await getDoc(doc(db, 'tests', sub.testId));

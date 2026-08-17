@@ -17,6 +17,17 @@ export default defineConfig(({ mode }) => {
       },
       build: {
         target: 'esnext',
+        chunkSizeWarningLimit: 2000,
+        rollupOptions: {
+          output: {
+            manualChunks: {
+              'vendor-react': ['react', 'react-dom', 'react-router-dom'],
+              'vendor-ui': ['lucide-react', 'framer-motion', 'gsap'],
+              'vendor-charts': ['recharts'],
+              'vendor-pdf-katex': ['jspdf', 'html2canvas', 'katex']
+            }
+          }
+        }
       },
       resolve: {
         alias: {

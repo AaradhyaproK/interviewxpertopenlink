@@ -268,8 +268,8 @@ const CandidateDashboard: React.FC<{ onlyBestMatches?: boolean }> = ({ onlyBestM
     if (term) {
       filtered = filtered.filter(job => {
         const titleMatch = (job.title || '').toLowerCase().includes(term);
-        const companyMatch = (job.companyName || '').toLowerCase().includes(term);
-        const skillsMatch = (job.qualifications || '').toLowerCase().includes(term);
+        const companyMatch = (job.companyName || job.company || '').toLowerCase().includes(term);
+        const skillsMatch = (Array.isArray(job.qualifications) ? job.qualifications.join(' ') : (job.qualifications || '')).toLowerCase().includes(term);
         return titleMatch || companyMatch || skillsMatch;
       });
     }

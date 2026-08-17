@@ -31,7 +31,7 @@ export function AnimatedList({
         <div className={cn("flex flex-col items-center gap-4", className)}>
             <AnimatePresence>
                 {itemsToShow.map((item) => (
-                    <AnimatedListItem key={(item as React.ReactElement).key}>
+                    <AnimatedListItem key={(item as any)?.key || (item as any)?.props?.key}>
                         {item}
                     </AnimatedListItem>
                 ))}
@@ -40,7 +40,7 @@ export function AnimatedList({
     );
 }
 
-export function AnimatedListItem({ children }: { children: React.ReactNode }) {
+export function AnimatedListItem({ children }: { children: React.ReactNode; key?: React.Key }) {
     const animations = {
         initial: { scale: 0, opacity: 0 },
         animate: { scale: 1, opacity: 1, originY: 0 },

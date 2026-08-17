@@ -40,7 +40,7 @@ const JobCandidates: React.FC = () => {
                 id: doc.id,
                 ...data,
                 candidateName: data.candidateInfo?.name,
-              } as Interview;
+              } as unknown as Interview;
             });
             setInterviews(submissions);
           } else {
@@ -48,7 +48,7 @@ const JobCandidates: React.FC = () => {
             // This path is for viewing all candidates across all jobs. The original query was likely incorrect.
             const q = query(collection(db, 'interviews'), orderBy('submittedAt', 'desc'));
             const snap = await getDocs(q);
-            setInterviews(snap.docs.map(doc => ({ id: doc.id, ...doc.data() } as Interview)));
+            setInterviews(snap.docs.map(doc => ({ id: doc.id, ...doc.data() } as unknown as Interview)));
           }
         } catch (err) {
           console.error(err);

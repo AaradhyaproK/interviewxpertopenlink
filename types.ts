@@ -2,6 +2,7 @@ export interface Interview {
     id: string;
     title: string;
     description: string;
+    topic?: string;
     department?: string;
     duration: number;
     difficulty: 'Easy' | 'Medium' | 'Hard';
@@ -16,6 +17,7 @@ export interface Interview {
     report?: InterviewReport;
     createdAt: any;
     updatedAt: any;
+    [key: string]: any;
   }
   
   export interface Question {
@@ -51,11 +53,14 @@ export interface Interview {
     email: string;
     role: 'candidate' | 'recruiter' | 'admin';
     name: string;
+    fullname?: string;
     photoURL?: string;
     company?: string;
     skills?: string[];
     experience?: number;
     resumeUrl?: string;
+    accountStatus?: string;
+    [key: string]: any;
   }
   
   export interface Job {
@@ -65,8 +70,32 @@ export interface Interview {
     description: string;
     requirements: string[];
     location: string;
-    salary: number;
+    salary: number | string;
     postedAt: any;
+    companyName?: string;
+    company?: string;
+    qualifications?: string[];
+    interviewPermission?: boolean | string;
+    status?: string;
+    [key: string]: any;
+  }
+
+  export interface InterviewRequest {
+    id: string;
+    jobId: string;
+    candidateId: string;
+    recruiterId?: string;
+    candidateName?: string;
+    candidateEmail?: string;
+    jobTitle?: string;
+    status: 'Pending' | 'Accepted' | 'Rejected' | 'Shortlisted' | 'Hired' | 'Applied' | string;
+    appliedAt?: any;
+    createdAt?: any;
+    updatedAt?: any;
+    noticePeriod?: string;
+    expectedSalary?: string;
+    coverNote?: string;
+    [key: string]: any;
   }
   
   export interface Application {

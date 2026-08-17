@@ -108,7 +108,7 @@ const RecruiterInterviews: React.FC = () => {
     let filesProcessed = 0;
     let filesWithErrors = 0;
 
-    const parsePromises = Array.from(files).map(async (file) => {
+    const parsePromises = Array.from(files).map(async (file: File) => {
       let text = '';
       try {
         if (file.type === 'application/pdf') {
