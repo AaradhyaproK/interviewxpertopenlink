@@ -148,10 +148,10 @@
   </script>
 
   <link id="favicon" rel="icon" type="image/png" href="/logo-white.png">
-  <!-- Google Fonts -->
+  <!-- Google Fonts: Syne (Display), Plus Jakarta Sans (Body/UI), JetBrains Mono (Code/Metrics) -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Syne:wght@600;700;800&display=swap" rel="stylesheet">
   <!-- Font Awesome -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <!-- Tailwind CSS -->
@@ -166,28 +166,38 @@
       theme: {
         extend: {
           colors: {
+            canvas: '#F8FAFC',
+            card: '#FFFFFF',
+            slateBorder: '#E2E8F0',
+            charcoal: {
+              DEFAULT: '#0F172A',
+              muted: '#64748B',
+              light: '#94A3B8'
+            },
+            cobalt: {
+              DEFAULT: '#2563EB',
+              hover: '#1D4ED8',
+              pill: '#EFF6FF',
+              light: 'rgba(37, 99, 235, 0.08)'
+            },
             primary: {
-              DEFAULT: '#ff5722',
-              dark: '#f4511e',
-              light: 'rgba(255, 87, 34, 0.15)'
+              DEFAULT: '#2563EB',
+              dark: '#1D4ED8',
+              light: '#EFF6FF'
             },
             accent: {
-              DEFAULT: '#3b82f6',
-              muted: 'rgba(59, 130, 246, 0.2)'
-            },
-            secondary: '#6c757d',
-            success: '#28a745',
-            danger: '#dc3545',
-            warning: '#ffc107',
-            info: '#17a2b8',
-            purple: '#6f42c1',
-            teal: '#20c997',
-            dark: '#0f172a',
-            light: '#f8fafc'
+              DEFAULT: '#2563EB',
+              muted: 'rgba(37, 99, 235, 0.12)'
+            }
           },
           fontFamily: {
-            sans: ['Inter', 'system-ui', 'sans-serif'],
-            mono: ['Geist Mono', 'ui-monospace', 'SFMono-Regular', 'Menlo', 'monospace'],
+            display: ['Syne', 'sans-serif'],
+            sans: ['Plus Jakarta Sans', 'system-ui', '-apple-system', 'sans-serif'],
+            mono: ['JetBrains Mono', 'ui-monospace', 'monospace'],
+          },
+          boxShadow: {
+            'card-hover': '0 10px 25px -5px rgba(15, 23, 42, 0.05)',
+            'node-glow': '0 0 20px rgba(37, 99, 235, 0.15)',
           },
           animation: {
             blob: "blob 7s infinite",

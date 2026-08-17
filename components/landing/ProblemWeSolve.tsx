@@ -1,295 +1,284 @@
 import React from 'react';
-import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, AreaChart, Area, CartesianGrid, LineChart, Line } from 'recharts';
-import { AlertCircle, FileWarning, Frown, Scale, Clock, DollarSign, Target } from 'lucide-react';
+import { 
+  FileWarning, 
+  Scale, 
+  Clock4, 
+  DollarSign, 
+  Target, 
+  CheckCircle2, 
+  ShieldAlert,
+  Zap,
+  TrendingUp,
+  Sparkles
+} from 'lucide-react';
 
-const fakeResumeData = [
-  { name: 'Embellished/Fake', value: 78 },
-  { name: 'Accurate', value: 22 },
-];
-
-const biasData = [
-  { name: 'Unconscious Bias', value: 54 },
-  { name: 'Fair Assessment', value: 46 }
-];
-
-const accuracyData = [
-  { method: 'Unstructured', accuracy: 14 },
-  { method: 'Traditional Structured', accuracy: 55 },
-  { method: 'AI-Assisted', accuracy: 88 },
-];
-
-const costData = [
-  { month: 'M1', cost: 10 },
-  { month: 'M2', cost: 30 },
-  { month: 'M3', cost: 60 },
-  { month: 'M4', cost: 120 },
-  { month: 'Bad Hire Cost', cost: 300 }
-];
-
-const timeData = [
-  { process: 'Traditional', days: 42 },
-  { process: 'AI Automated', days: 3 }
-];
-
-const hiringCostData = [
-  { process: 'Traditional', cost: 4000 },
-  { process: 'AI Platform', cost: 150 }
-];
-
-const skillShortlistData = [
-  { phase: 'Resume Screen', accuracy: 30 },
-  { phase: 'Recruiter Chat', accuracy: 45 },
-  { phase: 'Tech Interview', accuracy: 65 },
-  { phase: 'AI Shortlist', accuracy: 96 }
-];
-
-const COLORS_RED = ['#ef4444', '#1e293b'];
-const COLORS_ORANGE = ['#f97316', '#1e293b'];
-
-const CustomTooltip = ({ active, payload }: any) => {
-  if (active && payload && payload.length) {
-    return (
-      <div className="bg-[#121216]/90 backdrop-blur border border-white/10 p-3 rounded-lg shadow-xl">
-        <p className="text-white font-bold">{`${payload[0].name || payload[0].payload.method || payload[0].payload.month}: ${payload[0].value}${payload[0].name ? '%' : '%'}`}</p>
-      </div>
-    );
-  }
-  return null;
-};
-
-const ProblemWeSolve: React.FC = () => {
+export const ProblemWeSolve: React.FC = () => {
   return (
-    <section className="py-20 md:py-32 relative overflow-hidden">
-      {/* Background elements */}
-      <div className="absolute top-0 right-0 w-full h-px bg-gradient-to-r from-transparent via-red-500/20 to-transparent"></div>
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-3/4 h-3/4 bg-red-500/5 blur-[120px] rounded-full pointer-events-none"></div>
+    <section className="py-16 sm:py-20 relative overflow-hidden bg-[#F8FAFC] border-t border-[#E2E8F0] transition-colors duration-500">
+      
+      {/* Background Soft Glow */}
+      <div className="absolute inset-0 bg-[radial-gradient(#CBD5E1_1px,transparent_1px)] bg-[size:32px_32px] pointer-events-none opacity-40" />
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-        <div className="text-center max-w-3xl mx-auto mb-16 md:mb-24">
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-red-500/10 text-red-500 font-bold text-xs uppercase tracking-widest mb-6 border border-red-500/20">
-            <AlertCircle size={14} /> The Industry Crisis
-          </div>
-          <h2 className="text-3xl md:text-5xl font-extrabold text-slate-900 dark:text-white tracking-tight mb-6">
-            Why Hiring is <span className="text-transparent bg-clip-text bg-gradient-to-r from-red-500 to-orange-500">Broken</span>
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+        
+        {/* Unified Section Header */}
+        <div className="text-center max-w-2xl mx-auto mb-10 sm:mb-12">
+          <p className="text-xs font-semibold uppercase tracking-widest text-[#2563EB] mb-2.5 font-sans">
+            The Paradigm
+          </p>
+          <h2 className="font-display text-3xl sm:text-4xl md:text-5xl font-bold text-[#0F172A] tracking-tight leading-tight">
+            Why traditional recruiting needs automated clarity.
           </h2>
-          <p className="text-lg text-slate-600 dark:text-slate-400">
-            Traditional recruiting relies on outdated, easily manipulated processes ranging from fake resumes to heavy unconscious bias. InterviewXpert was built to solve these systemic failures.
+          <p className="mt-3 text-sm sm:text-base text-[#64748B] font-sans font-normal leading-relaxed">
+            Unstructured interviews often reward performance over problem-solving. We replace guesswork with transparent, objective practice.
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8 mt-12">
+        {/* 5-Card Analytics Grid with Curated Themed Colors & UI Meters */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
           
-          {/* Card 1: Fake Resumes */}
-          <div className="bg-white/50 dark:bg-[#121216]/80 backdrop-blur-xl border border-slate-200 dark:border-white/5 rounded-3xl p-8 flex flex-col items-center shadow-xl hover:shadow-2xl hover:border-red-500/30 transition-all duration-300">
-            <div className="w-full flex justify-between items-start mb-6">
-              <div>
-                <h3 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2 mb-2">
-                  <FileWarning className="text-red-500" size={24} /> The Resume Illusion
-                </h3>
-                <p className="text-slate-500 dark:text-slate-400 text-sm max-w-xs">Of all candidate resumes contain misleading statements or completely fake credentials.</p>
+          {/* ========================================================================= */}
+          {/* Card 1: Resume Accuracy (Amber / Warning Theme) */}
+          {/* ========================================================================= */}
+          <div className="bg-white border border-[#E2E8F0] hover:border-amber-300/80 rounded-[24px] p-6 flex flex-col justify-between shadow-[0_2px_10px_rgba(15,23,42,0.02)] hover:shadow-[0_20px_40px_-15px_rgba(245,158,11,0.12)] hover:-translate-y-1 transition-all duration-300 group">
+            <div>
+              <div className="flex items-center justify-between mb-3.5">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center border border-amber-200 shadow-sm group-hover:scale-105 transition-transform">
+                    <ShieldAlert size={18} strokeWidth={2.2} />
+                  </div>
+                  <div>
+                    <span className="text-[10px] font-mono font-bold text-amber-700 uppercase tracking-wider block">Verification Gap</span>
+                    <h3 className="font-display text-sm sm:text-base font-bold text-[#0F172A]">Resume Claims</h3>
+                  </div>
+                </div>
+                <span className="font-mono text-2xl font-extrabold text-amber-600">78%</span>
               </div>
-              <div className="text-4xl font-black text-red-500">78%</div>
-            </div>
-            <div className="w-full h-48 mt-4">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={fakeResumeData}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={60}
-                    outerRadius={80}
-                    paddingAngle={5}
-                    dataKey="value"
-                    stroke="none"
-                  >
-                    {fakeResumeData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={COLORS_RED[index % COLORS_RED.length]} />
-                    ))}
-                  </Pie>
-                  <Tooltip content={<CustomTooltip />} cursor={{fill: 'transparent'}} />
-                </PieChart>
-              </ResponsiveContainer>
-            </div>
-            <div className="mt-4 w-full text-center text-sm font-medium text-slate-400">
-              <span className="text-red-500 font-bold">Solution:</span> We test actual skills via AI, ignoring PDF embellishments.
-            </div>
-          </div>
 
-          {/* Card 2: Interview Bias */}
-          <div className="bg-white/50 dark:bg-[#121216]/80 backdrop-blur-xl border border-slate-200 dark:border-white/5 rounded-3xl p-8 flex flex-col items-center shadow-xl hover:shadow-2xl hover:border-orange-500/30 transition-all duration-300">
-            <div className="w-full flex justify-between items-start mb-6">
-              <div>
-                <h3 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2 mb-2">
-                  <Scale className="text-orange-500" size={24} /> Unconscious Bias
-                </h3>
-                <p className="text-slate-500 dark:text-slate-400 text-sm max-w-xs">Of hiring decisions are influenced by unconscious human bias within the first 5 minutes.</p>
+              <p className="text-[#64748B] text-xs sm:text-sm font-sans leading-relaxed mb-4">
+                Resumes contain exaggerated skill claims that break down under deep technical questioning.
+              </p>
+            </div>
+
+            {/* High-Fidelity UI Meter */}
+            <div className="my-2 p-3.5 bg-amber-50/40 rounded-2xl border border-amber-200/60 space-y-2">
+              <div className="flex justify-between text-xs font-mono font-semibold">
+                <span className="text-[#475569]">Unverified Claims</span>
+                <span className="text-amber-700">78% High Risk</span>
               </div>
-              <div className="text-4xl font-black text-orange-500">54%</div>
+              <div className="w-full h-2.5 bg-amber-100/80 rounded-full overflow-hidden p-0.5 border border-amber-200/50">
+                <div className="bg-gradient-to-r from-amber-500 to-amber-600 h-full rounded-full w-[78%] shadow-sm" />
+              </div>
+              <div className="flex justify-between text-[10px] text-[#64748B] font-mono">
+                <span>0% Baseline</span>
+                <span className="text-emerald-700 font-bold">Verified Code: 22%</span>
+                <span>100%</span>
+              </div>
             </div>
-            <div className="w-full h-48 mt-4">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={biasData}
-                    cx="50%"
-                    cy="50%"
-                    startAngle={180}
-                    endAngle={0}
-                    innerRadius={60}
-                    outerRadius={80}
-                    paddingAngle={5}
-                    dataKey="value"
-                    stroke="none"
-                  >
-                    {biasData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={COLORS_ORANGE[index % COLORS_ORANGE.length]} />
-                    ))}
-                  </Pie>
-                  <Tooltip content={<CustomTooltip />} />
-                </PieChart>
-              </ResponsiveContainer>
-            </div>
-            <div className="mt-4 w-full text-center text-sm font-medium text-slate-400">
-              <span className="text-orange-500 font-bold">Solution:</span> AI evaluates strictly on merit, communication clarity, and logic.
+
+            <div className="mt-3 pt-3 border-t border-[#E2E8F0] text-xs text-[#475569] font-sans flex items-start gap-2">
+              <CheckCircle2 size={14} className="text-amber-600 shrink-0 mt-0.5" />
+              <span><strong className="text-[#0F172A]">Solution:</strong> Live code sandbox & adaptive verbal technical reasoning.</span>
             </div>
           </div>
 
-          {/* Card 3: Poor Predictive Accuracy */}
-          <div className="bg-white/50 dark:bg-[#121216]/80 backdrop-blur-xl border border-slate-200 dark:border-white/5 rounded-3xl p-8 flex flex-col shadow-xl hover:shadow-2xl hover:border-blue-500/30 transition-all duration-300">
-            <div className="w-full mb-6 relative z-10 flex-grow-0">
-              <h3 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2 mb-2">
-                <Frown className="text-blue-500" size={24} /> The Unstructured Interview
-              </h3>
-              <p className="text-slate-500 dark:text-slate-400 text-sm">Human-led unstructured interviews have notoriously low predictive validity for actual job performance.</p>
+          {/* ========================================================================= */}
+          {/* Card 2: First Impression Bias (Purple / Objectivity Theme) */}
+          {/* ========================================================================= */}
+          <div className="bg-white border border-[#E2E8F0] hover:border-purple-300/80 rounded-[24px] p-6 flex flex-col justify-between shadow-[0_2px_10px_rgba(15,23,42,0.02)] hover:shadow-[0_20px_40px_-15px_rgba(147,51,234,0.12)] hover:-translate-y-1 transition-all duration-300 group">
+            <div>
+              <div className="flex items-center justify-between mb-3.5">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-10 h-10 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center border border-purple-200 shadow-sm group-hover:scale-105 transition-transform">
+                    <Scale size={18} strokeWidth={2.2} />
+                  </div>
+                  <div>
+                    <span className="text-[10px] font-mono font-bold text-purple-700 uppercase tracking-wider block">Cognitive Skew</span>
+                    <h3 className="font-display text-sm sm:text-base font-bold text-[#0F172A]">First-Impression Bias</h3>
+                  </div>
+                </div>
+                <span className="font-mono text-2xl font-extrabold text-purple-600">54%</span>
+              </div>
+
+              <p className="text-[#64748B] text-xs sm:text-sm font-sans leading-relaxed mb-4">
+                Hiring decisions are swayed by unconscious human bias within the first 5 minutes of dialogue.
+              </p>
             </div>
-            <div className="w-full h-48 mt-auto">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={accuracyData} margin={{ top: 0, right: 0, left: -20, bottom: 0 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
-                  <XAxis dataKey="method" stroke="#64748b" fontSize={12} tickLine={false} axisLine={false} />
-                  <YAxis stroke="#64748b" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(value) => `${value}%`} />
-                  <Tooltip cursor={{fill: 'rgba(255,255,255,0.02)'}} content={<CustomTooltip />} />
-                  <Bar dataKey="accuracy" radius={[6, 6, 0, 0]}>
-                    {accuracyData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={index === 2 ? '#3b82f6' : '#334155'} />
-                    ))}
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
+
+            {/* High-Fidelity UI Meter */}
+            <div className="my-2 p-3.5 bg-purple-50/40 rounded-2xl border border-purple-200/60 space-y-2">
+              <div className="flex justify-between text-xs font-mono font-semibold">
+                <span className="text-[#475569]">Subjective Bias Impact</span>
+                <span className="text-purple-700">54% Skew</span>
+              </div>
+              <div className="w-full h-2.5 bg-purple-100/80 rounded-full overflow-hidden p-0.5 border border-purple-200/50">
+                <div className="bg-gradient-to-r from-purple-500 to-purple-600 h-full rounded-full w-[54%] shadow-sm" />
+              </div>
+              <div className="flex justify-between text-[10px] text-[#64748B] font-mono">
+                <span>0% Bias</span>
+                <span className="text-purple-700 font-bold">Standardized Rubric: 100%</span>
+              </div>
             </div>
-            <div className="mt-6 w-full text-center text-sm font-medium text-slate-400">
-              <span className="text-blue-500 font-bold">Solution:</span> Structured, algorithmically scored AI interviews boast ~88% accuracy.
+
+            <div className="mt-3 pt-3 border-t border-[#E2E8F0] text-xs text-[#475569] font-sans flex items-start gap-2">
+              <CheckCircle2 size={14} className="text-purple-600 shrink-0 mt-0.5" />
+              <span><strong className="text-[#0F172A]">Solution:</strong> Standardized scorecards focusing strictly on technical merit.</span>
             </div>
           </div>
 
-          {/* Card 4: Cost of a Bad Hire */}
-          <div className="bg-white/50 dark:bg-[#121216]/80 backdrop-blur-xl border border-slate-200 dark:border-white/5 rounded-3xl p-8 flex flex-col shadow-xl hover:shadow-2xl hover:border-purple-500/30 transition-all duration-300">
-            <div className="w-full mb-6 relative z-10 flex-grow-0">
-              <h3 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2 mb-2">
-                <AlertCircle className="text-purple-500" size={24} /> The Cost of a Bad Hire
-              </h3>
-              <p className="text-slate-500 dark:text-slate-400 text-sm">Hiring candidates based on fake resumes or bad interviews costs companies up to 30% of the employee's first-year earnings.</p>
+          {/* ========================================================================= */}
+          {/* Card 3: Predictive Validity (Emerald / Outcome Theme) */}
+          {/* ========================================================================= */}
+          <div className="bg-white border border-[#E2E8F0] hover:border-emerald-300/80 rounded-[24px] p-6 flex flex-col justify-between shadow-[0_2px_10px_rgba(15,23,42,0.02)] hover:shadow-[0_20px_40px_-15px_rgba(16,185,129,0.12)] hover:-translate-y-1 transition-all duration-300 group">
+            <div>
+              <div className="flex items-center justify-between mb-3.5">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center border border-emerald-200 shadow-sm group-hover:scale-105 transition-transform">
+                    <Target size={18} strokeWidth={2.2} />
+                  </div>
+                  <div>
+                    <span className="text-[10px] font-mono font-bold text-emerald-700 uppercase tracking-wider block">Job Fit Correlation</span>
+                    <h3 className="font-display text-sm sm:text-base font-bold text-[#0F172A]">Predictive Validity</h3>
+                  </div>
+                </div>
+                <span className="font-mono text-2xl font-extrabold text-emerald-600">88%</span>
+              </div>
+
+              <p className="text-[#64748B] text-xs sm:text-sm font-sans leading-relaxed mb-4">
+                Structured rubric-based technical rounds demonstrate superior correlation to on-the-job success.
+              </p>
             </div>
-            <div className="w-full h-48 mt-auto">
-              <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={costData} margin={{ top: 0, right: 0, left: -20, bottom: 0 }}>
-                  <defs>
-                    <linearGradient id="colorCost" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#a855f7" stopOpacity={0.3}/>
-                      <stop offset="95%" stopColor="#a855f7" stopOpacity={0}/>
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
-                  <XAxis dataKey="month" stroke="#64748b" fontSize={12} tickLine={false} axisLine={false} />
-                  <YAxis stroke="#64748b" fontSize={12} tickLine={false} axisLine={false} />
-                  <Tooltip content={<CustomTooltip />} />
-                  <Area type="monotone" dataKey="cost" stroke="#a855f7" strokeWidth={3} fillOpacity={1} fill="url(#colorCost)" />
-                </AreaChart>
-              </ResponsiveContainer>
+
+            {/* High-Fidelity Comparison Method Bars */}
+            <div className="my-2 p-3.5 bg-emerald-50/40 rounded-2xl border border-emerald-200/60 space-y-2.5 text-xs font-mono">
+              <div className="space-y-1">
+                <div className="flex justify-between text-[11px]">
+                  <span className="text-[#64748B]">Unstructured Casual Call</span>
+                  <span className="text-[#94A3B8] font-bold">14% fit</span>
+                </div>
+                <div className="w-full h-2 bg-slate-200 rounded-full overflow-hidden">
+                  <div className="bg-slate-400 h-full w-[14%]" />
+                </div>
+              </div>
+
+              <div className="space-y-1">
+                <div className="flex justify-between text-[11px]">
+                  <span className="text-[#0F172A] font-bold">Structured Rubric Platform</span>
+                  <span className="text-emerald-700 font-bold">88% accuracy</span>
+                </div>
+                <div className="w-full h-2 bg-emerald-100 rounded-full overflow-hidden p-0.5">
+                  <div className="bg-gradient-to-r from-emerald-500 to-emerald-600 h-full rounded-full w-[88%]" />
+                </div>
+              </div>
             </div>
-            <div className="mt-6 w-full text-center text-sm font-medium text-slate-400">
-              <span className="text-purple-500 font-bold">Solution:</span> Rigorous end-to-end AI validation prevents catastrophic hiring mistakes.
+
+            <div className="mt-3 pt-3 border-t border-[#E2E8F0] text-xs text-[#475569] font-sans flex items-start gap-2">
+              <CheckCircle2 size={14} className="text-emerald-600 shrink-0 mt-0.5" />
+              <span><strong className="text-[#0F172A]">Solution:</strong> Uniform industry benchmarks evaluating authentic capability.</span>
             </div>
           </div>
 
-          {/* Card 5: Massive Cost Reduction */}
-          <div className="bg-white/50 dark:bg-[#121216]/80 backdrop-blur-xl border border-slate-200 dark:border-white/5 rounded-3xl p-8 flex flex-col shadow-xl hover:shadow-2xl hover:border-emerald-500/30 transition-all duration-300">
-            <div className="w-full mb-6 relative z-10 flex-grow-0">
-              <h3 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2 mb-2">
-                <DollarSign className="text-emerald-500" size={24} /> Drastic Cost Reduction
-              </h3>
-              <p className="text-slate-500 dark:text-slate-400 text-sm">Cut the traditional cost of hiring down from thousands per candidate to just a few fractions of a fraction.</p>
+          {/* ========================================================================= */}
+          {/* Card 4: Days to Shortlist (Cobalt Blue / Velocity Theme) */}
+          {/* ========================================================================= */}
+          <div className="bg-white border border-[#E2E8F0] hover:border-blue-300/80 rounded-[24px] p-6 flex flex-col justify-between shadow-[0_2px_10px_rgba(15,23,42,0.02)] hover:shadow-[0_20px_40px_-15px_rgba(37,99,235,0.12)] hover:-translate-y-1 transition-all duration-300 group">
+            <div>
+              <div className="flex items-center justify-between mb-3.5">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-10 h-10 rounded-xl bg-blue-50 text-[#2563EB] flex items-center justify-center border border-[#BFDBFE] shadow-sm group-hover:scale-105 transition-transform">
+                    <Zap size={18} strokeWidth={2.2} />
+                  </div>
+                  <div>
+                    <span className="text-[10px] font-mono font-bold text-[#1D4ED8] uppercase tracking-wider block">Cycle Time</span>
+                    <h3 className="font-display text-sm sm:text-base font-bold text-[#0F172A]">Days to Shortlist</h3>
+                  </div>
+                </div>
+                <span className="font-mono text-2xl font-extrabold text-[#2563EB]">3 Days</span>
+              </div>
+
+              <p className="text-[#64748B] text-xs sm:text-sm font-sans leading-relaxed mb-4">
+                Weeks of coordination condensed into a rapid 3-day turnaround with automated rounds.
+              </p>
             </div>
-            <div className="w-full h-48 mt-auto">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={hiringCostData} layout="vertical" margin={{ top: 0, right: 0, left: 0, bottom: 0 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" horizontal={false} />
-                  <XAxis type="number" stroke="#64748b" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(val) => `$${val}`} />
-                  <YAxis type="category" dataKey="process" stroke="#64748b" fontSize={11} tickLine={false} axisLine={false} width={80} />
-                  <Tooltip cursor={{fill: 'rgba(255,255,255,0.02)'}} content={<CustomTooltip />} />
-                  <Bar dataKey="cost" radius={[0, 6, 6, 0]} barSize={30}>
-                    {hiringCostData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={index === 1 ? '#10b981' : '#334155'} />
-                    ))}
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
+
+            {/* High-Fidelity Time Bars */}
+            <div className="my-2 p-3.5 bg-blue-50/40 rounded-2xl border border-[#BFDBFE]/60 space-y-2.5 text-xs font-mono">
+              <div className="space-y-1">
+                <div className="flex justify-between text-[11px]">
+                  <span className="text-[#64748B]">Traditional Screening Call</span>
+                  <span className="text-[#94A3B8] font-bold">42 Days</span>
+                </div>
+                <div className="w-full h-2 bg-slate-200 rounded-full overflow-hidden">
+                  <div className="bg-slate-400 h-full w-[100%]" />
+                </div>
+              </div>
+
+              <div className="space-y-1">
+                <div className="flex justify-between text-[11px]">
+                  <span className="text-[#0F172A] font-bold">Automated Pipeline</span>
+                  <span className="text-[#2563EB] font-bold">3 Days (-93%)</span>
+                </div>
+                <div className="w-full h-2 bg-blue-100 rounded-full overflow-hidden p-0.5">
+                  <div className="bg-gradient-to-r from-[#2563EB] to-[#1D4ED8] h-full rounded-full w-[12%]" />
+                </div>
+              </div>
             </div>
-            <div className="mt-6 w-full text-center text-sm font-medium text-slate-400">
-              <span className="text-emerald-500 font-bold">Advantage:</span> Pay only for verified AI compute time, eliminating massive agency overheads.
+
+            <div className="mt-3 pt-3 border-t border-[#E2E8F0] text-xs text-[#475569] font-sans flex items-start gap-2">
+              <CheckCircle2 size={14} className="text-[#2563EB] shrink-0 mt-0.5" />
+              <span><strong className="text-[#0F172A]">Advantage:</strong> Candidates practice on demand. Teams review in minutes.</span>
             </div>
           </div>
 
-          {/* Card 6: Accelerated Time-to-Hire */}
-          <div className="bg-white/50 dark:bg-[#121216]/80 backdrop-blur-xl border border-slate-200 dark:border-white/5 rounded-3xl p-8 flex flex-col shadow-xl hover:shadow-2xl hover:border-cyan-500/30 transition-all duration-300">
-            <div className="w-full mb-6 relative z-10 flex-grow-0">
-              <h3 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2 mb-2">
-                <Clock className="text-cyan-500" size={24} /> Accelerated Timelines
-              </h3>
-              <p className="text-slate-500 dark:text-slate-400 text-sm">Save weeks of back-and-forth scheduling coordination. AI interviews happen immediately when candidates apply.</p>
-            </div>
-            <div className="w-full h-48 mt-auto">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={timeData} margin={{ top: 0, right: 0, left: -20, bottom: 0 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
-                  <XAxis dataKey="process" stroke="#64748b" fontSize={12} tickLine={false} axisLine={false} />
-                  <YAxis stroke="#64748b" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(val) => `${val}d`} />
-                  <Tooltip cursor={{fill: 'rgba(255,255,255,0.02)'}} content={<CustomTooltip />} />
-                  <Bar dataKey="days" radius={[6, 6, 0, 0]}>
-                    {timeData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={index === 1 ? '#06b6d4' : '#334155'} />
-                    ))}
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-            <div className="mt-6 w-full text-center text-sm font-medium text-slate-400">
-              <span className="text-cyan-500 font-bold">Advantage:</span> The average 42-day cycle plummets down to just ~3 days of review phase.
-            </div>
-          </div>
+          {/* ========================================================================= */}
+          {/* Card 5: Cost Efficiency (Teal-Mint / Economic ROI Theme) */}
+          {/* ========================================================================= */}
+          <div className="bg-white border border-[#E2E8F0] hover:border-emerald-300/80 rounded-[24px] p-6 flex flex-col justify-between shadow-[0_2px_10px_rgba(15,23,42,0.02)] hover:shadow-[0_20px_40px_-15px_rgba(16,185,129,0.12)] hover:-translate-y-1 transition-all duration-300 md:col-span-2 lg:col-span-2 group">
+            <div>
+              <div className="flex items-center justify-between mb-3.5">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-700 flex items-center justify-center border border-emerald-200 shadow-sm group-hover:scale-105 transition-transform">
+                    <DollarSign size={18} strokeWidth={2.2} />
+                  </div>
+                  <div>
+                    <span className="text-[10px] font-mono font-bold text-emerald-800 uppercase tracking-wider block">Economic Leverage</span>
+                    <h3 className="font-display text-sm sm:text-base font-bold text-[#0F172A]">Cost per Qualified Candidate</h3>
+                  </div>
+                </div>
+                <span className="font-mono text-2xl font-extrabold text-emerald-600">-95% Cost</span>
+              </div>
 
-          {/* Card 7: Skill-Based Shortlisting Accuracy */}
-          <div className="bg-white/50 dark:bg-[#121216]/80 backdrop-blur-xl border border-slate-200 dark:border-white/5 rounded-3xl p-8 flex flex-col shadow-xl hover:shadow-2xl hover:border-pink-500/30 transition-all duration-300 md:col-span-2 lg:col-span-3 xl:col-span-1">
-            <div className="w-full mb-6 relative z-10 flex-grow-0">
-              <h3 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2 mb-2">
-                <Target className="text-pink-500" size={24} /> Precision Shortlisting
-              </h3>
-              <p className="text-slate-500 dark:text-slate-400 text-sm">Sort incoming candidates objectively by their performance, mapped explicitly to technical skills.</p>
+              <p className="text-[#64748B] text-xs sm:text-sm font-sans leading-relaxed mb-4">
+                Significantly reduce agency placement overhead and internal engineering team hours with automated upfront rounds.
+              </p>
             </div>
-            <div className="w-full h-48 mt-auto">
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={skillShortlistData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
-                  <XAxis dataKey="phase" stroke="#64748b" fontSize={10} tickLine={false} axisLine={false} />
-                  <YAxis stroke="#64748b" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(val) => `${val}%`} />
-                  <Tooltip content={<CustomTooltip />} />
-                  <Line type="monotone" dataKey="accuracy" stroke="#ec4899" strokeWidth={4} dot={{ r: 6, fill: '#ec4899', strokeWidth: 2, stroke: '#121216' }} activeDot={{ r: 8 }} />
-                </LineChart>
-              </ResponsiveContainer>
+
+            {/* High-Fidelity Cost Bars */}
+            <div className="my-2 p-4 bg-emerald-50/40 rounded-2xl border border-emerald-200/60 space-y-3 text-xs font-mono">
+              <div className="space-y-1">
+                <div className="flex justify-between text-[11px]">
+                  <span className="text-[#64748B]">Traditional Agency & Headhunter Overhead</span>
+                  <span className="text-[#64748B] font-bold">$3,500 / candidate</span>
+                </div>
+                <div className="w-full h-2.5 bg-slate-200 rounded-full overflow-hidden">
+                  <div className="bg-slate-400 h-full w-[100%]" />
+                </div>
+              </div>
+
+              <div className="space-y-1">
+                <div className="flex justify-between text-[11px]">
+                  <span className="text-[#0F172A] font-bold">InterviewXpert Automated Pipeline</span>
+                  <span className="text-emerald-700 font-bold">$150 / verified candidate</span>
+                </div>
+                <div className="w-full h-2.5 bg-emerald-100 rounded-full overflow-hidden p-0.5">
+                  <div className="bg-gradient-to-r from-emerald-500 to-emerald-600 h-full rounded-full w-[8%]" />
+                </div>
+              </div>
             </div>
-            <div className="mt-6 w-full text-center text-sm font-medium text-slate-400">
-              <span className="text-pink-500 font-bold">Advantage:</span> Reach 96% confidence in candidate capabilities before a single human meeting.
+
+            <div className="mt-3 pt-3 border-t border-[#E2E8F0] text-xs text-[#475569] font-sans flex items-start gap-2">
+              <CheckCircle2 size={14} className="text-emerald-600 shrink-0 mt-0.5" />
+              <span><strong className="text-[#0F172A]">Transparent Model:</strong> 5 free practice rounds for candidates. Pay-as-you-go verification for hiring teams.</span>
             </div>
           </div>
 

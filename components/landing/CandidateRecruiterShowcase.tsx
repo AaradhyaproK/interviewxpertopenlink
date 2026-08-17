@@ -2,55 +2,51 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { 
-  UserCheck, Building2, Sparkles, Video, Mic, FileText, Code2, 
-  BrainCircuit, CheckCircle2, ShieldCheck, Share2, UploadCloud, 
-  MessageSquareText, Users, ArrowRight, Star, Award, Zap, Layers,
-  CheckCircle, FileSearch, Shield, PhoneCall, Sliders
+  UserCheck, Building2, Video, FileText, Code2, 
+  ArrowRight, Zap, Check, FileSearch, PhoneCall
 } from 'lucide-react';
 
 export const CandidateRecruiterShowcase: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'candidate' | 'recruiter'>('candidate');
 
   return (
-    <section className="py-20 md:py-32 relative overflow-hidden bg-slate-50 border-y border-slate-200">
-      {/* Glow Effects */}
-      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-full max-w-7xl h-96 bg-gradient-to-r from-blue-500/10 via-purple-500/10 to-emerald-500/10 blur-[130px] pointer-events-none rounded-full" />
-
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-        {/* Section Header */}
-        <div className="text-center max-w-3xl mx-auto mb-12 md:mb-16">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-blue-50 border border-blue-200 text-blue-700 font-bold text-xs uppercase tracking-widest mb-4 shadow-sm">
-            <Sparkles size={14} /> Comprehensive 360° Ecosystem
-          </div>
-          <h2 className="text-3xl sm:text-4xl md:text-5xl font-black text-slate-900 tracking-tight">
-            Built for <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600">High-Growth Candidates</span> & <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-600">Enterprise Recruiters</span>
+    <section className="py-16 sm:py-20 relative overflow-hidden bg-white border-t border-[#E2E8F0] transition-colors duration-500">
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+        
+        {/* Unified Section Header */}
+        <div className="text-center max-w-2xl mx-auto mb-8 sm:mb-10">
+          <p className="text-xs font-semibold uppercase tracking-widest text-[#2563EB] mb-2.5 font-sans">
+            Ecosystem
+          </p>
+          <h2 className="font-display text-3xl sm:text-4xl md:text-5xl font-bold text-[#0F172A] tracking-tight leading-tight">
+            Built for candidates. Trusted by teams.
           </h2>
-          <p className="mt-4 text-base sm:text-lg text-slate-600 dark:text-slate-400">
-            Switch between modes to discover tailored tools engineered for your success.
+          <p className="mt-3 text-sm sm:text-base text-[#64748B] font-sans font-normal leading-relaxed">
+            Switch views to discover tools engineered for job seekers and hiring managers.
           </p>
 
-          {/* Interactive Switcher */}
-          <div className="flex justify-center mt-8">
-            <div className="bg-slate-100 dark:bg-slate-800/90 p-1.5 rounded-2xl border border-slate-200 dark:border-white/10 flex items-center shadow-lg backdrop-blur-md">
+          {/* Segmented Pill Switcher */}
+          <div className="flex justify-center mt-6">
+            <div className="bg-[#F8FAFC] p-1 rounded-full border border-[#E2E8F0] flex items-center shadow-sm">
               <button
                 onClick={() => setActiveTab('candidate')}
-                className={`flex items-center gap-2.5 px-6 py-3 rounded-xl font-bold text-sm transition-all duration-300 ${
+                className={`flex items-center gap-2 px-6 py-2.5 rounded-full font-semibold text-xs sm:text-sm transition-all duration-300 font-sans ${
                   activeTab === 'candidate'
-                    ? 'bg-blue-600 text-white shadow-md shadow-blue-500/30'
-                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                    ? 'bg-white text-[#0F172A] shadow-sm border border-[#E2E8F0]'
+                    : 'text-[#64748B] hover:text-[#0F172A]'
                 }`}
               >
-                <UserCheck size={18} /> For Candidates & Job Seekers
+                <UserCheck size={15} className={activeTab === 'candidate' ? 'text-[#2563EB]' : ''} /> For Job Seekers
               </button>
               <button
                 onClick={() => setActiveTab('recruiter')}
-                className={`flex items-center gap-2.5 px-6 py-3 rounded-xl font-bold text-sm transition-all duration-300 ${
+                className={`flex items-center gap-2 px-6 py-2.5 rounded-full font-semibold text-xs sm:text-sm transition-all duration-300 font-sans ${
                   activeTab === 'recruiter'
-                    ? 'bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow-md shadow-emerald-500/30'
-                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                    ? 'bg-white text-[#0F172A] shadow-sm border border-[#E2E8F0]'
+                    : 'text-[#64748B] hover:text-[#0F172A]'
                 }`}
               >
-                <Building2 size={18} /> For Recruiters & Talent Teams
+                <Building2 size={15} className={activeTab === 'recruiter' ? 'text-[#2563EB]' : ''} /> For Hiring Teams
               </button>
             </div>
           </div>
@@ -61,120 +57,108 @@ export const CandidateRecruiterShowcase: React.FC = () => {
           {activeTab === 'candidate' ? (
             <motion.div
               key="candidate-panel"
-              initial={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              transition={{ duration: 0.4 }}
-              className="space-y-12"
+              exit={{ opacity: 0, y: -12 }}
+              transition={{ duration: 0.3 }}
+              className="space-y-6 sm:space-y-8"
             >
               {/* Candidate Highlights Grid */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-5">
                 
-                {/* 1. Live 1-on-1 AI Simulation */}
-                <div className="bg-white/70 dark:bg-[#121216]/80 backdrop-blur-xl border border-slate-200 dark:border-white/10 rounded-3xl p-6 sm:p-8 shadow-xl hover:shadow-2xl hover:border-blue-500/40 transition-all group flex flex-col justify-between">
+                {/* 1. Conversational Mock Rounds */}
+                <div className="bg-[#F8FAFC] border border-[#E2E8F0] rounded-[22px] p-5 sm:p-6 shadow-[0_2px_10px_rgba(15,23,42,0.02)] hover:shadow-[0_10px_25px_-5px_rgba(15,23,42,0.05)] transition-all duration-300 flex flex-col justify-between">
                   <div>
-                    <div className="w-12 h-12 rounded-2xl bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 flex items-center justify-center mb-5 group-hover:scale-110 transition-transform">
-                      <Video size={24} />
+                    <div className="w-9 h-9 rounded-xl bg-white text-[#2563EB] flex items-center justify-center mb-4 border border-[#E2E8F0] shadow-sm">
+                      <Video size={17} />
                     </div>
-                    <div className="flex items-center gap-2 mb-2">
-                      <span className="text-xs font-bold px-2 py-0.5 rounded-md bg-blue-500/10 text-blue-600 dark:text-blue-400">Live Face & Speech</span>
-                      <span className="text-xs font-bold px-2 py-0.5 rounded-md bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">Adaptive AI</span>
-                    </div>
-                    <h3 className="text-xl font-extrabold text-slate-900 dark:text-white mb-2">1-on-1 Conversational Interview Simulation</h3>
-                    <p className="text-slate-600 dark:text-slate-400 text-sm leading-relaxed mb-6">
-                      Practice realistic interviews with dynamic follow-up questions tailored to your spoken answers. Computer vision analyzes eye contact, posture, and facial confidence in real-time.
+                    <h3 className="font-display text-base font-bold text-[#0F172A] mb-1.5">Conversational Mock Rounds</h3>
+                    <p className="text-[#64748B] text-xs sm:text-sm leading-relaxed mb-5 font-sans">
+                      Practice realistic interviews with dynamic follow-ups tailored to your spoken answers. Get instant feedback on clarity and depth.
                     </p>
                   </div>
-                  <div className="bg-slate-50 dark:bg-black/30 p-3.5 rounded-xl border border-slate-100 dark:border-white/5 space-y-2 text-xs">
-                    <div className="flex justify-between items-center text-slate-700 dark:text-slate-300 font-semibold">
-                      <span>Live Speech Clarity</span>
-                      <span className="text-emerald-500 font-bold">96% (Native Tone)</span>
+                  <div className="bg-white p-3 rounded-xl border border-[#E2E8F0] space-y-1.5 text-xs">
+                    <div className="flex justify-between items-center text-[#0F172A] font-medium font-sans">
+                      <span>Speech Fluency</span>
+                      <span className="text-[#2563EB] font-bold font-mono">96%</span>
                     </div>
-                    <div className="w-full bg-slate-200 dark:bg-slate-700 h-1.5 rounded-full overflow-hidden">
-                      <div className="bg-emerald-500 h-full w-[96%]" />
+                    <div className="w-full bg-[#F1F3F5] h-1.5 rounded-full overflow-hidden">
+                      <div className="bg-[#2563EB] h-full w-[96%]" />
                     </div>
                   </div>
                 </div>
 
-                {/* 2. AI Resume Builder & ATS Score */}
-                <div className="bg-white/70 dark:bg-[#121216]/80 backdrop-blur-xl border border-slate-200 dark:border-white/10 rounded-3xl p-6 sm:p-8 shadow-xl hover:shadow-2xl hover:border-purple-500/40 transition-all group flex flex-col justify-between">
+                {/* 2. Resume & ATS Score */}
+                <div className="bg-[#F8FAFC] border border-[#E2E8F0] rounded-[22px] p-5 sm:p-6 shadow-[0_2px_10px_rgba(15,23,42,0.02)] hover:shadow-[0_10px_25px_-5px_rgba(15,23,42,0.05)] transition-all duration-300 flex flex-col justify-between">
                   <div>
-                    <div className="w-12 h-12 rounded-2xl bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 flex items-center justify-center mb-5 group-hover:scale-110 transition-transform">
-                      <FileText size={24} />
+                    <div className="w-9 h-9 rounded-xl bg-white text-[#2563EB] flex items-center justify-center mb-4 border border-[#E2E8F0] shadow-sm">
+                      <FileText size={17} />
                     </div>
-                    <div className="flex items-center gap-2 mb-2">
-                      <span className="text-xs font-bold px-2 py-0.5 rounded-md bg-purple-500/10 text-purple-600 dark:text-purple-400">ATS Keyword Match</span>
-                      <span className="text-xs font-bold px-2 py-0.5 rounded-md bg-blue-500/10 text-blue-600 dark:text-blue-400">Instant PDF</span>
-                    </div>
-                    <h3 className="text-xl font-extrabold text-slate-900 dark:text-white mb-2">AI Resume Optimizer & ATS Benchmark</h3>
-                    <p className="text-slate-600 dark:text-slate-400 text-sm leading-relaxed mb-6">
-                      Upload your resume or build one with AI in minutes. Instantly evaluate matching keywords, grammar, metrics quantification, and alignment with target job descriptions.
+                    <h3 className="font-display text-base font-bold text-[#0F172A] mb-1.5">Resume & ATS Optimizer</h3>
+                    <p className="text-[#64748B] text-xs sm:text-sm leading-relaxed mb-5 font-sans">
+                      Upload your resume to check keywords, formatting, action-driven bullet points, and alignment with target engineering roles.
                     </p>
                   </div>
-                  <div className="bg-slate-50 dark:bg-black/30 p-3.5 rounded-xl border border-slate-100 dark:border-white/5 space-y-2 text-xs">
-                    <div className="flex justify-between items-center text-slate-700 dark:text-slate-300 font-semibold">
-                      <span>ATS Compatibility Rating</span>
-                      <span className="text-purple-500 font-bold">94/100 (High Pass)</span>
+                  <div className="bg-white p-3 rounded-xl border border-[#E2E8F0] space-y-1.5 text-xs">
+                    <div className="flex justify-between items-center text-[#0F172A] font-medium font-sans">
+                      <span>ATS Benchmark</span>
+                      <span className="text-[#2563EB] font-bold font-mono">94 / 100</span>
                     </div>
-                    <div className="w-full bg-slate-200 dark:bg-slate-700 h-1.5 rounded-full overflow-hidden">
-                      <div className="bg-purple-500 h-full w-[94%]" />
+                    <div className="w-full bg-[#F1F3F5] h-1.5 rounded-full overflow-hidden">
+                      <div className="bg-[#2563EB] h-full w-[94%]" />
                     </div>
                   </div>
                 </div>
 
-                {/* 3. Coding Sandbox & Test Automation */}
-                <div className="bg-white/70 dark:bg-[#121216]/80 backdrop-blur-xl border border-slate-200 dark:border-white/10 rounded-3xl p-6 sm:p-8 shadow-xl hover:shadow-2xl hover:border-cyan-500/40 transition-all group flex flex-col justify-between">
+                {/* 3. Coding Sandbox */}
+                <div className="bg-[#F8FAFC] border border-[#E2E8F0] rounded-[22px] p-5 sm:p-6 shadow-[0_2px_10px_rgba(15,23,42,0.02)] hover:shadow-[0_10px_25px_-5px_rgba(15,23,42,0.05)] transition-all duration-300 flex flex-col justify-between">
                   <div>
-                    <div className="w-12 h-12 rounded-2xl bg-cyan-100 dark:bg-cyan-900/30 text-cyan-600 dark:text-cyan-400 flex items-center justify-center mb-5 group-hover:scale-110 transition-transform">
-                      <Code2 size={24} />
+                    <div className="w-9 h-9 rounded-xl bg-white text-[#2563EB] flex items-center justify-center mb-4 border border-[#E2E8F0] shadow-sm">
+                      <Code2 size={17} />
                     </div>
-                    <div className="flex items-center gap-2 mb-2">
-                      <span className="text-xs font-bold px-2 py-0.5 rounded-md bg-cyan-500/10 text-cyan-600 dark:text-cyan-400">LeetCode-Grade</span>
-                      <span className="text-xs font-bold px-2 py-0.5 rounded-md bg-amber-500/10 text-amber-600 dark:text-amber-400">Multi-Language</span>
-                    </div>
-                    <h3 className="text-xl font-extrabold text-slate-900 dark:text-white mb-2">Technical Coding Challenges & DSA Sandbox</h3>
-                    <p className="text-slate-600 dark:text-slate-400 text-sm leading-relaxed mb-6">
-                      Practice DSA, algorithmic problems, and system design questions. Automated test runners evaluate execution time, edge cases, space/time complexity, and code quality.
+                    <h3 className="font-display text-base font-bold text-[#0F172A] mb-1.5">Algorithm & Code Sandbox</h3>
+                    <p className="text-[#64748B] text-xs sm:text-sm leading-relaxed mb-5 font-sans">
+                      Practice DSA, system design, and algorithmic questions. Automated test runners evaluate runtime, edge cases, and code elegance.
                     </p>
                   </div>
-                  <div className="bg-slate-50 dark:bg-black/30 p-3.5 rounded-xl border border-slate-100 dark:border-white/5 space-y-2 text-xs">
-                    <div className="flex justify-between items-center text-slate-700 dark:text-slate-300 font-semibold">
+                  <div className="bg-white p-3 rounded-xl border border-[#E2E8F0] space-y-1.5 text-xs">
+                    <div className="flex justify-between items-center text-[#0F172A] font-medium font-sans">
                       <span>Test Cases Passed</span>
-                      <span className="text-cyan-500 font-bold">12 / 12 (100%)</span>
+                      <span className="text-[#2563EB] font-bold font-mono">12 / 12 (100%)</span>
                     </div>
-                    <div className="w-full bg-slate-200 dark:bg-slate-700 h-1.5 rounded-full overflow-hidden">
-                      <div className="bg-cyan-500 h-full w-[100%]" />
+                    <div className="w-full bg-[#F1F3F5] h-1.5 rounded-full overflow-hidden">
+                      <div className="bg-[#2563EB] h-full w-[100%]" />
                     </div>
                   </div>
                 </div>
 
               </div>
 
-              {/* Candidate Journey Showcase Banner */}
-              <div className="bg-gradient-to-r from-blue-50 via-indigo-50 to-purple-50 border border-blue-200 rounded-3xl p-6 sm:p-10 flex flex-col lg:flex-row items-center justify-between gap-8 shadow-sm">
-                <div className="max-w-2xl">
-                  <span className="text-xs font-bold uppercase tracking-widest text-blue-700 bg-white px-3 py-1 rounded-full border border-blue-200 mb-3 inline-block shadow-sm">
-                    Free Forever Candidate Access
+              {/* Candidate Journey Banner */}
+              <div className="bg-[#F8FAFC] border border-[#E2E8F0] rounded-[22px] p-6 sm:p-8 flex flex-col lg:flex-row items-center justify-between gap-6 shadow-[0_2px_10px_rgba(15,23,42,0.02)]">
+                <div className="max-w-xl">
+                  <span className="text-[10px] font-semibold uppercase tracking-wider text-[#1D4ED8] bg-[#EFF6FF] px-3 py-1 rounded-full border border-[#BFDBFE] mb-2.5 inline-block shadow-sm font-mono">
+                    Free Candidate Access
                   </span>
-                  <h3 className="text-2xl sm:text-3xl font-black text-slate-900 mb-3">
-                    Start with 5 Free AI Mock Interviews Every Month
+                  <h3 className="font-display text-xl sm:text-2xl font-bold text-[#0F172A] mb-2 tracking-tight">
+                    5 Free Complete Practice Sessions Monthly
                   </h3>
-                  <p className="text-slate-600 text-sm sm:text-base leading-relaxed">
-                    Practice across Software Engineering, Product Management, Data Science, HR, and Sales. Get instant AI grading reports, transcripts, and verified candidate certificate badges.
+                  <p className="text-[#64748B] text-xs sm:text-sm leading-relaxed font-sans font-normal">
+                    Practice across Software Engineering, Product, Data Science, and Campus drives. Get instant scorecards, transcripts, and verified completion certificates.
                   </p>
                 </div>
-                <div className="flex flex-col sm:flex-row gap-4 shrink-0">
+                <div className="flex flex-col sm:flex-row gap-3 shrink-0 w-full sm:w-auto">
                   <Link 
                     to="/auth" 
-                    className="px-8 py-4 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold text-sm sm:text-base transition shadow-md shadow-blue-500/20 flex items-center justify-center gap-2"
+                    className="px-6 py-2.5 bg-[#2563EB] hover:bg-[#1D4ED8] text-white rounded-full font-semibold text-xs sm:text-sm transition shadow-[0_4px_14px_rgba(37,99,235,0.25)] flex items-center justify-center gap-1.5 font-sans"
                   >
-                    <Zap size={18} /> Launch Free Candidate Studio
+                    <Zap size={14} /> Start Free
                   </Link>
                   <Link 
                     to="/career-hub" 
-                    className="px-6 py-4 bg-white hover:bg-slate-100 text-slate-800 rounded-xl font-bold text-sm sm:text-base border border-slate-200 transition flex items-center justify-center gap-2 shadow-sm"
+                    className="px-5 py-2.5 bg-white hover:bg-[#F8FAFC] text-[#0F172A] rounded-full font-semibold text-xs sm:text-sm border border-[#E2E8F0] transition flex items-center justify-center gap-1.5 font-sans shadow-sm"
                   >
-                    Explore Career Hub <ArrowRight size={16} />
+                    Career Hub <ArrowRight size={13} />
                   </Link>
                 </div>
               </div>
@@ -182,148 +166,136 @@ export const CandidateRecruiterShowcase: React.FC = () => {
           ) : (
             <motion.div
               key="recruiter-panel"
-              initial={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              transition={{ duration: 0.4 }}
-              className="space-y-12"
+              exit={{ opacity: 0, y: -12 }}
+              transition={{ duration: 0.3 }}
+              className="space-y-6 sm:space-y-8"
             >
               {/* Recruiter Highlights Grid */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-5">
 
-                {/* 1. Automated AI Interview Creator */}
-                <div className="bg-white border border-slate-200 rounded-3xl p-6 sm:p-8 shadow-md hover:shadow-xl hover:border-emerald-500/40 transition-all group flex flex-col justify-between">
+                {/* 1. Custom Interview Creator */}
+                <div className="bg-[#F8FAFC] border border-[#E2E8F0] rounded-[22px] p-5 sm:p-6 shadow-[0_2px_10px_rgba(15,23,42,0.02)] hover:shadow-[0_10px_25px_-5px_rgba(15,23,42,0.05)] transition-all duration-300 flex flex-col justify-between">
                   <div>
-                    <div className="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center mb-5 group-hover:scale-110 transition-transform">
-                      <BrainCircuit size={24} />
+                    <div className="w-9 h-9 rounded-xl bg-white text-[#2563EB] flex items-center justify-center mb-4 border border-[#E2E8F0] shadow-sm">
+                      <Check size={17} />
                     </div>
-                    <div className="flex items-center gap-2 mb-2">
-                      <span className="text-xs font-bold px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 border border-emerald-200">Instant AI Rubric</span>
-                      <span className="text-xs font-bold px-2 py-0.5 rounded-md bg-blue-50 text-blue-700 border border-blue-200">Custom Skills</span>
-                    </div>
-                    <h3 className="text-xl font-extrabold text-slate-900 mb-2">Custom AI Interview & Assessment Studio</h3>
-                    <p className="text-slate-600 text-sm leading-relaxed mb-6">
-                      Generate comprehensive technical and behavioral interviews in seconds. Enter job title, difficulty, and experience to generate deep rubrics.
+                    <h3 className="font-display text-base font-bold text-[#0F172A] mb-1.5">Interview Rubric Studio</h3>
+                    <p className="text-[#64748B] text-xs sm:text-sm leading-relaxed mb-5 font-sans">
+                      Build comprehensive technical and behavioral interview rubrics in seconds. Set target skills, difficulty levels, and pass thresholds.
                     </p>
                   </div>
-                  <div className="bg-slate-50 p-3.5 rounded-xl border border-slate-200 space-y-2 text-xs">
-                    <div className="flex justify-between items-center text-slate-700 font-semibold">
+                  <div className="bg-white p-3 rounded-xl border border-[#E2E8F0] space-y-1.5 text-xs font-sans">
+                    <div className="flex justify-between items-center text-[#0F172A] font-medium">
                       <span>Setup Time</span>
-                      <span className="text-emerald-600 font-bold">&lt; 30 Seconds</span>
+                      <span className="text-[#2563EB] font-bold font-mono">&lt; 1 Minute</span>
                     </div>
-                    <div className="w-full bg-slate-200 h-1.5 rounded-full overflow-hidden">
-                      <div className="bg-emerald-500 h-full w-full" />
+                    <div className="w-full bg-[#F1F3F5] h-1.5 rounded-full overflow-hidden">
+                      <div className="bg-[#2563EB] h-full w-full" />
                     </div>
                   </div>
                 </div>
 
                 {/* 2. Bulk Resume Screener */}
-                <div className="bg-white border border-slate-200 rounded-3xl p-6 sm:p-8 shadow-md hover:shadow-xl hover:border-blue-500/40 transition-all group flex flex-col justify-between">
+                <div className="bg-[#F8FAFC] border border-[#E2E8F0] rounded-[22px] p-5 sm:p-6 shadow-[0_2px_10px_rgba(15,23,42,0.02)] hover:shadow-[0_10px_25px_-5px_rgba(15,23,42,0.05)] transition-all duration-300 flex flex-col justify-between">
                   <div>
-                    <div className="w-12 h-12 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center mb-5 group-hover:scale-110 transition-transform">
-                      <FileSearch size={24} />
+                    <div className="w-9 h-9 rounded-xl bg-white text-[#2563EB] flex items-center justify-center mb-4 border border-[#E2E8F0] shadow-sm">
+                      <FileSearch size={17} />
                     </div>
-                    <div className="flex items-center gap-2 mb-2">
-                      <span className="text-xs font-bold px-2 py-0.5 rounded-md bg-blue-50 text-blue-700 border border-blue-200">50+ PDF Resumes</span>
-                      <span className="text-xs font-bold px-2 py-0.5 rounded-md bg-purple-50 text-purple-700 border border-purple-200">Leaderboard</span>
-                    </div>
-                    <h3 className="text-xl font-extrabold text-slate-900 mb-2">Bulk Resume Parsing & Fit Leaderboard</h3>
-                    <p className="text-slate-600 text-sm leading-relaxed mb-6">
-                      Upload candidate resumes in batch. AI analyzes credentials, extracts contact info, and scores job alignment.
+                    <h3 className="font-display text-base font-bold text-[#0F172A] mb-1.5">Bulk Resume Ranking</h3>
+                    <p className="text-[#64748B] text-xs sm:text-sm leading-relaxed mb-5 font-sans">
+                      Upload candidate resumes in batch. Parse skills, extract contact info, and rank profiles objectively by job description fit.
                     </p>
                   </div>
-                  <div className="bg-slate-50 p-3.5 rounded-xl border border-slate-200 space-y-2 text-xs">
-                    <div className="flex justify-between items-center text-slate-700 font-semibold">
-                      <span>Automated Ranking</span>
-                      <span className="text-blue-600 font-bold">100% Objective</span>
+                  <div className="bg-white p-3 rounded-xl border border-[#E2E8F0] space-y-1.5 text-xs font-sans">
+                    <div className="flex justify-between items-center text-[#0F172A] font-medium">
+                      <span>Objective Ranking</span>
+                      <span className="text-[#2563EB] font-bold font-mono">100% Merit-Based</span>
                     </div>
-                    <div className="w-full bg-slate-200 h-1.5 rounded-full overflow-hidden">
-                      <div className="bg-blue-600 h-full w-[95%]" />
+                    <div className="w-full bg-[#F1F3F5] h-1.5 rounded-full overflow-hidden">
+                      <div className="bg-[#2563EB] h-full w-[95%]" />
                     </div>
                   </div>
                 </div>
 
-                {/* 3. Multi-Channel WhatsApp & Email Invites */}
-                <div className="bg-white border border-slate-200 rounded-3xl p-6 sm:p-8 shadow-md hover:shadow-xl hover:border-teal-500/40 transition-all group flex flex-col justify-between">
+                {/* 3. WhatsApp & Email Invites */}
+                <div className="bg-[#F8FAFC] border border-[#E2E8F0] rounded-[22px] p-5 sm:p-6 shadow-[0_2px_10px_rgba(15,23,42,0.02)] hover:shadow-[0_10px_25px_-5px_rgba(15,23,42,0.05)] transition-all duration-300 flex flex-col justify-between">
                   <div>
-                    <div className="w-12 h-12 rounded-2xl bg-teal-50 text-teal-600 flex items-center justify-center mb-5 group-hover:scale-110 transition-transform">
-                      <PhoneCall size={24} />
+                    <div className="w-9 h-9 rounded-xl bg-white text-[#2563EB] flex items-center justify-center mb-4 border border-[#E2E8F0] shadow-sm">
+                      <PhoneCall size={17} />
                     </div>
-                    <div className="flex items-center gap-2 mb-2">
-                      <span className="text-xs font-bold px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 border border-emerald-200">WhatsApp API</span>
-                      <span className="text-xs font-bold px-2 py-0.5 rounded-md bg-cyan-50 text-cyan-700 border border-cyan-200">Brevo Email</span>
-                    </div>
-                    <h3 className="text-xl font-extrabold text-slate-900 mb-2">WhatsApp & Email Invitation Dispatch</h3>
-                    <p className="text-slate-600 text-sm leading-relaxed mb-6">
+                    <h3 className="font-display text-base font-bold text-[#0F172A] mb-1.5">WhatsApp & Email Dispatch</h3>
+                    <p className="text-[#64748B] text-xs sm:text-sm leading-relaxed mb-5 font-sans">
                       Send direct interview links and 6-digit access codes straight to candidate WhatsApp and emails with 1 click.
                     </p>
                   </div>
-                  <div className="bg-slate-50 p-3.5 rounded-xl border border-slate-200 space-y-2 text-xs">
-                    <div className="flex justify-between items-center text-slate-700 font-semibold">
-                      <span>Open Rate</span>
-                      <span className="text-teal-600 font-bold">98% via WhatsApp</span>
+                  <div className="bg-white p-3 rounded-xl border border-[#E2E8F0] space-y-1.5 text-xs font-sans">
+                    <div className="flex justify-between items-center text-[#0F172A] font-medium">
+                      <span>Response Rate</span>
+                      <span className="text-[#2563EB] font-bold font-mono">98% on WhatsApp</span>
                     </div>
-                    <div className="w-full bg-slate-200 h-1.5 rounded-full overflow-hidden">
-                      <div className="bg-teal-500 h-full w-[98%]" />
+                    <div className="w-full bg-[#F1F3F5] h-1.5 rounded-full overflow-hidden">
+                      <div className="bg-[#2563EB] h-full w-[98%]" />
                     </div>
                   </div>
                 </div>
 
               </div>
 
-              {/* Recruiter Full Feature Breakdown List */}
-              <div className="bg-white border border-slate-200 rounded-3xl p-6 sm:p-10 shadow-xl">
-                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8 border-b border-slate-200 pb-6">
+              {/* Recruiter Workspace List */}
+              <div className="bg-[#F8FAFC] border border-[#E2E8F0] rounded-[22px] p-6 sm:p-8 shadow-[0_2px_10px_rgba(15,23,42,0.02)]">
+                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6 border-b border-[#E2E8F0] pb-5">
                   <div>
-                    <h3 className="text-2xl font-black text-slate-900 flex items-center gap-2">
-                      <Layers className="text-emerald-600" /> Enterprise Recruitment Feature Suite
+                    <h3 className="font-display text-xl font-bold text-[#0F172A]">
+                      Enterprise Recruitment Workspace
                     </h3>
-                    <p className="text-slate-500 text-sm mt-1 font-medium">
-                      Everything required for corporate talent acquisition teams and staffing agencies
+                    <p className="text-[#64748B] text-xs mt-0.5 font-sans">
+                      Everything corporate talent acquisition teams and staffing agencies need
                     </p>
                   </div>
                   <Link 
                     to="/auth" 
-                    className="px-6 py-3 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl font-bold text-sm transition shadow-lg shadow-emerald-500/20 flex items-center gap-2"
+                    className="px-5 py-2.5 bg-[#0F172A] text-white hover:bg-[#1D4ED8] rounded-full font-semibold text-xs transition flex items-center gap-1.5 font-sans"
                   >
-                    Open Recruiter Dashboard <ArrowRight size={16} />
+                    Open Portal <ArrowRight size={13} />
                   </Link>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                  <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200">
-                    <div className="text-emerald-700 font-bold text-sm mb-2 flex items-center gap-2">
-                      <CheckCircle size={16} /> Job Pipeline Manager
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
+                  <div className="p-3.5 rounded-[16px] bg-white border border-[#E2E8F0]">
+                    <div className="text-[#0F172A] font-bold text-xs mb-1 flex items-center gap-1.5 font-sans">
+                      <Check size={14} className="text-[#2563EB]" /> Pipeline Manager
                     </div>
-                    <p className="text-xs text-slate-600 leading-relaxed">
-                      Post, pause, and filter active job openings with location presets (Mumbai, Pune, Bengaluru, Remote).
+                    <p className="text-xs text-[#64748B] leading-relaxed font-sans">
+                      Track candidates from applied to interviewed with clear status filters.
                     </p>
                   </div>
 
-                  <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200">
-                    <div className="text-emerald-700 font-bold text-sm mb-2 flex items-center gap-2">
-                      <CheckCircle size={16} /> Custom Assessment Tests
+                  <div className="p-3.5 rounded-[16px] bg-white border border-[#E2E8F0]">
+                    <div className="text-[#0F172A] font-bold text-xs mb-1 flex items-center gap-1.5 font-sans">
+                      <Check size={14} className="text-[#2563EB]" /> Timed Assessments
                     </div>
-                    <p className="text-xs text-slate-600 leading-relaxed">
-                      Timed MCQ tests with custom pass thresholds that trigger automated AI interviews upon passing.
+                    <p className="text-xs text-[#64748B] leading-relaxed font-sans">
+                      Custom aptitude and MCQ assessments with automated round progression.
                     </p>
                   </div>
 
-                  <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200">
-                    <div className="text-emerald-700 font-bold text-sm mb-2 flex items-center gap-2">
-                      <CheckCircle size={16} /> Team & Audit Logging
+                  <div className="p-3.5 rounded-[16px] bg-white border border-[#E2E8F0]">
+                    <div className="text-[#0F172A] font-bold text-xs mb-1 flex items-center gap-1.5 font-sans">
+                      <Check size={14} className="text-[#2563EB]" /> Team Sharing
                     </div>
-                    <p className="text-xs text-slate-600 leading-relaxed">
-                      Multi-recruiter teams with parent-child accounts, activity logs, and candidate status tracking.
+                    <p className="text-xs text-[#64748B] leading-relaxed font-sans">
+                      Share candidate recordings and scorecards with hiring managers securely.
                     </p>
                   </div>
 
-                  <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200">
-                    <div className="text-emerald-700 font-bold text-sm mb-2 flex items-center gap-2">
-                      <CheckCircle size={16} /> AI Video Proctoring
+                  <div className="p-3.5 rounded-[16px] bg-white border border-[#E2E8F0]">
+                    <div className="text-[#0F172A] font-bold text-xs mb-1 flex items-center gap-1.5 font-sans">
+                      <Check size={14} className="text-[#2563EB]" /> Verified Integrity
                     </div>
-                    <p className="text-xs text-slate-600 leading-relaxed">
-                      Tab switch counters, multi-face alerts, and session integrity flags ensure 100% genuine submissions.
+                    <p className="text-xs text-[#64748B] leading-relaxed font-sans">
+                      Session verification and tab monitoring ensure 100% genuine candidate results.
                     </p>
                   </div>
                 </div>

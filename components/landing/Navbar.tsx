@@ -1,33 +1,44 @@
 import React, { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { motion, useScroll, useMotionValueEvent, AnimatePresence } from 'framer-motion';
-import { Menu, X, Sun, Moon } from 'lucide-react';
-import { useTheme } from '../../context/ThemeContext';
+import { Menu, X, ArrowRight } from 'lucide-react';
 import Logo from '../Logo';
-import MagnetButton from './MagnetButton';
 
 const Navbar: React.FC = () => {
+  const [isVisible, setIsVisible] = useState(true);
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { scrollY } = useScroll();
-  const { toggleTheme, isDark } = useTheme();
   const location = useLocation();
   const navigate = useNavigate();
   const isHomePage = location.pathname === '/';
 
   useMotionValueEvent(scrollY, "change", (latest) => {
-    setIsScrolled(latest > 50);
+    const previous = scrollY.getPrevious() ?? 0;
+    const delta = latest - previous;
+
+    setIsScrolled(latest > 20);
+
+    // If mobile menu is open, always stay visible
+    if (isMobileMenuOpen) {
+      setIsVisible(true);
+      return;
+    }
+
+    // When scrolling down past 80px, hide navbar; when scrolling up, reveal navbar
+    if (latest > 80 && delta > 4) {
+      setIsVisible(false);
+    } else if (delta < -4 || latest <= 80) {
+      setIsVisible(true);
+    }
   });
 
   const navLinks = [
-    { name: "Jobs", href: "#jobs" },
-    { name: "Features", href: "#features" },
-    { name: "How it Works", href: "#process" },
+    { name: "Platform", href: "#features" },
+    { name: "Scorecards", href: "#scorecards" },
+    { name: "Engine", href: "#engine" },
     { name: "Pricing", href: "#pricing" },
-    { name: "FAQ", href: "#faq" },
-    { name: "Blogs", href: "/blogs", isRoute: true },
-    { name: "Career Hub", href: "/career-hub", isRoute: true },
-    { name: "Student Results", href: "/student/results", isRoute: true },
+    { name: "Contact", href: "#contact" },
   ];
 
   const handleScroll = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
@@ -38,7 +49,7 @@ const Navbar: React.FC = () => {
       const targetId = href.replace('#', '');
       const element = document.getElementById(targetId);
       if (element) {
-        const offset = 80; // Navbar height adjustment
+        const offset = 80;
         const elementPosition = element.getBoundingClientRect().top;
         const offsetPosition = elementPosition + window.scrollY - offset;
         window.scrollTo({ top: offsetPosition, behavior: 'smooth' });
@@ -49,37 +60,35 @@ const Navbar: React.FC = () => {
   };
 
   return (
-    <>
-      <motion.nav
-        className={`fixed top-0 inset-x-0 z-50 flex justify-center transition-all duration-500 ${isScrolled ? 'pt-2 px-4 md:px-6' : 'pt-4 md:pt-6 px-4 md:px-6'}`}
-        initial={{ y: -100, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ duration: 0.8 }}
-      >
-        <div
-          className={`
-            relative flex items-center justify-between rounded-full transition-all duration-500 border
-            ${isScrolled
-              ? isDark
-                ? 'w-full max-w-[90%] md:max-w-6xl py-2 px-4 md:px-6 bg-black/80 backdrop-blur-md border-white/10 shadow-2xl shadow-indigo-500/10'
-                : 'w-full max-w-[90%] md:max-w-6xl py-2 px-4 md:px-6 bg-white/80 backdrop-blur-md border-slate-200 shadow-xl shadow-slate-200/50'
-              : 'w-full max-w-7xl py-3 px-4 md:px-6 bg-transparent border-transparent'
-            }
-          `}
-        >
-          {/* Logo */}
-          <Link to="/" className="flex items-center shrink-0">
-            <Logo className={`rounded-xl transition-all duration-500 ${isScrolled ? 'w-6 h-6 md:w-7 md:h-7' : 'w-8 h-8'}`} isDark={isDark} />
+    <motion.header
+      initial={{ y: 0 }}
+      animate={{ y: isVisible ? 0 : -90 }}
+      transition={{ duration: 0.28, ease: [0.16, 1, 0.3, 1] }}
+      className={`fixed top-0 inset-x-0 z-50 transition-all duration-300 ${
+        isScrolled || isMobileMenuOpen
+          ? 'bg-white/90 backdrop-blur-xl border-b border-[#E2E8F0] shadow-[0_4px_20px_rgba(15,23,42,0.03)]'
+          : 'bg-transparent border-b border-transparent'
+      }`}
+    >
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex items-center justify-between h-16 sm:h-18">
+          
+          {/* Left: Brand Identity */}
+          <Link to="/" className="flex items-center gap-3 shrink-0 group">
+            <Logo className="w-8 h-8 rounded-xl transition-transform duration-300 group-hover:scale-105" isDark={false} />
+            <span className="font-display font-bold tracking-tight text-lg text-[#0F172A]">
+              Interview<span className="text-[#2563EB]">Xpert</span>
+            </span>
           </Link>
 
-          {/* Desktop Links */}
-          <div className="hidden lg:flex flex-1 justify-center items-center gap-3 xl:gap-8 px-4">
+          {/* Center: Navigation Links */}
+          <nav className="hidden lg:flex items-center gap-1">
             {navLinks.map((link) => (
               link.isRoute ? (
                 <Link
                   key={link.name}
                   to={link.href}
-                  className={`text-[13px] xl:text-sm font-medium transition-colors whitespace-nowrap ${isDark ? 'text-slate-300 hover:text-white' : 'text-slate-600 hover:text-slate-900'}`}
+                  className="text-[13.5px] font-semibold text-[#64748B] hover:text-[#0F172A] px-4 py-2 rounded-lg hover:bg-[#F8FAFC] transition-colors duration-150"
                 >
                   {link.name}
                 </Link>
@@ -88,82 +97,63 @@ const Navbar: React.FC = () => {
                   key={link.name}
                   href={isHomePage ? link.href : `/${link.href}`}
                   onClick={(e) => handleScroll(e, link.href)}
-                  className={`text-[13px] xl:text-sm font-medium transition-colors whitespace-nowrap ${isDark ? 'text-slate-300 hover:text-white' : 'text-slate-600 hover:text-slate-900'}`}
+                  className="text-[13.5px] font-semibold text-[#64748B] hover:text-[#0F172A] px-4 py-2 rounded-lg hover:bg-[#F8FAFC] transition-colors duration-150"
                 >
                   {link.name}
                 </a>
               )
             ))}
-          </div>
+          </nav>
 
-          {/* CTAs */}
-          <div className="hidden lg:flex items-center gap-4 shrink-0">
-            {/* Theme Toggle */}
-            <button
-              onClick={toggleTheme}
-              className={`p-2 rounded-full transition-all duration-300 ${isDark
-                ? 'bg-slate-800 hover:bg-slate-700 text-yellow-400'
-                : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
-                }`}
-              aria-label="Toggle theme"
-            >
-              <motion.div
-                initial={false}
-                animate={{ rotate: isDark ? 0 : 180, scale: [1, 0.8, 1] }}
-                transition={{ duration: 0.3 }}
-              >
-                {isDark ? <Sun size={18} /> : <Moon size={18} />}
-              </motion.div>
-            </button>
-            <Link to="/auth" className={`text-sm font-medium ${isDark ? 'text-slate-300 hover:text-white' : 'text-slate-600 hover:text-slate-900'}`}>Log in</Link>
+          {/* Right: Actions */}
+          <div className="hidden lg:flex items-center gap-3 shrink-0">
             <Link 
               to="/auth" 
-              className="px-5 py-2 rounded-full bg-[#ff5722] hover:bg-[#f4511e] text-white font-bold text-xs sm:text-sm transition-all duration-300 shadow-[0_0_20px_rgba(255,87,34,0.4)] hover:shadow-[0_0_25px_rgba(255,87,34,0.6)] hover:-translate-y-0.5 flex items-center gap-1.5"
+              className="text-xs font-semibold text-[#475569] hover:text-[#0F172A] px-3.5 py-2 rounded-lg hover:bg-[#F8FAFC] transition-colors"
             >
-              <span>Get Started</span>
+              Sign in
+            </Link>
+
+            <Link 
+              to="/auth" 
+              className="px-5 py-2.5 rounded-full font-semibold text-xs bg-[#2563EB] hover:bg-[#1D4ED8] text-white transition-all duration-200 shadow-[0_2px_8px_rgba(37,99,235,0.25)] hover:shadow-[0_4px_14px_rgba(37,99,235,0.35)] flex items-center gap-1.5"
+            >
+              <span>Launch Platform</span>
+              <ArrowRight size={13} />
             </Link>
           </div>
 
-          {/* Mobile Menu Toggle */}
-          <div className="lg:hidden flex items-center gap-2">
-            {/* Mobile Theme Toggle */}
+          {/* Mobile Menu Button */}
+          <div className="lg:hidden flex items-center">
             <button
-              onClick={toggleTheme}
-              className={`p-2 rounded-full transition-all duration-300 ${isDark
-                ? 'bg-slate-800 hover:bg-slate-700 text-yellow-400'
-                : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
-                }`}
-              aria-label="Toggle theme"
-            >
-              {isDark ? <Sun size={18} /> : <Moon size={18} />}
-            </button>
-            <button
-              className={`p-1 ${isDark ? 'text-white' : 'text-slate-900'}`}
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              className="p-2 rounded-lg text-[#0F172A] hover:bg-[#F8FAFC] transition-colors"
+              aria-label="Toggle Navigation"
             >
-              {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+              {isMobileMenuOpen ? <X size={22} /> : <Menu size={22} />}
             </button>
           </div>
-        </div>
-      </motion.nav>
 
-      {/* Mobile Menu Overlay */}
+        </div>
+      </div>
+
+      {/* Mobile Menu Dropdown */}
       <AnimatePresence>
-      {isMobileMenuOpen && (
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -20 }}
-          className={`fixed inset-0 z-40 pt-24 px-6 lg:hidden ${isDark ? 'bg-slate-950/95' : 'bg-white/95 backdrop-blur-md'}`}
-        >
-          <div className="flex flex-col gap-6">
+        {isMobileMenuOpen && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ duration: 0.2 }}
+            className="lg:hidden border-t border-[#E2E8F0] bg-white px-4 pt-3 pb-6 space-y-2 overflow-hidden shadow-lg"
+          >
             {navLinks.map((link) => (
               link.isRoute ? (
                 <Link
                   key={link.name}
                   to={link.href}
                   onClick={() => setIsMobileMenuOpen(false)}
-                  className={`text-2xl font-display font-semibold ${isDark ? 'text-slate-200' : 'text-slate-800'}`}
+                  className="block text-sm font-semibold text-[#0F172A] py-2.5 px-3 rounded-lg hover:bg-[#F8FAFC]"
                 >
                   {link.name}
                 </Link>
@@ -172,24 +162,32 @@ const Navbar: React.FC = () => {
                   key={link.name}
                   href={isHomePage ? link.href : `/${link.href}`}
                   onClick={(e) => handleScroll(e, link.href)}
-                  className={`text-2xl font-display font-semibold ${isDark ? 'text-slate-200' : 'text-slate-800'}`}
+                  className="block text-sm font-semibold text-[#0F172A] py-2.5 px-3 rounded-lg hover:bg-[#F8FAFC]"
                 >
                   {link.name}
                 </a>
               )
             ))}
-            <div className={`h-px my-4 ${isDark ? 'bg-slate-800' : 'bg-slate-200'}`} />
-            <Link to="/auth" className={`text-xl font-medium ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>Log in</Link>
-            <Link to="/auth">
-              <MagnetButton variant="primary" className="w-full justify-center py-3">
-                Get Started
-              </MagnetButton>
-            </Link>
-          </div>
-        </motion.div>
-      )}
+            <div className="pt-3 border-t border-[#E2E8F0] flex flex-col gap-2">
+              <Link 
+                to="/auth" 
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="w-full py-2.5 text-center rounded-lg text-xs font-semibold border border-[#E2E8F0] text-[#0F172A] hover:bg-[#F8FAFC]"
+              >
+                Sign in
+              </Link>
+              <Link 
+                to="/auth" 
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="w-full py-2.5 text-center rounded-full text-xs font-semibold bg-[#2563EB] text-white hover:bg-[#1D4ED8]"
+              >
+                Launch Platform
+              </Link>
+            </div>
+          </motion.div>
+        )}
       </AnimatePresence>
-    </>
+    </motion.header>
   );
 };
 
