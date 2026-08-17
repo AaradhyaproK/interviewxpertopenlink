@@ -1,0 +1,30 @@
+# InterviewXpert - AI Mock Interview & Technical Preparation Platform
+
+> InterviewXpert is India's leading AI-powered mock interview and career acceleration platform built by SNAB Innovations (Nashik, Maharashtra, India).
+
+## Platform Overview
+- **Website**: https://www.interviewxpert.in/
+- **Parent Company**: SNAB Innovations (https://www.snab.co.in)
+- **Primary Service**: Live 1-on-1 Conversational AI Mock Interviews, Video Proctoring, Coding Challenges, Aptitude Tests & ATS Resume Scoring.
+- **Audience**: Engineering Students, Freshers, Software Developers, Recruiters, and College Placement Cells across India.
+
+## Key Features
+- **Multi-Engine AI**: Orchestrates Amazon Bedrock (nvidia.nemotron-9b & 30b), Google Gemini 2.0 Flash, and xAI Grok.
+- **Regional Indian Voice**: Authentic Indian English & Hindi voice synthesis powered by Sarvam AI Bulbul.
+- **Anti-Cheat Proctoring**: In-browser face detection, head posture tracking, and tab switch monitoring powered by TensorFlow Face-API.
+- **11-Dimensional Soft Skills Scorecard**: Scores fluency, clarity, confidence, tone, grammar, and video etiquette.
+- **Recruiter ATS Suite**: Bulk resume dump parser, WhatsApp & email candidate invites, and customized MCQ assessments.
+
+## Dedicated Preparation Tracks
+- **TCS NQT Mock Interview**: https://www.interviewxpert.in/#/tcs-mock-interview
+- **Infosys SP & DSE Prep**: https://www.interviewxpert.in/#/infosys-mock-interview
+- **Wipro Elite NTH Practice**: https://www.interviewxpert.in/#/wipro-mock-interview
+- **AI Coding Sandbox**: https://www.interviewxpert.in/#/coding-interview-practice
+- **Aptitude Practice Tests**: https://www.interviewxpert.in/#/aptitude-test-practice
+- **Blog & Interview Guides**: https://www.interviewxpert.in/#/blogs
+
+## Pricing
+- 5 Free AI Mock Interviews per month for all registered candidates.
+- Free ATS Resume Builder & Analysis.
+- Free Coding Sandbox & Aptitude Tests.
+- Pay-as-you-go credit wallet for unlimited AI practice.
