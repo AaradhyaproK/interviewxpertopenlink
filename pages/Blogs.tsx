@@ -52,11 +52,15 @@ const BlogsContent: React.FC = () => {
             try {
                 const q = query(collection(db, 'blogs'), orderBy('createdAt', 'desc'));
                 const snap = await getDocs(q);
-                setBlogs(snap.docs.map(doc => ({ id: doc.id, ...doc.data() } as BlogPost)));
+                if (!snap.empty) {
+                    const firestoreBlogs = snap.docs.map(doc => ({ id: doc.id, ...doc.data() } as BlogPost));
+                    // Combine firestore blogs with default SEO blogs without duplicates
+                    const ids = new Set(firestoreBlogs.map(b => b.id));
+                    const combined = [...firestoreBlogs, ...DEFAULT_BLOGS.filter(b => !ids.has(b.id))];
+                    setBlogs(combined);
+                }
             } catch (error) {
                 console.error("Error fetching blogs:", error);
-            } finally {
-                setLoading(false);
             }
         };
         fetchBlogs();

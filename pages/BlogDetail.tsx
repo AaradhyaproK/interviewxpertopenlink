@@ -5,6 +5,7 @@ import { db } from '../services/firebase';
 import { ArrowLeft, Calendar, Clock, User, Share2, BookOpen } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
 import { useMessageBox } from '../components/MessageBox';
+import { DEFAULT_BLOGS } from '../services/defaultBlogs';
 
 const BlogDetail: React.FC = () => {
     const { id } = useParams();
@@ -87,6 +88,14 @@ const BlogDetail: React.FC = () => {
     useEffect(() => {
         const fetchBlog = async () => {
             if (!id) return;
+            // Check default blogs first for immediate instant load
+            const defaultMatch = DEFAULT_BLOGS.find(b => b.id === id || b.slug === id);
+            if (defaultMatch) {
+                setBlog(defaultMatch);
+                setLoading(false);
+                return;
+            }
+
             try {
                 const docSnap = await getDoc(doc(db, 'blogs', id));
                 if (docSnap.exists()) {

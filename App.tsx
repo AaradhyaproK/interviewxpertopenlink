@@ -52,6 +52,11 @@ import StatusPage from './pages/Status';
 import StudentResults from './pages/StudentResults';
 import OneOnOneSession from './pages/OneOnOneSession';
 import OneOnOneReport from './pages/OneOnOneReport';
+import TCSMockInterview from './pages/TCSMockInterview';
+import InfosysMockInterview from './pages/InfosysMockInterview';
+import WiproMockInterview from './pages/WiproMockInterview';
+import CodingInterviewPractice from './pages/CodingInterviewPractice';
+import AptitudeTestPractice from './pages/AptitudeTestPractice';
 
 const ProtectedRoute: React.FC<{ children: React.ReactNode; role?: 'recruiter' | 'candidate' | 'admin' }> = ({ children, role }) => {
   const { user, userProfile, loading } = useAuth();
@@ -140,6 +145,31 @@ const App: React.FC = () => {
             <Route path="career-hub" element={
               <ThemeProvider>
                 <CareerHub />
+              </ThemeProvider>
+            } />
+            <Route path="tcs-mock-interview" element={
+              <ThemeProvider>
+                <TCSMockInterview />
+              </ThemeProvider>
+            } />
+            <Route path="infosys-mock-interview" element={
+              <ThemeProvider>
+                <InfosysMockInterview />
+              </ThemeProvider>
+            } />
+            <Route path="wipro-mock-interview" element={
+              <ThemeProvider>
+                <WiproMockInterview />
+              </ThemeProvider>
+            } />
+            <Route path="coding-interview-practice" element={
+              <ThemeProvider>
+                <CodingInterviewPractice />
+              </ThemeProvider>
+            } />
+            <Route path="aptitude-test-practice" element={
+              <ThemeProvider>
+                <AptitudeTestPractice />
               </ThemeProvider>
             } />
 

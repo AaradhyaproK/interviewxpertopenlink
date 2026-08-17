@@ -23,7 +23,7 @@ import { db } from '../services/firebase';
 // --- SEO Component ---
 const SEO: React.FC = () => {
   useEffect(() => {
-    document.title = "InterviewXpert | India's #1 AI Mock Interview & Technical Preparation Platform";
+    document.title = "AI Mock Interview Practice Online | InterviewXpert";
 
     const setMetaTag = (attr: 'name' | 'property', value: string, content: string) => {
       let element = document.querySelector(`meta[${attr}='${value}']`) as HTMLMetaElement;
@@ -35,20 +35,20 @@ const SEO: React.FC = () => {
       element.setAttribute('content', content);
     };
 
-    setMetaTag('name', 'description', 'Master your next tech job interview with InterviewXpert. Practice conversational 1-on-1 AI simulations, custom coding challenges, and logic aptitude tests with instant AI grading. Used by thousands of candidates in India.');
-    setMetaTag('name', 'keywords', 'InterviewXpert, interviewxpert, interviewxpert.in, www.interviewxpert.in, ai mock interview, live 1-on-1 interview, google meet mock interview, technical interview prep, recruiter ai, coding assessment, aptitude tests, tcs mock interview, wipro mock interview, infosys, free mock interview practice, interview preparation platform, india');
+    setMetaTag('name', 'description', 'Practice live 1-on-1 AI mock interviews, coding tests & aptitude rounds with instant feedback. Free trial. Built in India for TCS, Wipro, Infosys interviews.');
+    setMetaTag('name', 'keywords', 'AI mock interview practice, online mock interview India, TCS NQT mock interview, Infosys mock interview prep, Wipro elite interview practice, coding interview practice with AI feedback, free mock interview online India, technical interview preparation platform, interviewxpert, SNAB Innovations');
 
     // Open Graph / Facebook
     setMetaTag('property', 'og:type', 'website');
     setMetaTag('property', 'og:url', 'https://www.interviewxpert.in/');
-    setMetaTag('property', 'og:title', "InterviewXpert | India's #1 AI Mock Interview & Technical Preparation Platform");
-    setMetaTag('property', 'og:description', 'Master your next tech job interview with InterviewXpert. Practice conversational 1-on-1 AI simulations, custom coding challenges, and logic aptitude tests with instant AI grading.');
+    setMetaTag('property', 'og:title', "AI Mock Interview Practice Online | InterviewXpert");
+    setMetaTag('property', 'og:description', 'Practice live 1-on-1 AI mock interviews, coding tests & aptitude rounds with instant feedback. Free trial. Built in India for TCS, Wipro, Infosys interviews.');
     setMetaTag('property', 'og:image', 'https://www.interviewxpert.in/logo-black.png');
 
     // Twitter
     setMetaTag('name', 'twitter:card', 'summary_large_image');
-    setMetaTag('property', 'twitter:title', "InterviewXpert | India's #1 AI Mock Interview Platform");
-    setMetaTag('property', 'twitter:description', 'Practice live 1-on-1 conversational AI mock interviews, custom coding challenges, and aptitude tests with instant scoring.');
+    setMetaTag('property', 'twitter:title', "AI Mock Interview Practice Online | InterviewXpert");
+    setMetaTag('property', 'twitter:description', 'Practice live 1-on-1 AI mock interviews, coding tests & aptitude rounds with instant feedback. Free trial. Built in India for TCS, Wipro, Infosys interviews.');
     setMetaTag('property', 'twitter:image', 'https://www.interviewxpert.in/logo-black.png');
   }, []);
 
@@ -385,6 +385,17 @@ const Footer: React.FC = () => (
         </div>
 
         <div>
+          <h4 className="font-bold text-slate-900 mb-4 text-sm uppercase tracking-wider">Company Prep Tracks</h4>
+          <ul className="space-y-2 text-sm text-slate-600">
+            <li><Link to="/tcs-mock-interview" className="hover:text-[#ff5722] transition-colors font-medium">TCS NQT Mock Interview</Link></li>
+            <li><Link to="/infosys-mock-interview" className="hover:text-[#ff5722] transition-colors font-medium">Infosys SP & DSE Prep</Link></li>
+            <li><Link to="/wipro-mock-interview" className="hover:text-[#ff5722] transition-colors font-medium">Wipro Elite Mock Practice</Link></li>
+            <li><Link to="/coding-interview-practice" className="hover:text-[#ff5722] transition-colors font-medium">Coding & DSA Sandbox</Link></li>
+            <li><Link to="/aptitude-test-practice" className="hover:text-[#ff5722] transition-colors font-medium">Aptitude Practice Tests</Link></li>
+          </ul>
+        </div>
+
+        <div>
           <h4 className="font-bold text-slate-900 mb-4 text-sm uppercase tracking-wider">Resources</h4>
           <ul className="space-y-2 text-sm text-slate-600">
             <li><a href="#jobs" className="hover:text-[#ff5722] transition-colors">Job Board</a></li>
@@ -418,7 +429,7 @@ const Footer: React.FC = () => (
 
       <div className="flex flex-col md:flex-row justify-between items-center gap-8 md:gap-6">
         <div className="text-slate-500 text-xs">
-          &copy; {new Date().getFullYear()} InterviewXpert. Built with Amazon Bedrock, Google Gemini & Firebase.
+          &copy; {new Date().getFullYear()} InterviewXpert. A Product of <a href="https://www.snab.co.in" target="_blank" rel="noopener noreferrer" className="font-bold text-slate-700 hover:text-[#ff5722]">SNAB Innovations</a> (Nashik, Maharashtra, India).
         </div>
 
         <div className="text-center md:text-right">
