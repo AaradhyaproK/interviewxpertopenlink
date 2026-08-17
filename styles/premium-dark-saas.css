@@ -17,6 +17,12 @@
 }
 
 :root {
+  --saas-bg-light: #f8fafc;
+  --saas-bg-light-alt: #f1f5f9;
+  --saas-card-light: #ffffff;
+  --saas-border-light: rgba(15, 23, 42, 0.08);
+  --saas-shadow-light: 0 10px 30px -10px rgba(0, 0, 0, 0.07), 0 4px 6px -2px rgba(0, 0, 0, 0.03);
+
   --saas-bg-deep: #050509;
   --saas-bg-mid: #08080c;
   --saas-bg-raised: #0b0b0f;
@@ -25,9 +31,63 @@
   --saas-accent: #3b82f6;
   --saas-accent-deep: #2563eb;
   --saas-accent-purple: #8b5cf6;
-  --saas-border-inset: rgba(255, 255, 255, 0.06);
+  --saas-accent-coral: #ff5722;
+  --saas-border-inset: rgba(255, 255, 255, 0.08);
   --saas-shadow-card: 0 18px 45px rgba(0, 0, 0, 0.6);
-  --saas-radius: 12px;
+  --saas-radius: 16px;
+}
+
+/* Light Background Ambient Mesh */
+body:not(.dark) {
+  background-color: #f8fafc !important;
+  background-image: 
+    radial-gradient(circle at 50% 0%, rgba(59, 130, 246, 0.08) 0%, transparent 50%),
+    radial-gradient(circle at 100% 30%, rgba(255, 87, 34, 0.05) 0%, transparent 40%),
+    radial-gradient(circle at 0% 70%, rgba(139, 92, 246, 0.05) 0%, transparent 40%) !important;
+  background-attachment: fixed;
+  color: #0f172a;
+}
+
+/* Phenomenon Studio Ambient Spotlight */
+.phenomenon-spotlight {
+  background: radial-gradient(circle 600px at 50% -10%, rgba(255, 255, 255, 0.08), transparent 70%),
+              radial-gradient(circle 400px at 50% 20%, rgba(59, 130, 246, 0.05), transparent 80%);
+}
+
+.phenomenon-glow-coral {
+  box-shadow: 0 0 35px -5px rgba(255, 87, 34, 0.45);
+}
+
+.phenomenon-glow-blue {
+  box-shadow: 0 0 35px -5px rgba(59, 130, 246, 0.35);
+}
+
+.phenomenon-glow-purple {
+  box-shadow: 0 0 35px -5px rgba(139, 92, 246, 0.35);
+}
+
+.phenomenon-glass-pill {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(15, 23, 42, 0.08);
+}
+
+.dark .phenomenon-glass-pill {
+  background: rgba(18, 18, 22, 0.75);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.phenomenon-card {
+  background: #0f0f14;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.7);
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.phenomenon-card:hover {
+  border-color: rgba(255, 255, 255, 0.18);
+  transform: translateY(-3px);
 }
 
 /* —— Dark app shell —— */

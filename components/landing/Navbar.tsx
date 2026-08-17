@@ -116,10 +116,11 @@ const Navbar: React.FC = () => {
               </motion.div>
             </button>
             <Link to="/auth" className={`text-sm font-medium ${isDark ? 'text-slate-300 hover:text-white' : 'text-slate-600 hover:text-slate-900'}`}>Log in</Link>
-            <Link to="/auth">
-              <MagnetButton variant="primary" className="!px-4 !py-2 !text-sm">
-                Get Started
-              </MagnetButton>
+            <Link 
+              to="/auth" 
+              className="px-5 py-2 rounded-full bg-[#ff5722] hover:bg-[#f4511e] text-white font-bold text-xs sm:text-sm transition-all duration-300 shadow-[0_0_20px_rgba(255,87,34,0.4)] hover:shadow-[0_0_25px_rgba(255,87,34,0.6)] hover:-translate-y-0.5 flex items-center gap-1.5"
+            >
+              <span>Get Started</span>
             </Link>
           </div>
 
