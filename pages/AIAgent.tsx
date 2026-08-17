@@ -3,6 +3,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { doc, getDoc, collection, query, where, getDocs, setDoc, deleteDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from '../services/firebase';
 import { useAuth } from '../context/AuthContext';
+import { bedrockChat } from '../services/bedrockService';
 import { useAnimatedText } from '../hooks/useAnimatedText';
 import {
     Bot,
@@ -62,7 +63,6 @@ const AIAgent: React.FC = () => {
     const [fullProfile, setFullProfile] = useState<any>(null);
     const [pastInterviews, setPastInterviews] = useState<any[]>([]);
 
-    const XAI_KEY = import.meta.env.VITE_XAI_API_KEY;
 
     // --- Initialization ---
 
@@ -203,7 +203,6 @@ const AIAgent: React.FC = () => {
         setLoading(true);
 
         try {
-            if (!XAI_KEY) throw new Error('XAI API key missing');
 
             // Build Context Strings
             const profileContext = fullProfile ? `
@@ -245,26 +244,13 @@ const AIAgent: React.FC = () => {
             
             Remember: Keep responses well-structured but clean without any special formatting symbols.`;
 
-            // Convert message history to OpenAI role format (Grok uses 'assistant' not 'model')
+            // Convert message history to OpenAI role format
             const history = updatedSessions[sessionIndex].messages.map(m => ({
                 role: m.role === 'model' ? 'assistant' as const : 'user' as const,
                 content: m.text
             }));
 
-            const res = await fetch('https://api.x.ai/v1/chat/completions', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${XAI_KEY}` },
-                body: JSON.stringify({
-                    model: 'grok-4-1-fast-non-reasoning',
-                    messages: [
-                        { role: 'system', content: systemInstruction },
-                        ...history
-                    ],
-                    temperature: 0.7,
-                }),
-            });
-            const aiData = await res.json();
-            const text = aiData.choices?.[0]?.message?.content || "I couldn't generate a response.";
+            const text = await bedrockChat(systemInstruction, history, 'default', 0.7) || "I couldn't generate a response.";
 
             const aiMsg: Message = {
                 id: (Date.now() + 1).toString(),

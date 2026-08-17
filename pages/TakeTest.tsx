@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import { useParams, useNavigate } from 'react-router-dom';
 import { doc, getDoc, addDoc, collection, serverTimestamp } from 'firebase/firestore';
 import { db, auth } from '../services/firebase';
+import { bedrockGenerateText } from '../services/bedrockService';
 
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
@@ -425,11 +426,8 @@ const TakeTest: React.FC = () => {
       rawScore = Math.max(0, rawScore);
       score = Math.round((rawScore / test.questions.length) * 100);
     } else {
-      // AI Grading for Coding (powered by Grok)
+      // AI Grading for Coding (powered by Bedrock AI)
       try {
-        const xaiKey = import.meta.env.VITE_XAI_API_KEY;
-        if (!xaiKey) throw new Error("XAI API key missing");
-
         const prompt = `Evaluate this code submission for the problem: "${test.questions[currentQ].title}".
         Description: ${test.questions[currentQ].description}
         Language: ${codeLang}
@@ -438,21 +436,13 @@ const TakeTest: React.FC = () => {
         
         Return ONLY a JSON object: { "score": number (0-100), "feedback": "string" }. Score based on correctness and logic.`;
 
-        const res = await fetch("https://api.x.ai/v1/chat/completions", {
-          method: "POST",
-          headers: { "Content-Type": "application/json", Authorization: `Bearer ${xaiKey}` },
-          body: JSON.stringify({
-            model: "grok-4-1-fast-non-reasoning",
-            messages: [
-              { role: "system", content: "You are a code evaluation assistant. Return only valid JSON." },
-              { role: "user", content: prompt }
-            ],
-            response_format: { type: "json_object" },
-            temperature: 0.2,
-          }),
-        });
-        const data = await res.json();
-        const text = (data.choices?.[0]?.message?.content || "").replace(/```json|```/g, '').trim();
+        const rawResult = await bedrockGenerateText(
+          "You are a code evaluation assistant. Return only valid JSON.",
+          prompt,
+          'report',
+          0.2
+        );
+        const text = (rawResult || "").replace(/```json|```/g, '').trim();
         const evalData = JSON.parse(text);
         score = evalData.score;
         feedback = evalData.feedback;

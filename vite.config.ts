@@ -18,9 +18,6 @@ export default defineConfig(({ mode }) => {
       build: {
         target: 'esnext',
       },
-      define: {
-        'process.env.XAI_API_KEY': JSON.stringify(env.VITE_XAI_API_KEY),
-      },
       resolve: {
         alias: {
           '@': path.resolve(__dirname, '.'),

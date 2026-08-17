@@ -15,7 +15,7 @@ const INITIAL_SERVICES: ServiceStatus[] = [
   { name: 'Sarvam API', description: 'AI-powered speech & language services', status: 'checking', iconUrl: 'https://www.google.com/s2/favicons?domain=sarvam.ai&sz=128' },
   { name: 'Firebase API', description: 'Authentication, database & storage', status: 'checking', iconUrl: 'https://www.google.com/s2/favicons?domain=firebase.google.com&sz=128' },
   { name: 'Cloudinary API', description: 'Media uploads & asset management', status: 'checking', iconUrl: 'https://www.google.com/s2/favicons?domain=cloudinary.com&sz=128' },
-  { name: 'Grok API', description: 'AI interview question generation & evaluation', status: 'checking', iconUrl: 'https://www.google.com/s2/favicons?domain=x.ai&sz=128', modelStatus: '...' },
+  { name: 'Amazon Bedrock API', description: 'AI interview questions, reports & Career Copilot', status: 'checking', iconUrl: 'https://www.google.com/s2/favicons?domain=aws.amazon.com&sz=128', modelStatus: '...' },
 ];
 
 // Timeout wrapper — aborts any check after 10 seconds
@@ -95,10 +95,11 @@ const checkCloudinary = async (): Promise<{ ok: boolean; ms: number }> => {
   }
 };
 
-// Checks the xAI Grok API without consuming tokens by hitting the /v1/models endpoint.
-const checkGrok = async (): Promise<{ ok: boolean; ms: number; modelStatus: string }> => {
+// Checks the Amazon Bedrock Mantle API endpoint accessibility.
+const checkBedrock = async (): Promise<{ ok: boolean; ms: number; modelStatus: string }> => {
   const start = performance.now();
-  const apiKey = import.meta.env.VITE_XAI_API_KEY;
+  const apiKey = import.meta.env.VITE_ANTHROPIC_API_KEY;
+  const baseURL = import.meta.env.VITE_BEDROCK_CHAT_BASE_URL || 'https://bedrock-mantle.ap-south-1.api.aws/v1';
 
   if (!apiKey) {
     return { ok: false, ms: 0, modelStatus: 'API Key Missing' };
@@ -106,15 +107,15 @@ const checkGrok = async (): Promise<{ ok: boolean; ms: number; modelStatus: stri
 
   try {
     const res = await withTimeout(
-      fetch('https://api.x.ai/v1/models', {
+      fetch(`${baseURL}/models`, {
         method: 'GET',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${apiKey}` },
       }),
       5000
     );
 
-    if (res.ok) {
-      return { ok: true, ms: Math.round(performance.now() - start), modelStatus: 'API is reachable & responding' };
+    if (res.ok || res.status === 404 || res.status === 405) {
+      return { ok: true, ms: Math.round(performance.now() - start), modelStatus: 'Bedrock API reachable' };
     }
     return { ok: false, ms: Math.round(performance.now() - start), modelStatus: `HTTP ${res.status}` };
   } catch (error: any) {
@@ -132,7 +133,7 @@ const StatusPage: React.FC = () => {
     // Reset to checking
     setServices((prev) => prev.map((s) => ({ ...s, status: 'checking' as const })));
 
-    const checkers = [checkBrevo, checkSarvam, checkFirebase, checkCloudinary, checkGrok];
+    const checkers = [checkBrevo, checkSarvam, checkFirebase, checkCloudinary, checkBedrock];
 
     const results = await Promise.allSettled(checkers.map((fn) => fn()));
 

@@ -179,8 +179,11 @@ async function speak(text: string, options?: SpeakOptions): Promise<void> {
        return;
     }
 
-    // Cancel any ghost leftovers in the OS buffer
+    // Cancel any ghost leftovers in the OS buffer and ensure synthesis is unpaused
     window.speechSynthesis.cancel();
+    if (window.speechSynthesis.paused) {
+      window.speechSynthesis.resume();
+    }
 
     // Chunk text by sentences to provide faster pacing on slow machines
     // For WebSpeech, giving it massive blocks of text can sometimes freeze older Chrome instances

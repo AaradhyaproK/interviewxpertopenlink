@@ -15,6 +15,8 @@ import Logo from '../components/Logo';
 import LandingJobs from '../components/LandingJobs';
 import Navbar from '../components/landing/Navbar';
 import ProblemWeSolve from '../components/landing/ProblemWeSolve';
+import CandidateRecruiterShowcase from '../components/landing/CandidateRecruiterShowcase';
+import BusinessModelCalculator from '../components/landing/BusinessModelCalculator';
 import { collection, getDocs, query, where, orderBy, limit } from 'firebase/firestore';
 import { db } from '../services/firebase';
 
@@ -201,34 +203,61 @@ const Hero: React.FC = () => {
   const [isVideoOpen, setIsVideoOpen] = useState(false);
 
   return (
-    <div className="relative min-h-screen flex flex-col items-center pt-32 md:pt-40 overflow-hidden">
+    <div className="relative min-h-screen flex flex-col items-center pt-32 md:pt-36 overflow-hidden">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 w-full flex-1 flex flex-col justify-center">
         <div className="text-center max-w-4xl mx-auto">
+          
+          {/* Top Badge */}
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-600 dark:text-blue-400 font-bold text-xs uppercase tracking-widest mb-6 shadow-sm">
+            <Sparkles size={14} /> India's #1 AI Mock Interview & Recruiter Talent Suite
+          </div>
+
           <h1 className="text-4xl sm:text-5xl md:text-7xl font-extrabold text-slate-900 dark:text-white tracking-tight mb-6 md:mb-8 leading-tight">
             Master Your Next <br className="hidden sm:block" />
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary via-purple-600 to-primary bg-300% animate-pulse">Interview with AI</span>
           </h1>
-          <p className="mt-4 text-lg sm:text-xl md:text-2xl text-slate-600 dark:text-slate-300 mb-8 md:mb-12 max-w-3xl mx-auto leading-relaxed">
-            From building a perfect resume to mastering the interview. <br className="hidden md:block" />
-            Our fully automated AI platform prepares you for your dream job.
+          <p className="mt-4 text-lg sm:text-xl md:text-2xl text-slate-600 dark:text-slate-300 mb-8 md:mb-10 max-w-3xl mx-auto leading-relaxed">
+            From automated AI mock interviews and resume optimization to enterprise recruiter candidate screening and video transcripts.
           </p>
+
           <div className="flex flex-col sm:flex-row flex-wrap gap-4 justify-center px-4 sm:px-0">
             <Link to="/auth" className="px-8 py-4 bg-primary text-white rounded-full font-bold text-lg hover:bg-primary-dark transition-all shadow-lg shadow-blue-500/30 hover:shadow-blue-500/50 hover:-translate-y-1 flex items-center justify-center gap-3">
-              <Rocket size={20} /> Start Practicing Free
+              <Rocket size={20} /> Candidate Practice (Free)
+            </Link>
+            <Link to="/auth" className="px-8 py-4 bg-gradient-to-r from-emerald-600 to-teal-600 text-white rounded-full font-bold text-lg hover:from-emerald-700 hover:to-teal-700 transition-all shadow-lg shadow-emerald-500/30 hover:shadow-emerald-500/50 hover:-translate-y-1 flex items-center justify-center gap-2">
+              <Briefcase size={20} /> Recruiter Enterprise Suite
             </Link>
             <button
               onClick={() => setIsVideoOpen(true)}
-              className="px-8 py-4 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 rounded-full font-bold text-lg hover:bg-slate-50 dark:hover:bg-slate-700 transition-all hover:shadow-lg hover:-translate-y-1 flex items-center justify-center gap-2"
+              className="px-6 py-4 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 rounded-full font-bold text-lg hover:bg-slate-50 dark:hover:bg-slate-700 transition-all hover:shadow-lg hover:-translate-y-1 flex items-center justify-center gap-2"
             >
               <Video size={20} /> View Demo
             </button>
-            <Link to="/our-journey" className="px-8 py-4 bg-gradient-to-r from-purple-600/10 to-blue-600/10 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-500/30 rounded-full font-bold text-lg hover:bg-purple-500/20 transition-all hover:shadow-lg hover:shadow-purple-500/20 hover:-translate-y-1 flex items-center justify-center gap-2 backdrop-blur-sm">
-              <Sparkles size={20} /> Our Journey
-            </Link>
-            <Link to="/career-hub" className="px-8 py-4 bg-gradient-to-r from-emerald-600/10 to-teal-600/10 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-500/30 rounded-full font-bold text-lg hover:bg-emerald-500/20 transition-all hover:shadow-lg hover:shadow-emerald-500/20 hover:-translate-y-1 flex items-center justify-center gap-2 backdrop-blur-sm">
+            <Link to="/career-hub" className="px-6 py-4 bg-gradient-to-r from-purple-600/10 to-blue-600/10 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-500/30 rounded-full font-bold text-lg hover:bg-purple-500/20 transition-all hover:shadow-lg hover:shadow-purple-500/20 hover:-translate-y-1 flex items-center justify-center gap-2 backdrop-blur-sm">
               <Target size={20} /> Career Hub
             </Link>
           </div>
+
+          {/* Quick Metrics Ribbon */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-12 max-w-4xl mx-auto pt-6 border-t border-slate-200/60 dark:border-slate-800/60">
+            <div className="p-3 text-center">
+              <p className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white">50K+</p>
+              <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">Interviews Conducted</p>
+            </div>
+            <div className="p-3 text-center">
+              <p className="text-2xl sm:text-3xl font-black text-emerald-600 dark:text-emerald-400">94%</p>
+              <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">Resume ATS Pass Rate</p>
+            </div>
+            <div className="p-3 text-center">
+              <p className="text-2xl sm:text-3xl font-black text-purple-600 dark:text-purple-400">80%</p>
+              <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">Faster Recruiter Screening</p>
+            </div>
+            <div className="p-3 text-center">
+              <p className="text-2xl sm:text-3xl font-black text-blue-600 dark:text-blue-400">100%</p>
+              <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">AI Proctoring Integrity</p>
+            </div>
+          </div>
+
         </div>
       </div>
 
@@ -1090,11 +1119,13 @@ const Home: React.FC = () => {
           <NeuralBackground />
           <Hero />
           <ProblemWeSolve />
+          <CandidateRecruiterShowcase />
           <WhoItsFor />
           <LandingJobs />
           <Features />
           <HowItWorks />
           <Testimonials />
+          <BusinessModelCalculator />
           <Pricing />
           <FAQ openFaq={openFaq} toggleFaq={toggleFaq} />
           <FinalCTA />

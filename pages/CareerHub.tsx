@@ -5,6 +5,7 @@ import Navbar from '../components/landing/Navbar';
 
 import { useAnimatedText } from '../hooks/useAnimatedText';
 import mermaid from 'mermaid';
+import { bedrockChat } from '../services/bedrockService';
 import { collection, query, where, getDocs, orderBy, Timestamp } from 'firebase/firestore';
 import { db } from '../services/firebase';
 
@@ -255,7 +256,6 @@ const EmbeddedCareerBot: React.FC = () => {
     const [input, setInput] = useState('');
     const [loading, setLoading] = useState(false);
     const chatEndRef = useRef<HTMLDivElement>(null);
-    const XAI_KEY = import.meta.env.VITE_XAI_API_KEY;
 
     useEffect(() => {
         chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -271,34 +271,18 @@ const EmbeddedCareerBot: React.FC = () => {
         setLoading(true);
 
         try {
-            if (!XAI_KEY) throw new Error('XAI API key missing');
-
             const systemInstruction = `You are an expert, highly advanced Career Coach and Architect specialized in the Indian tech sector.
             CONTEXT: ALWAYS evaluate salaries in Indian Rupees (INR ₹) using LPA (Lakhs Per Annum) format. Reference Indian tech hubs (Bengaluru, Pune, Hyderabad, Gurgaon, Noida, Chennai, etc.) when discussing job markets limit generic western context.
             CRITICAL GEOMETRY INSTRUCTION: Whenever a user asks for a roadmap, timeline, architecture, map, flowchart, pathway, or implies they need a graphical sequence, you MUST embed a fully robust Mermaid.js graph. 
             Use the exact markdown block delimiter \`\`\`mermaid. 
             Keep text formatting slick and actionable. Never use asterisks for lists, format using numerical points organically. Evaluate the job market accurately and provide high-end, premium responses. Double check your mermaid formatting strings, never break graph logic. Prefer 'graph TD' or 'graph LR' syntax deeply.`;
 
-            // Build OpenAI-compatible history (Grok uses role: 'user'|'assistant')
             const history = newMessages.map(m => ({
                 role: m.role === 'model' ? 'assistant' as const : 'user' as const,
                 content: m.text
             }));
 
-            const res = await fetch('https://api.x.ai/v1/chat/completions', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${XAI_KEY}` },
-                body: JSON.stringify({
-                    model: 'grok-4-1-fast-non-reasoning',
-                    messages: [
-                        { role: 'system', content: systemInstruction },
-                        ...history
-                    ],
-                    temperature: 0.7,
-                }),
-            });
-            const aiData = await res.json();
-            const text = aiData.choices?.[0]?.message?.content || 'System anomaly: could not process request.';
+            const text = await bedrockChat(systemInstruction, history, 'default', 0.7) || 'System anomaly: could not process request.';
             setMessages([...newMessages, { id: (Date.now() + 1).toString(), role: 'model', text }]);
         } catch (error) {
             console.error("AI Generation Error", error);

@@ -7,28 +7,30 @@ import { useMessageBox } from '../components/MessageBox';
 import { ArrowLeft, Download, Share2, User, FileText, MessageSquare, Brain, Award, Shield, CheckCircle, AlertTriangle, Play, HelpCircle } from 'lucide-react';
 
 interface AttemptData {
-  jobId: string;
-  jobTitle: string;
-  jobDescription: string;
-  questions: string[];
-  answers: string[];
-  feedback: string;
-  score: string;
-  resumeScore: string;
-  qnaScore: string;
-  candidateInfo: {
-    name: string;
-    email: string;
-    phone: string;
-    experienceType: string;
-    totalExperienceYears: string;
-    currentLocation: string;
+  jobId?: string;
+  jobTitle?: string;
+  jobDescription?: string;
+  questions?: string[];
+  answers?: string[];
+  transcripts?: string[];
+  feedback?: string;
+  score?: string;
+  resumeScore?: string;
+  qnaScore?: string;
+  candidateInfo?: {
+    name?: string;
+    email?: string;
+    phone?: string;
+    experienceType?: string;
+    totalExperienceYears?: string;
+    currentLocation?: string;
   };
-  submittedAt: any;
+  submittedAt?: any;
   meta?: {
-    company: string;
-    difficulty: string;
+    company?: string;
+    difficulty?: string;
     isOneOnOne?: boolean;
+    role?: string;
   };
 }
 
@@ -280,7 +282,7 @@ const OneOnOneReport: React.FC = () => {
         y += 8;
 
         attempt.questions.forEach((q, idx) => {
-          const ans = attempt.answers[idx] || '(No response provided)';
+          const ans = (attempt.answers && attempt.answers[idx]) || (attempt.transcripts && attempt.transcripts[idx]) || '(No response provided)';
           
           const qLines = pdf.splitTextToSize(`Interviewer: ${q}`, contentW - 8);
           const aLines = pdf.splitTextToSize(`Candidate: ${ans}`, contentW - 8);
@@ -316,7 +318,7 @@ const OneOnOneReport: React.FC = () => {
         pdf.setFont('helvetica', 'normal');
         pdf.setFontSize(7.5);
         pdf.setTextColor(156, 163, 175);
-        pdf.text('Report powered by xAI Grok. Generated via InterviewXpert on behalf of candidate.', margin, pageH - 8);
+        pdf.text('Report powered by Bedrock AI. Generated via InterviewXpert on behalf of candidate.', margin, pageH - 8);
         pdf.text(`Page ${pg} of ${totalPages}`, pageW - margin, pageH - 8, { align: 'right' });
       }
 
@@ -402,7 +404,7 @@ const OneOnOneReport: React.FC = () => {
               {attempt.candidateInfo?.name || 'Candidate'}'s Performance
             </h1>
             <p className="text-sm text-gray-400 leading-normal max-w-2xl font-medium">
-              Simulated technical round for the role of <span className="text-white font-bold">{attempt.jobTitle}</span>. Difficulty level: <span className="text-white font-bold capitalize">{attempt.meta?.difficulty || 'Medium'}</span>. Checked and verified by xAI recruiter model.
+              Simulated technical round for the role of <span className="text-white font-bold">{attempt.jobTitle}</span>. Difficulty level: <span className="text-white font-bold capitalize">{attempt.meta?.difficulty || 'Medium'}</span>. Checked and verified by Bedrock AI recruiter model.
             </p>
             <div className="flex flex-wrap gap-4 text-xs text-gray-500 mt-2">
               <span className="flex items-center gap-1.5"><i className="fas fa-envelope"></i> {attempt.candidateInfo?.email || 'candidate@test.com'}</span>
@@ -500,7 +502,7 @@ const OneOnOneReport: React.FC = () => {
               </div>
               <h4 className="font-bold text-sm text-white">Authentic Assessment Shield</h4>
               <p className="text-[11px] text-gray-400 leading-relaxed max-w-[200px] mx-auto">
-                This simulated technical round was processed with zero video storage for 100% data privacy. Transcripts are analyzed using safe, secure Grok compliance logic.
+                This simulated technical round was processed with zero video storage for 100% data privacy. Transcripts are analyzed using safe, secure Amazon Bedrock compliance logic.
               </p>
             </div>
           </div>
@@ -518,7 +520,7 @@ const OneOnOneReport: React.FC = () => {
 
             <div className="space-y-6 max-h-[600px] overflow-y-auto pr-2 custom-scrollbar">
               {attempt.questions.map((q, idx) => {
-                const ans = attempt.answers[idx] || '(No speech answer provided)';
+                const ans = (attempt.answers && attempt.answers[idx]) || (attempt.transcripts && attempt.transcripts[idx]) || '(No speech answer provided)';
                 return (
                   <div key={idx} className="space-y-3">
                     <div className="flex items-center gap-2 text-xs font-bold text-primary uppercase tracking-widest">

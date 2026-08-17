@@ -3,11 +3,15 @@ import { addDoc, collection, serverTimestamp, Timestamp, doc, updateDoc, increme
 import { db } from '../services/firebase';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
+import { bedrockGenerateText } from '../services/bedrockService';
 import { useMessageBox } from '../components/MessageBox';
 
 
+import * as pdfjsLib from 'pdfjs-dist';
+pdfjsLib.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjsLib.version}/build/pdf.worker.min.mjs`;
+
 const MockInterviewSetup: React.FC = () => {
-  const { user } = useAuth();
+  const { user, userProfile } = useAuth();
   const navigate = useNavigate();
   const [jobTitle, setJobTitle] = useState('');
   const [jobDesc, setJobDesc] = useState('');
@@ -28,6 +32,54 @@ const MockInterviewSetup: React.FC = () => {
   const [oneOnOneRole, setOneOnOneRole] = useState('Software Engineer');
   const [oneOnOneDifficulty, setOneOnOneDifficulty] = useState<'Easy' | 'Medium' | 'Hard'>('Medium');
   const [oneOnOneDuration, setOneOnOneDuration] = useState(5);
+  const [oneOnOneResumeText, setOneOnOneResumeText] = useState('');
+  const [oneOnOneResumeFileName, setOneOnOneResumeFileName] = useState('');
+  const [oneOnOneJobDesc, setOneOnOneJobDesc] = useState('');
+  const [oneOnOneParsingResume, setOneOnOneParsingResume] = useState(false);
+
+  useEffect(() => {
+    if (userProfile?.resumeTextContent && !oneOnOneResumeText) {
+      setOneOnOneResumeText(userProfile.resumeTextContent);
+      setOneOnOneResumeFileName(userProfile.resumeFileName || 'Profile Resume');
+    }
+  }, [userProfile]);
+
+  const extractPdfText = async (file: File): Promise<string> => {
+    const arrayBuffer = await file.arrayBuffer();
+    const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+    let fullText = '';
+    for (let i = 1; i <= pdf.numPages; i++) {
+      const page = await pdf.getPage(i);
+      const textContent = await page.getTextContent();
+      const pageText = textContent.items.map((item: any) => item.str).join(' ');
+      fullText += pageText + '\n';
+    }
+    return fullText;
+  };
+
+  const handleResumeFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setOneOnOneParsingResume(true);
+    setOneOnOneResumeFileName(file.name);
+    try {
+      if (file.type === 'application/pdf' || file.name.endsWith('.pdf')) {
+        const text = await extractPdfText(file);
+        setOneOnOneResumeText(text);
+        messageBox.showSuccess(`Resume "${file.name}" extracted successfully!`);
+      } else {
+        const text = await file.text();
+        setOneOnOneResumeText(text);
+        messageBox.showSuccess(`Resume "${file.name}" loaded successfully!`);
+      }
+    } catch (err: any) {
+      console.error('Failed to parse resume:', err);
+      messageBox.showError('Could not parse resume file. Please upload a clear PDF or paste the text directly.');
+    } finally {
+      setOneOnOneParsingResume(false);
+    }
+  };
 
   const getOneOnOneCost = (duration: number) => {
     if (duration <= 3) return 10;
@@ -201,29 +253,18 @@ const MockInterviewSetup: React.FC = () => {
         return;
       }
 
-      const xaiKey = import.meta.env.VITE_XAI_API_KEY;
-      if (!xaiKey) throw new Error('XAI API key missing');
       const prompt = assessmentType === 'aptitude'
         ? `Generate ${numQuestions} ${difficulty}-level aptitude multiple choice questions about "${assessmentTopic}". Return ONLY a raw JSON array. Schema: [{"question": "string", "options": ["string", "string", "string", "string"], "correctIndex": number}]`
         : `Generate ${numQuestions} ${difficulty}-level coding problems about "${assessmentTopic}". Return ONLY a raw JSON array. Schema: [{"title": "string", "description": "string", "testCases": "string"}]`;
 
-      const res = await fetch('https://api.x.ai/v1/chat/completions', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${xaiKey}` },
-        body: JSON.stringify({
-          model: 'grok-4-1-fast-non-reasoning',
-          messages: [
-            { role: 'system', content: 'You are an expert assessment generator. Return only valid JSON arrays.' },
-            { role: 'user', content: prompt }
-          ],
-          response_format: { type: 'json_object' },
-          temperature: 0.6,
-        }),
-      });
-      const aiData = await res.json();
-      const rawText = aiData.choices?.[0]?.message?.content || '';
-      if (!rawText) throw new Error('No response from Grok');
-      // Grok may return {questions: [...]} or a bare array — handle both
+      const rawText = await bedrockGenerateText(
+        'You are an expert assessment generator. Return only valid JSON arrays.',
+        prompt,
+        'questions',
+        0.6
+      );
+      if (!rawText) throw new Error('No response from AI');
+      // Bedrock may return {questions: [...]} or a bare array — handle both
       let parsed = JSON.parse(rawText);
       const questions: any[] = Array.isArray(parsed) ? parsed : (parsed.questions || parsed.problems || Object.values(parsed)[0] as any[]);
       if (!Array.isArray(questions)) throw new Error('AI response is not an array');
@@ -282,15 +323,25 @@ const MockInterviewSetup: React.FC = () => {
       });
 
       const selectedCompany = oneOnOneCompany === 'Other' ? oneOnOneCustomCompany : oneOnOneCompany;
+      const resumeContent = oneOnOneResumeText || userProfile?.resumeTextContent || '';
+      const jobDescription = oneOnOneJobDesc || `This is a live, dynamic one-on-one conversation simulating a real technical interview at ${selectedCompany} for the role of ${oneOnOneRole}. Difficulty level: ${oneOnOneDifficulty}.`;
 
       // Pre-generate a single ID for job & interview documents
       const mockDocRef = doc(collection(db, 'jobs'));
       const mockId = mockDocRef.id;
 
+      // Store in sessionStorage for instant retrieval in meeting room
+      try {
+        sessionStorage.setItem(`one_on_one_resume_${mockId}`, resumeContent);
+        sessionStorage.setItem(`one_on_one_jd_${mockId}`, jobDescription);
+      } catch (e) {
+        console.warn('SessionStorage unavailable or full', e);
+      }
+
       // Create the mock job document
       await setDoc(mockDocRef, {
         title: `${selectedCompany} One-on-One Interview - ${oneOnOneRole}`,
-        description: `This is a live, dynamic one-on-one conversation simulating a real technical interview at ${selectedCompany} for the role of ${oneOnOneRole}. Difficulty level: ${oneOnOneDifficulty}.`,
+        description: jobDescription,
         companyName: selectedCompany,
         isMock: true,
         duration: oneOnOneDuration,
@@ -303,7 +354,9 @@ const MockInterviewSetup: React.FC = () => {
       // Create the corresponding interview document with the same ID
       await setDoc(doc(db, 'interviews', mockId), {
         title: `${selectedCompany} One-on-One Interview - ${oneOnOneRole}`,
-        description: `Conversational one-on-one session at ${selectedCompany} for ${oneOnOneRole}.`,
+        description: jobDescription,
+        resumeTextContent: resumeContent,
+        resumeFileName: oneOnOneResumeFileName || (resumeContent ? 'Attached Resume' : ''),
         duration: oneOnOneDuration,
         recruiterUID: null,
         isMock: true,
@@ -743,6 +796,66 @@ const MockInterviewSetup: React.FC = () => {
                         value={oneOnOneRole}
                         onChange={(e) => setOneOnOneRole(e.target.value)}
                         className="w-full pl-10 p-4 border border-gray-200 dark:border-white/10 rounded-xl bg-gray-50 dark:bg-[#050505] dark:text-white focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Resume Attachment for One-on-One */}
+                  <div className="p-4 rounded-xl border border-dashed border-gray-300 dark:border-white/10 bg-gray-50/50 dark:bg-white/[0.02]">
+                    <div className="flex items-center justify-between mb-2">
+                      <label className="block text-sm font-bold text-gray-700 dark:text-gray-300">
+                        <i className="fas fa-file-pdf mr-2 text-primary"></i> Candidate Resume (Optional but Recommended)
+                      </label>
+                      {oneOnOneResumeText && (
+                        <span className="text-xs text-green-500 font-semibold bg-green-500/10 px-2 py-0.5 rounded-full flex items-center gap-1">
+                          <i className="fas fa-check-circle"></i> Resume Attached ({oneOnOneResumeText.trim().split(/\s+/).length} words)
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mb-3">
+                      The AI interviewer will analyze your resume to ask personalized, deep cross-questions based on your actual projects and skills.
+                    </p>
+
+                    <div className="flex flex-col sm:flex-row gap-3 items-center">
+                      <label className="flex-1 w-full flex items-center justify-center gap-2 px-4 py-3 border border-gray-200 dark:border-white/10 rounded-xl bg-white dark:bg-black/30 hover:bg-gray-50 dark:hover:bg-white/5 cursor-pointer transition-all text-xs font-semibold text-gray-700 dark:text-gray-200">
+                        <i className="fas fa-cloud-upload-alt text-primary"></i>
+                        <span>{oneOnOneParsingResume ? 'Parsing PDF...' : oneOnOneResumeFileName ? `Change PDF (${oneOnOneResumeFileName})` : 'Upload Resume PDF'}</span>
+                        <input
+                          type="file"
+                          accept=".pdf,.txt,.doc,.docx"
+                          className="hidden"
+                          onChange={handleResumeFileChange}
+                          disabled={oneOnOneParsingResume}
+                        />
+                      </label>
+                      {userProfile?.resumeTextContent && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setOneOnOneResumeText(userProfile.resumeTextContent || '');
+                            setOneOnOneResumeFileName(userProfile.resumeFileName || 'Profile Resume');
+                            messageBox.showSuccess('Profile resume loaded!');
+                          }}
+                          className="w-full sm:w-auto px-4 py-3 bg-primary/10 hover:bg-primary/20 text-primary border border-primary/20 rounded-xl text-xs font-bold transition-all whitespace-nowrap"
+                        >
+                          Use Profile Resume
+                        </button>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Optional Job Description / Topics */}
+                  <div>
+                    <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">
+                      Specific Job Description / Focus Areas (Optional)
+                    </label>
+                    <div className="relative">
+                      <textarea
+                        rows={2}
+                        placeholder="e.g. Focus on React, System Design, GraphQL, Distributed Caching, CI/CD pipelines..."
+                        value={oneOnOneJobDesc}
+                        onChange={(e) => setOneOnOneJobDesc(e.target.value)}
+                        className="w-full p-4 border border-gray-200 dark:border-white/10 rounded-xl bg-gray-50 dark:bg-[#050505] dark:text-white focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all resize-none text-sm"
                       />
                     </div>
                   </div>

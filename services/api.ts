@@ -1,4 +1,9 @@
-import { grokGenerateWithResume, grokGenerateText, BUDGET } from "./grokService";
+import { bedrockGenerateWithResume, bedrockGenerateText } from "./bedrockService";
+
+const BUDGET = {
+  QUESTIONS: 500,
+  FEEDBACK: 1200,
+};
 
 // Config Constants (loaded from environment variables)
 const ASSEMBLYAI_API_KEY = import.meta.env.VITE_ASSEMBLYAI_API_KEY;
@@ -102,11 +107,11 @@ How to generate questions:
 6. The candidate should feel like you have actually read their resume.`;
 
   try {
-    const text = await grokGenerateWithResume(sys, prompt, base64Resume, mimeType, 0.5, BUDGET.QUESTIONS, resumeTextContent);
+    const text = await bedrockGenerateWithResume(sys, prompt, base64Resume, mimeType, 'questions', 0.5, BUDGET.QUESTIONS, resumeTextContent);
     const clean = text.replace(/^\s*[\d\.\-\*\+]+\s*/gm, '').replace(/\*\*/g, '').trim();
     return clean.split('\n').map(q => q.trim()).filter(q => q && q.length > 5).slice(0, numQuestions);
   } catch (error: any) {
-    console.error("Grok Generate Questions Error:", error);
+    console.error("Bedrock Generate Questions Error:", error);
     throw new Error(error.message || "Failed to generate questions");
   }
 };
@@ -201,10 +206,10 @@ Q&A Score: [SCORE]/100
 `;
 
   try {
-    const result = await grokGenerateWithResume(sys, feedbackPrompt, base64Resume, mimeType, 0.2, BUDGET.FEEDBACK, resumeTextContent);
+    const result = await bedrockGenerateWithResume(sys, feedbackPrompt, base64Resume, mimeType, 'report', 0.2, BUDGET.FEEDBACK, resumeTextContent);
     return result || "AI feedback generation failed.";
   } catch (error: any) {
-    console.error("Grok Feedback Error:", error);
+    console.error("Bedrock Feedback Error:", error);
     throw new Error(error.message);
   }
 };
@@ -220,12 +225,12 @@ export const evaluateResumeMatch = async (
   const prompt = `Role: ${jobTitle}\nJD: ${jd}\n\nResume:\n${truncate(resumeText, RESUME_MAX_CHARS)}\n\nOutput ONLY an integer number between 0 and 100 representing the match percentage (e.g. 85). Do not output any other text or percentage signs.`;
 
   try {
-    const result = await grokGenerateText(sys, prompt, 0.1, 10);
+    const result = await bedrockGenerateText(sys, prompt, 'default', 0.1, 10);
     const score = parseInt(result.trim(), 10);
     if (isNaN(score)) return "N/A";
     return score.toString();
   } catch (error: any) {
-    console.error("Grok Resume Match Error:", error);
+    console.error("Bedrock Resume Match Error:", error);
     return "N/A";
   }
 };
@@ -242,7 +247,7 @@ export const evaluateResumeForMultipleJobs = async (
   const prompt = `Jobs:\n${jobsContext}\n\nResume:\n${truncate(resumeText, RESUME_MAX_CHARS)}\n\nOutput strictly JSON mapping Job ID to percentage match. Example: {"job123": 85, "job456": 40}`;
 
   try {
-    const result = await grokGenerateText(sys, prompt, 0.1, 50 + jobs.length * 20);
+    const result = await bedrockGenerateText(sys, prompt, 'default', 0.1, 50 + jobs.length * 20);
     // Remove any markdown block syntax if the AI mistakenly includes it
     const cleanResult = result.replace(/```json/g, '').replace(/```/g, '').trim();
     const scores = JSON.parse(cleanResult);
@@ -254,7 +259,7 @@ export const evaluateResumeForMultipleJobs = async (
     }
     return formattedScores;
   } catch (error: any) {
-    console.error("Grok Multi-Job Resume Match Error:", error);
+    console.error("Bedrock Multi-Job Resume Match Error:", error);
     return {};
   }
 };

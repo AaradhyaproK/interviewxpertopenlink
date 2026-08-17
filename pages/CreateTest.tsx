@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { addDoc, collection, serverTimestamp, query, getDocs, orderBy } from 'firebase/firestore';
 import { db, auth } from '../services/firebase';
 import { useNavigate } from 'react-router-dom';
+import { bedrockGenerateText } from '../services/bedrockService';
 
 import { ArrowLeft, Plus, Save, Trash, FileCode, FileText, Settings, Sparkles, Link as LinkIcon } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
@@ -62,8 +63,6 @@ const CreateTest: React.FC = () => {
     if (!aiPrompt) return;
     setLoading(true);
     try {
-      const xaiKey = import.meta.env.VITE_XAI_API_KEY;
-      if (!xaiKey) throw new Error('XAI API key missing');
       let promptStr = '';
       if (type === 'aptitude') {
         promptStr = `Generate ${numQuestions} aptitude multiple choice questions. YOU MUST WRITE ALL QUESTIONS AND OPTIONS ENTIRELY IN THE ${language.toUpperCase()} LANGUAGE! Do not use English if another language is selected.`;
@@ -83,22 +82,13 @@ const CreateTest: React.FC = () => {
         promptStr += `\n\nCRITICAL: You must return a JSON object containing a "problems" array. All text values inside the JSON MUST be in ${language}. Schema: { "problems": [{"title": "string (in ${language})", "description": "string (in ${language})", "testCases": "string"}] }`;
       }
 
-      const res = await fetch('https://api.x.ai/v1/chat/completions', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${xaiKey}` },
-        body: JSON.stringify({
-          model: 'grok-4-1-fast-non-reasoning',
-          messages: [
-            { role: 'system', content: `You are an expert assessment generator. You MUST output all questions strictly in the ${language.toUpperCase()} language. Return only valid JSON.` },
-            { role: 'user', content: promptStr }
-          ],
-          response_format: { type: 'json_object' },
-          temperature: 0.6,
-        }),
-      });
-      const aiData = await res.json();
-      const rawText = aiData.choices?.[0]?.message?.content || '';
-      if (!rawText) throw new Error('No response from Grok');
+      const rawText = await bedrockGenerateText(
+        `You are an expert assessment generator. You MUST output all questions strictly in the ${language.toUpperCase()} language. Return only valid JSON.`,
+        promptStr,
+        'questions',
+        0.6
+      );
+      if (!rawText) throw new Error('No response from AI');
       let parsed = JSON.parse(rawText);
       let generated: any[] = Array.isArray(parsed) ? parsed : (parsed.questions || parsed.problems || Object.values(parsed)[0] as any[]);
       
