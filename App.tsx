@@ -1,5 +1,5 @@
 import React from 'react';
-import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { ThemeProvider } from './context/ThemeContext';
 import { MessageBoxProvider } from './components/MessageBox';
@@ -58,6 +58,22 @@ import WiproMockInterview from './pages/WiproMockInterview';
 import CodingInterviewPractice from './pages/CodingInterviewPractice';
 import AptitudeTestPractice from './pages/AptitudeTestPractice';
 
+const HashFallbackHandler: React.FC = () => {
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  React.useEffect(() => {
+    if (typeof window !== 'undefined' && window.location.hash && window.location.hash.startsWith('#/')) {
+      const cleanPath = window.location.hash.slice(1);
+      if (cleanPath) {
+        navigate(cleanPath, { replace: true });
+      }
+    }
+  }, [navigate, location]);
+
+  return null;
+};
+
 const ProtectedRoute: React.FC<{ children: React.ReactNode; role?: 'recruiter' | 'candidate' | 'admin' }> = ({ children, role }) => {
   const { user, userProfile, loading } = useAuth();
 
@@ -109,7 +125,8 @@ const App: React.FC = () => {
   return (
     <MessageBoxProvider>
       <AuthProvider>
-        <HashRouter>
+        <BrowserRouter>
+          <HashFallbackHandler />
           <Routes>
             {/* Public Routes (No Layout) */}
             <Route path="/" element={<HomeRoute />} />
@@ -280,7 +297,7 @@ const App: React.FC = () => {
               </Layout>
             } />
           </Routes>
-        </HashRouter>
+        </BrowserRouter>
       </AuthProvider>
     </MessageBoxProvider>
   );

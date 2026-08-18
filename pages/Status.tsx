@@ -235,7 +235,7 @@ const StatusPage: React.FC = () => {
         {/* Header */}
         <div className="text-center mb-8 sm:mb-10">
           <a
-            href="#/"
+            href="/"
             className="inline-flex items-center gap-2 text-slate-400 hover:text-white text-sm mb-6 sm:mb-8 transition-colors"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
@@ -327,7 +327,7 @@ const StatusPage: React.FC = () => {
           )}
           <p className="text-xs text-slate-600 mt-3">
             Powered by{' '}
-            <a href="#/" className="text-blue-400/80 hover:text-blue-400 transition-colors">
+            <a href="/" className="text-blue-400/80 hover:text-blue-400 transition-colors">
               InterviewXpert
             </a>
           </p>

@@ -4,9 +4,10 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>AI Mock Interview Practice Online | InterviewXpert</title>
+  <title>AI Mock Interview & Coding Practice for TCS, Wipro, Infosys | InterviewXpert</title>
+  <meta name="title" content="AI Mock Interview & Coding Practice for TCS, Wipro, Infosys | InterviewXpert" />
   <meta name="description"
-    content="Practice live 1-on-1 AI mock interviews, coding tests & aptitude rounds with instant feedback. Free trial. Built in India for TCS, Wipro, Infosys interviews." />
+    content="Practice live 1-on-1 AI mock interviews, coding challenges & aptitude tests with instant grading. Built for TCS, Wipro, Infosys & freshers prep. Start free today." />
   <meta name="keywords"
     content="AI mock interview practice, online mock interview India, TCS NQT mock interview, Infosys mock interview prep, Wipro elite interview practice, coding interview practice with AI feedback, free mock interview online India, technical interview preparation platform, interviewxpert, SNAB Innovations" />
   <meta name="author" content="InterviewXpert (SNAB Innovations)" />
@@ -17,8 +18,8 @@
   <!-- Open Graph / Facebook / LinkedIn Metadata -->
   <meta property="og:locale" content="en_US" />
   <meta property="og:type" content="website" />
-  <meta property="og:title" content="AI Mock Interview Practice Online | InterviewXpert" />
-  <meta property="og:description" content="Practice live 1-on-1 AI mock interviews, coding tests & aptitude rounds with instant feedback. Free trial. Built in India for TCS, Wipro, Infosys interviews." />
+  <meta property="og:title" content="AI Mock Interview & Coding Practice for TCS, Wipro, Infosys | InterviewXpert" />
+  <meta property="og:description" content="Practice live 1-on-1 AI mock interviews, coding challenges & aptitude tests with instant grading. Built for TCS, Wipro, Infosys & freshers prep. Start free today." />
   <meta property="og:url" content="https://www.interviewxpert.in/" />
   <meta property="og:site_name" content="InterviewXpert" />
   <meta property="og:image" content="https://www.interviewxpert.in/logo-black.png" />
@@ -28,12 +29,30 @@
 
   <!-- Twitter Card Metadata -->
   <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:title" content="AI Mock Interview Practice Online | InterviewXpert" />
-  <meta name="twitter:description" content="Practice live 1-on-1 AI mock interviews, coding tests & aptitude rounds with instant feedback. Free trial. Built in India for TCS, Wipro, Infosys interviews." />
+  <meta name="twitter:title" content="AI Mock Interview & Coding Practice for TCS, Wipro, Infosys | InterviewXpert" />
+  <meta name="twitter:description" content="Live AI mock interviews, coding challenges & aptitude tests with instant scoring. Trusted by thousands of Indian candidates prepping for tech interviews." />
   <meta name="twitter:image" content="https://www.interviewxpert.in/logo-black.png" />
 
   <!-- Structured Data (JSON-LD) for Search Engines -->
-  <!-- 1. SoftwareApplication & WebApplication Schema -->
+  <!-- 1. WebSite Schema with SearchAction -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "name": "InterviewXpert",
+    "url": "https://www.interviewxpert.in/",
+    "potentialAction": {
+      "@type": "SearchAction",
+      "target": {
+        "@type": "EntryPoint",
+        "urlTemplate": "https://www.interviewxpert.in/blogs?search={search_term_string}"
+      },
+      "query-input": "required name=search_term_string"
+    }
+  }
+  </script>
+
+  <!-- 2. SoftwareApplication & WebApplication Schema -->
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
@@ -265,12 +284,17 @@
     </main>
   </div>
   <div id="portal-root"></div>
-  <noscript>
-    <div style="padding: 20px; text-align: center; font-family: sans-serif;">
-      <h2>JavaScript Required</h2>
-      <p>Please enable JavaScript in your browser to experience full real-time AI mock interviews, coding tests, and candidate scorecards.</p>
-    </div>
-  </noscript>
+  <script>
+    // Smooth dual-URL support: If URL contains hash routing (e.g. /#/auth), transparently normalize to clean path (/auth)
+    (function () {
+      var hash = window.location.hash;
+      if (hash && hash.indexOf('#/') === 0) {
+        var cleanPath = hash.substring(1);
+        var search = window.location.search || '';
+        window.history.replaceState(null, '', cleanPath + (cleanPath.indexOf('?') === -1 ? search : ''));
+      }
+    })();
+  </script>
   <script type="module" src="/index.tsx"></script>
 </body>
 

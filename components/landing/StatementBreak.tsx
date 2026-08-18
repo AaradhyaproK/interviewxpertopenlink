@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { motion, useInView, animate } from 'framer-motion';
-import { Trophy, CheckCircle, Zap, Users, Sparkles, Award } from 'lucide-react';
+import { Trophy, CheckCircle, Zap, Users, Sparkles, Award, ShieldCheck } from 'lucide-react';
 
 interface AnimatedCounterProps {
   value: number;
@@ -131,31 +131,45 @@ export const StatementBreak: React.FC = () => {
           ))}
         </div>
 
-        {/* Supported by Yi Trust Banner */}
+        {/* Supported by Yi National Recognition Banner */}
         <motion.div 
           initial={{ opacity: 0, y: 15 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6, delay: 0.35 }}
-          className="mt-8 p-4 sm:p-5 rounded-[22px] bg-[#EFF6FF]/60 border border-[#BFDBFE] flex flex-col sm:flex-row items-center justify-between gap-4 text-center sm:text-left"
+          className="mt-10 p-6 sm:p-7 rounded-[26px] bg-gradient-to-r from-[#F8FAFC] via-white to-[#F8FAFC] border border-[#E2E8F0] shadow-[0_2px_14px_rgba(15,23,42,0.03)] flex flex-col md:flex-row items-start md:items-center justify-between gap-6"
         >
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-white border border-[#BFDBFE] shadow-sm flex items-center justify-center text-[#2563EB] font-bold font-mono text-sm flex-shrink-0">
-              Yi
+          <div className="flex items-start sm:items-center gap-4">
+            <div className="w-12 h-12 rounded-2xl bg-[#EFF6FF] border border-[#BFDBFE] flex items-center justify-center text-[#2563EB] flex-shrink-0 shadow-sm">
+              <Award className="w-6 h-6 text-[#2563EB]" strokeWidth={1.75} />
             </div>
             <div>
-              <h4 className="font-display font-bold text-sm text-[#0F172A]">
-                Supported by Young Indians (Yi) & Winner of Yi IDS 6.0
+              <div className="flex flex-wrap items-center gap-2 mb-1">
+                <span className="text-[10px] font-mono font-semibold uppercase tracking-wider px-2 py-0.5 rounded-md bg-[#EFF6FF] text-[#1D4ED8] border border-[#BFDBFE]">
+                  National Recognition
+                </span>
+                <span className="text-xs text-[#64748B] font-sans">
+                  Young Indians (Yi) • Confederation of Indian Industry (CII)
+                </span>
+              </div>
+              <h4 className="font-display font-bold text-base sm:text-lg text-[#0F172A] tracking-tight">
+                Winner — Innovation & Design Summit 6.0
               </h4>
-              <p className="text-xs text-[#64748B] font-sans">
-                Recognized at the National Innovation & Design Summit 6.0 for breakthrough AI interview infrastructure.
+              <p className="text-xs sm:text-sm text-[#64748B] font-sans mt-0.5 leading-relaxed">
+                Awarded for technical architecture excellence and ethical AI implementation in automated interview simulation and workforce readiness.
               </p>
             </div>
           </div>
 
-          <span className="px-4 py-1.5 rounded-full bg-white border border-[#BFDBFE] text-xs font-mono font-bold text-[#2563EB] shadow-sm whitespace-nowrap">
-            🏆 Winner Yi IDS 6.0
-          </span>
+          <div className="flex items-center gap-2.5 sm:self-center self-start flex-shrink-0">
+            <div className="px-3.5 py-1.5 rounded-xl bg-white border border-[#E2E8F0] shadow-sm flex items-center gap-1.5 text-xs font-semibold text-[#0F172A] font-sans">
+              <ShieldCheck className="w-4 h-4 text-emerald-600" />
+              <span>Jury Calibrated</span>
+            </div>
+            <div className="px-3.5 py-1.5 rounded-xl bg-[#2563EB] text-white shadow-sm flex items-center gap-1.5 text-xs font-semibold font-sans">
+              <span>Yi IDS 6.0 Winner</span>
+            </div>
+          </div>
         </motion.div>
 
       </div>
